@@ -3,7 +3,7 @@ import { AiDemoRunResponse, AiDemoWorkflow, MiniProgramSession } from "../types/
 
 export function fetchAiDemoWorkflows(session: MiniProgramSession) {
   return request<AiDemoWorkflow[]>({
-    path: "/api/v1/ai-demo/workflows",
+    path: "/api/v1/client/ai/workflows",
     accessToken: session.accessToken
   });
 }

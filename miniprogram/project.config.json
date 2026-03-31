@@ -1,5 +1,5 @@
 {
-  "miniprogramRoot": "./",
+  "miniprogramRoot": "./dist",
   "compileType": "miniprogram",
   "projectname": "AI-wardrobe",
   "description": "Taro scaffold for AI Wardrobe mini program",

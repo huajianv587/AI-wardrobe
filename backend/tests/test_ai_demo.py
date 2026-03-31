@@ -116,3 +116,12 @@ def test_mini_program_account_endpoint(client):
     assert response.status_code == 200
     assert payload["user_email"] == "tester@ai-wardrobe.dev"
     assert payload["mode"] == "local-first"
+
+
+def test_client_bootstrap_endpoint(client):
+    response = client.get("/api/v1/client/bootstrap")
+    payload = response.json()
+
+    assert response.status_code == 200
+    assert payload["user_email"] == "tester@ai-wardrobe.dev"
+    assert payload["shortcuts"]

@@ -1,0 +1,28 @@
+{
+  "name": "ai-wardrobe-miniprogram",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev:weapp": "taro build --type weapp --watch",
+    "build:weapp": "taro build --type weapp"
+  },
+  "dependencies": {
+    "@tarojs/components": "4.1.11",
+    "@tarojs/react": "4.1.11",
+    "@tarojs/taro": "4.1.11",
+    "@tarojs/webpack5-runner": "^4.1.11",
+    "react": "18.3.1"
+  },
+  "devDependencies": {
+    "@babel/core": "7.28.4",
+    "@babel/preset-react": "7.28.5",
+    "@tarojs/cli": "4.1.11",
+    "@tarojs/plugin-framework-react": "4.1.11",
+    "@tarojs/plugin-platform-weapp": "4.1.11",
+    "@tarojs/service": "4.1.11",
+    "@tarojs/webpack5-runner": "4.1.11",
+    "@types/react": "18.3.28",
+    "babel-preset-taro": "4.1.11",
+    "typescript": "5.5.4"
+  }
+}

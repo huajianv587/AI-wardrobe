@@ -62,6 +62,19 @@ export function categoryToSlot(category: WardrobeCategory): WardrobeSlot {
   return "accessory";
 }
 
+function deriveDefaultTryOnIds(items: WardrobeItem[]) {
+  const preferredSlots: WardrobeSlot[] = ["top", "bottom", "shoes"];
+  const orderedIds = preferredSlots
+    .map((slot) => items.find((item) => item.slot === slot)?.id ?? null)
+    .filter((value): value is number => value !== null);
+
+  if (orderedIds.length > 0) {
+    return orderedIds;
+  }
+
+  return items.slice(0, 3).map((item) => item.id);
+}
+
 export const seedWardrobeItems: WardrobeItem[] = [
   { id: 1, name: "Ivory Fluid Shirt", category: "tops", slot: "top", color: "Ivory", colorHex: "#f7f3e8", brand: "Aerial", tags: ["clean", "soft-formal", "layering"], occasions: ["office", "meeting", "date"], note: "Gentle drape that works for polished weekday looks.", imageLabel: "Silk shirt" },
   { id: 2, name: "Mint Cloud Knit", category: "tops", slot: "top", color: "Mint", colorHex: "#c9eddc", brand: "Morning Dew", tags: ["soft", "cozy", "weekend"], occasions: ["weekend", "travel", "coffee"], note: "A soft knit for relaxed layering and spring color balance.", imageLabel: "Soft knit" },
@@ -94,27 +107,54 @@ interface WardrobeStore {
 }
 
 export const useWardrobeStore = create<WardrobeStore>((set) => ({
-  items: seedWardrobeItems,
-  selectedItemId: seedWardrobeItems[0]?.id ?? null,
+  items: [],
+  selectedItemId: null,
   selectedCategory: "all",
   searchQuery: "",
-  selectedTryOnIds: [1, 3, 7],
+  selectedTryOnIds: [],
   activePrompt: "Office meeting tomorrow, soft but professional",
   setCategory: (category) => set({ selectedCategory: category }),
   setSearchQuery: (value) => set({ searchQuery: value }),
   setSelectedItemId: (itemId) => set({ selectedItemId: itemId }),
   toggleTryOnItem: (itemId) => set((state) => ({ selectedTryOnIds: state.selectedTryOnIds.includes(itemId) ? state.selectedTryOnIds.filter((id) => id !== itemId) : [...state.selectedTryOnIds, itemId] })),
-  resetTryOn: () => set({ selectedTryOnIds: [1, 3, 7] }),
+  resetTryOn: () => set((state) => ({ selectedTryOnIds: deriveDefaultTryOnIds(state.items) })),
   setActivePrompt: (prompt) => set({ activePrompt: prompt }),
-  replaceItems: (items) => set((state) => ({ items, selectedItemId: items.some((item) => item.id === state.selectedItemId) ? state.selectedItemId : (items[0]?.id ?? null) })),
-  prependItem: (item) => set((state) => ({ items: [item, ...state.items.filter((current) => current.id !== item.id)], selectedItemId: item.id })),
-  upsertItem: (item) => set((state) => ({ items: state.items.some((current) => current.id === item.id) ? state.items.map((current) => current.id === item.id ? item : current) : [item, ...state.items], selectedItemId: item.id })),
+  replaceItems: (items) => set((state) => {
+    const preservedTryOnIds = state.selectedTryOnIds.filter((id) => items.some((item) => item.id === id));
+
+    return {
+      items,
+      selectedItemId: items.some((item) => item.id === state.selectedItemId) ? state.selectedItemId : (items[0]?.id ?? null),
+      selectedTryOnIds: preservedTryOnIds.length > 0 ? preservedTryOnIds : deriveDefaultTryOnIds(items)
+    };
+  }),
+  prependItem: (item) => set((state) => {
+    const items = [item, ...state.items.filter((current) => current.id !== item.id)];
+    return {
+      items,
+      selectedItemId: item.id,
+      selectedTryOnIds: state.selectedTryOnIds.length > 0 ? state.selectedTryOnIds : deriveDefaultTryOnIds(items)
+    };
+  }),
+  upsertItem: (item) => set((state) => {
+    const items = state.items.some((current) => current.id === item.id)
+      ? state.items.map((current) => current.id === item.id ? item : current)
+      : [item, ...state.items];
+    const preservedTryOnIds = state.selectedTryOnIds.filter((id) => items.some((current) => current.id === id));
+
+    return {
+      items,
+      selectedItemId: item.id,
+      selectedTryOnIds: preservedTryOnIds.length > 0 ? preservedTryOnIds : deriveDefaultTryOnIds(items)
+    };
+  }),
   removeItem: (itemId) => set((state) => {
     const nextItems = state.items.filter((item) => item.id !== itemId);
+    const preservedTryOnIds = state.selectedTryOnIds.filter((id) => id !== itemId);
     return {
       items: nextItems,
       selectedItemId: state.selectedItemId === itemId ? (nextItems[0]?.id ?? null) : state.selectedItemId,
-      selectedTryOnIds: state.selectedTryOnIds.filter((id) => id !== itemId)
+      selectedTryOnIds: preservedTryOnIds.length > 0 ? preservedTryOnIds : deriveDefaultTryOnIds(nextItems)
     };
   })
 }));

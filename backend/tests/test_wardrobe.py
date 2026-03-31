@@ -2,21 +2,31 @@ import io
 
 import httpx
 
+from app.api.deps import get_current_user
+from app.main import app
+from app.models.user import User
+from app.models.wardrobe import ClothingItem
 from core.config import settings
 
 
-def test_demo_login(client):
-    response = client.post("/api/v1/auth/demo-login")
-    payload = response.json()
+def test_wardrobe_requires_auth_header(client):
+    override = app.dependency_overrides.pop(get_current_user, None)
 
-    assert response.status_code == 200
-    assert payload["user"]["email"] == "demo@ai-wardrobe.dev"
+    try:
+        response = client.get("/api/v1/wardrobe/items")
+        payload = response.json()
+
+        assert response.status_code == 401
+        assert payload["detail"] == "Authentication is required."
+    finally:
+        if override is not None:
+            app.dependency_overrides[get_current_user] = override
 
 
 def test_wardrobe_crud_and_asset_flow(client):
     list_response = client.get("/api/v1/wardrobe/items")
     assert list_response.status_code == 200
-    assert len(list_response.json()) >= 1
+    assert list_response.json() == []
 
     create_response = client.post(
         "/api/v1/wardrobe/items",
@@ -37,6 +47,7 @@ def test_wardrobe_crud_and_asset_flow(client):
     created = create_response.json()
     assert create_response.status_code == 200
     assert created["name"] == "Graphite Cropped Jacket"
+    assert created["user_id"] is not None
 
     upload_response = client.post(
         f"/api/v1/wardrobe/items/{created['id']}/upload-image",
@@ -86,6 +97,43 @@ def test_wardrobe_crud_and_asset_flow(client):
 
     missing_response = client.get(f"/api/v1/wardrobe/items/{created['id']}")
     assert missing_response.status_code == 404
+
+
+def test_wardrobe_isolation_hides_other_users_items(client):
+    with client.testing_session_local() as db:
+        other_user = User(
+            email="other-user@ai-wardrobe.dev",
+            supabase_user_id="supabase-user-test-999",
+            password_hash="supabase-managed",
+        )
+        db.add(other_user)
+        db.commit()
+        db.refresh(other_user)
+
+        hidden_item = ClothingItem(
+            user_id=other_user.id,
+            name="Private User Coat",
+            category="outerwear",
+            slot="outerwear",
+            color="Black",
+            brand="Isolation Test",
+            image_url=None,
+            processed_image_url=None,
+            tags=["private"],
+            occasions=["city"],
+            style_notes="Only visible to the authenticated owner.",
+        )
+        db.add(hidden_item)
+        db.commit()
+        db.refresh(hidden_item)
+        hidden_item_id = hidden_item.id
+
+    list_response = client.get("/api/v1/wardrobe/items")
+    assert list_response.status_code == 200
+    assert all(item["id"] != hidden_item_id for item in list_response.json())
+
+    detail_response = client.get(f"/api/v1/wardrobe/items/{hidden_item_id}")
+    assert detail_response.status_code == 404
 
 
 def test_remote_ai_cleanup_path(client, monkeypatch):

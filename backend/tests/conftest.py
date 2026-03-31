@@ -1,10 +1,11 @@
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
-from app.api.deps import get_db
+from app.api.deps import get_current_user, get_db
 from app.main import app
+from app.models.user import User
 from core.config import settings
 from db.base import Base
 from services import supabase_service
@@ -34,7 +35,14 @@ def client(tmp_path):
     Base.metadata.create_all(bind=engine)
 
     with testing_session_local() as db:
+        local_user = User(
+            email="tester@ai-wardrobe.dev",
+            supabase_user_id="supabase-user-test-001",
+            password_hash="supabase-managed",
+        )
+        db.add(local_user)
         seed_demo_data(db)
+        db.commit()
 
     def override_get_db():
         db = testing_session_local()
@@ -43,9 +51,20 @@ def client(tmp_path):
         finally:
             db.close()
 
+    def override_get_current_user():
+        db = testing_session_local()
+        try:
+            user = db.scalar(select(User).where(User.email == "tester@ai-wardrobe.dev"))
+            assert user is not None
+            return user
+        finally:
+            db.close()
+
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_current_user] = override_get_current_user
 
     with TestClient(app) as test_client:
+        test_client.testing_session_local = testing_session_local
         yield test_client
 
     app.dependency_overrides.clear()

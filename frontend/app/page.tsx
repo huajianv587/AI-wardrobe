@@ -6,7 +6,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 const capabilityCards = [
   { title: "Digital Wardrobe", description: "Categorize clothes, keep searchable metadata, and prepare each item for styling workflows.", accent: "var(--accent-soft)" },
   { title: "2.5D Try-On", description: "Preview layered looks with a lightweight avatar stage before high-cost image generation is wired in.", accent: "var(--accent-lilac)" },
-  { title: "AI Outfit Agent", description: "Router 鈫?Retriever 鈫?Stylist 鈫?Verifier mirrors the LangGraph workflow from your product design.", accent: "var(--accent-mint)" }
+  { title: "AI Outfit Agent", description: "Router -> Retriever -> Stylist -> Verifier mirrors the LangGraph workflow from your product design.", accent: "var(--accent-mint)" }
 ];
 
 const quickLinks = [
@@ -79,7 +79,7 @@ export default function HomePage() {
         <article className="section-card rounded-[32px] p-6">
           <SectionHeading eyebrow="Phase 1" title="What we can build next" description="The codebase is prepared for the first end-to-end loop: add an item, browse the wardrobe, request a recommendation, and preview a look." />
           <div className="space-y-3">
-            {["Connect login page to Supabase Auth", "Upload clothing photos and call image cleanup service", "Persist wardrobe CRUD into SQLite and sync selectively", "Call backend recommendation endpoint from the styling workspace", "Replace heuristic output with your trained checkpoint", "Add generated try-on images beside the avatar stage"].map((step) => (
+            {["Refine Supabase Auth and account flows", "Upload clothing photos and call image cleanup service", "Persist wardrobe CRUD into SQLite and sync selectively", "Improve recommendation output with your trained checkpoint", "Add generated try-on images beside the avatar stage", "Expand user-level sync, avatar ownership, and mini-program support"].map((step) => (
               <div key={step} className="flex items-center justify-between rounded-[22px] border border-[var(--line)] bg-white/80 px-4 py-4">
                 <span className="text-sm text-[var(--ink)]">{step}</span>
                 <ArrowRight className="size-4 text-[var(--accent)]" />

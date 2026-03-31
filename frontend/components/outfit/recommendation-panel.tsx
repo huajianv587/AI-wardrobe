@@ -1,25 +1,12 @@
 "use client";
 
-import { startTransition, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 import { ArrowRight, RefreshCw, Sparkles } from "lucide-react";
-import { seedWardrobeItems, WardrobeItem, useWardrobeStore } from "@/store/wardrobe-store";
 
-interface AgentTraceStep {
-  node: string;
-  summary: string;
-}
-
-interface RecommendationCard {
-  title: string;
-  rationale: string;
-  itemIds: number[];
-}
-
-interface RecommendationResult {
-  source: "api" | "fallback";
-  outfits: RecommendationCard[];
-  agentTrace: AgentTraceStep[];
-}
+import { AuthRequiredCard } from "@/components/auth/auth-required-card";
+import { useAuthSession } from "@/hooks/use-auth-session";
+import { ApiError, fetchRecommendations, fetchWardrobeItems, RecommendationResult } from "@/lib/api";
+import { WardrobeItem, useWardrobeStore } from "@/store/wardrobe-store";
 
 const promptPresets = [
   "Office meeting tomorrow, soft but professional",
@@ -31,7 +18,7 @@ function pickBySlot(items: WardrobeItem[], slot: WardrobeItem["slot"], keywords:
   return items.find((item) => keywords.some((keyword) => item.tags.includes(keyword) || item.occasions.includes(keyword)) && item.slot === slot) || items.find((item) => item.slot === slot);
 }
 
-function buildFallbackRecommendations(prompt: string): RecommendationResult {
+function buildFallbackRecommendations(prompt: string, availableItems: WardrobeItem[]): RecommendationResult {
   const lower = prompt.toLowerCase();
   const officeMode = /office|meeting|work|commute/.test(lower);
   const dateMode = /date|dinner|evening/.test(lower);
@@ -39,11 +26,11 @@ function buildFallbackRecommendations(prompt: string): RecommendationResult {
 
   const scenarioKeywords = officeMode ? ["office", "meeting", "soft-formal"] : dateMode ? ["date", "soft", "elegant"] : travelMode ? ["weekend", "travel", "cozy"] : ["city", "minimal", "versatile"];
 
-  const top = pickBySlot(seedWardrobeItems, "top", scenarioKeywords);
-  const bottom = pickBySlot(seedWardrobeItems, "bottom", scenarioKeywords);
-  const outerwear = pickBySlot(seedWardrobeItems, "outerwear", scenarioKeywords);
-  const shoes = pickBySlot(seedWardrobeItems, "shoes", scenarioKeywords);
-  const accessory = pickBySlot(seedWardrobeItems, "accessory", scenarioKeywords);
+  const top = pickBySlot(availableItems, "top", scenarioKeywords);
+  const bottom = pickBySlot(availableItems, "bottom", scenarioKeywords);
+  const outerwear = pickBySlot(availableItems, "outerwear", scenarioKeywords);
+  const shoes = pickBySlot(availableItems, "shoes", scenarioKeywords);
+  const accessory = pickBySlot(availableItems, "accessory", scenarioKeywords);
 
   const optionOne = [outerwear, top, bottom, shoes].filter(Boolean) as WardrobeItem[];
   const optionTwo = [top, bottom, shoes, accessory].filter(Boolean) as WardrobeItem[];
@@ -72,37 +59,121 @@ function buildFallbackRecommendations(prompt: string): RecommendationResult {
 }
 
 export function RecommendationPanel() {
+  const { ready: authReady, isAuthenticated } = useAuthSession();
   const activePrompt = useWardrobeStore((state) => state.activePrompt);
   const setActivePrompt = useWardrobeStore((state) => state.setActivePrompt);
   const items = useWardrobeStore((state) => state.items);
+  const replaceItems = useWardrobeStore((state) => state.replaceItems);
 
   const [prompt, setPrompt] = useState(activePrompt);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<RecommendationResult>(() => buildFallbackRecommendations(activePrompt));
+  const [hydratingWardrobe, setHydratingWardrobe] = useState(false);
+  const [hasHydratedWardrobe, setHasHydratedWardrobe] = useState(false);
+  const [statusText, setStatusText] = useState("");
+  const [result, setResult] = useState<RecommendationResult>(() => buildFallbackRecommendations(activePrompt, []));
+
+  useEffect(() => {
+    if (!authReady) {
+      return;
+    }
+
+    if (!isAuthenticated) {
+      startTransition(() => replaceItems([]));
+      setHasHydratedWardrobe(false);
+      setStatusText("");
+      return;
+    }
+
+    if (items.length > 0 || hasHydratedWardrobe) {
+      return;
+    }
+
+    let active = true;
+
+    async function hydrateWardrobe() {
+      setHydratingWardrobe(true);
+      setStatusText("Loading your wardrobe so the recommendation cards can reference real user items.");
+
+      try {
+        const wardrobeItems = await fetchWardrobeItems();
+
+        if (!active) {
+          return;
+        }
+
+        startTransition(() => replaceItems(wardrobeItems));
+        setStatusText(
+          wardrobeItems.length > 0
+            ? `Loaded ${wardrobeItems.length} wardrobe items for recommendation rendering.`
+            : "Your wardrobe is empty. Add a few pieces first so the styling agent can build private looks."
+        );
+      } catch (error) {
+        if (!active) {
+          return;
+        }
+
+        setStatusText(error instanceof Error ? error.message : "Could not load the wardrobe for this page.");
+      } finally {
+        if (active) {
+          setHasHydratedWardrobe(true);
+          setHydratingWardrobe(false);
+        }
+      }
+    }
+
+    void hydrateWardrobe();
+
+    return () => {
+      active = false;
+    };
+  }, [authReady, hasHydratedWardrobe, isAuthenticated, items.length, replaceItems]);
+
+  useEffect(() => {
+    if (result.source === "api") {
+      return;
+    }
+
+    startTransition(() => setResult(buildFallbackRecommendations(activePrompt, items)));
+  }, [activePrompt, items, result.source]);
 
   async function handleGenerate(nextPrompt: string) {
     setLoading(true);
     setPrompt(nextPrompt);
     setActivePrompt(nextPrompt);
+    setStatusText("");
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000"}/api/v1/outfits/recommend`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: nextPrompt })
-      });
-
-      if (!response.ok) {
-        throw new Error("API unavailable");
-      }
-
-      const payload = (await response.json()) as RecommendationResult;
-      startTransition(() => setResult({ ...payload, source: "api" }));
-    } catch {
-      startTransition(() => setResult(buildFallbackRecommendations(nextPrompt)));
+      const payload = await fetchRecommendations(nextPrompt);
+      startTransition(() => setResult(payload));
+    } catch (error) {
+      const fallback = buildFallbackRecommendations(nextPrompt, items);
+      startTransition(() => setResult(fallback));
+      setStatusText(
+        error instanceof ApiError && error.status === 401
+          ? "Your session expired while requesting a recommendation. Sign in again to continue."
+          : "Backend recommendation is unavailable right now, so the panel is showing a local heuristic draft."
+      );
     } finally {
       setLoading(false);
     }
+  }
+
+  if (!authReady) {
+    return (
+      <section className="section-card rounded-[32px] p-6">
+        <p className="pill mb-3">Checking account session</p>
+        <p className="text-sm leading-6 text-[var(--muted)]">Preparing the recommendation workspace.</p>
+      </section>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <AuthRequiredCard
+        title="Sign in to run private outfit recommendations"
+        description="The recommendation API now queries only the authenticated owner's wardrobe, so the styling agent needs an active Supabase session before it can retrieve items."
+      />
+    );
   }
 
   return (
@@ -111,7 +182,7 @@ export function RecommendationPanel() {
         <div className="mb-5">
           <div className="pill mb-3"><Sparkles className="size-4" />LangGraph-ready flow</div>
           <h3 className="text-2xl font-semibold text-[var(--ink-strong)]">Prompt your styling agent</h3>
-          <p className="mt-2 text-sm leading-6 text-[var(--muted)]">The panel falls back to local heuristics when the backend is offline, so product work can continue before your fine-tuned checkpoint is connected.</p>
+          <p className="mt-2 text-sm leading-6 text-[var(--muted)]">The panel now sends your Bearer token to the backend recommendation endpoint, and falls back to local heuristics only when the API is temporarily unavailable.</p>
         </div>
 
         <textarea
@@ -140,10 +211,24 @@ export function RecommendationPanel() {
             {loading ? "Generating..." : "Generate look"}
           </button>
           <div className="pill">Source: {result.source}</div>
+          {hydratingWardrobe ? <div className="pill">Hydrating wardrobe...</div> : null}
         </div>
+
+        {statusText ? (
+          <div className="mt-4 rounded-[22px] border border-[var(--line)] bg-white/80 px-4 py-4 text-sm leading-6 text-[var(--ink)]">
+            {statusText}
+          </div>
+        ) : null}
       </section>
 
       <section className="space-y-4">
+        {items.length === 0 ? (
+          <article className="section-card rounded-[32px] p-5">
+            <h4 className="text-lg font-semibold text-[var(--ink-strong)]">Your wardrobe is still empty</h4>
+            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">Add a few real items in the wardrobe page first, then come back here to see recommendation cards tied to your own clothing inventory.</p>
+          </article>
+        ) : null}
+
         {result.outfits.map((outfit) => (
           <article key={outfit.title} className="section-card rounded-[32px] p-5">
             <div className="flex items-start justify-between gap-4">

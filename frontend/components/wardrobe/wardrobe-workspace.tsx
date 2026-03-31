@@ -3,11 +3,13 @@
 import { startTransition, useCallback, useEffect, useState } from "react";
 import { Cloud, Database, RefreshCw } from "lucide-react";
 
+import { AuthRequiredCard } from "@/components/auth/auth-required-card";
 import { AddItemForm } from "@/components/wardrobe/add-item-form";
 import { FilterBar } from "@/components/wardrobe/filter-bar";
 import { ItemDetailPanel } from "@/components/wardrobe/item-detail-panel";
 import { WardrobeGrid } from "@/components/wardrobe/wardrobe-grid";
 import {
+  ApiError,
   createWardrobeItem,
   deleteWardrobeItem,
   fetchWardrobeItems,
@@ -16,18 +18,19 @@ import {
   uploadWardrobeItemImage,
   WardrobeFormValues
 } from "@/lib/api";
-import { seedWardrobeItems, useWardrobeStore } from "@/store/wardrobe-store";
+import { useAuthSession } from "@/hooks/use-auth-session";
+import { useWardrobeStore } from "@/store/wardrobe-store";
 
-type SyncState = "loading" | "connected" | "fallback" | "error";
+type SyncState = "loading" | "connected" | "error";
 
 const syncStateCopy: Record<SyncState, { label: string; accent: string }> = {
   loading: { label: "Loading backend wardrobe", accent: "var(--accent-soft)" },
   connected: { label: "Connected to FastAPI + SQLite", accent: "var(--accent-mint)" },
-  fallback: { label: "Fallback to local seed wardrobe", accent: "var(--accent-lilac)" },
   error: { label: "Could not save to backend", accent: "var(--accent-rose)" }
 };
 
 export function WardrobeWorkspace() {
+  const { ready: authReady, isAuthenticated, user } = useAuthSession();
   const items = useWardrobeStore((state) => state.items);
   const selectedItemId = useWardrobeStore((state) => state.selectedItemId);
   const replaceItems = useWardrobeStore((state) => state.replaceItems);
@@ -57,16 +60,31 @@ export function WardrobeWorkspace() {
           ? `${apiItems.length} items loaded from backend storage.`
           : "Connected to FastAPI + SQLite. The wardrobe is empty, so you can start by adding your first garment."
       );
-    } catch {
-      startTransition(() => replaceItems(seedWardrobeItems));
-      setSyncState("fallback");
-      setStatusText("Backend is unavailable right now, so the page is showing local seed items.");
+    } catch (error) {
+      startTransition(() => replaceItems([]));
+      setSyncState("error");
+      setStatusText(
+        error instanceof ApiError && error.status === 401
+          ? "Your session expired or is missing. Sign in again to load your private wardrobe."
+          : error instanceof Error
+            ? error.message
+            : "Backend is unavailable right now, so the wardrobe could not be loaded."
+      );
     }
   }, [replaceItems]);
 
   useEffect(() => {
+    if (!authReady) {
+      return;
+    }
+
+    if (!isAuthenticated) {
+      startTransition(() => replaceItems([]));
+      return;
+    }
+
     void loadWardrobe();
-  }, [loadWardrobe]);
+  }, [authReady, isAuthenticated, loadWardrobe, replaceItems]);
 
   async function handleCreateItem(values: WardrobeFormValues) {
     setCreating(true);
@@ -156,6 +174,24 @@ export function WardrobeWorkspace() {
     }
   }
 
+  if (!authReady) {
+    return (
+      <section className="section-card rounded-[32px] p-6">
+        <p className="pill mb-3">Checking account session</p>
+        <p className="text-sm leading-6 text-[var(--muted)]">Preparing your protected wardrobe workspace.</p>
+      </section>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <AuthRequiredCard
+        title="Sign in to open your private wardrobe"
+        description="Wardrobe items now belong to the authenticated Supabase user mirrored into SQLite, so anonymous visitors no longer see placeholder clothing data as if it were theirs."
+      />
+    );
+  }
+
   return (
     <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
       <div className="space-y-6">
@@ -169,6 +205,11 @@ export function WardrobeWorkspace() {
                 <p className="pill mb-3">{syncStateCopy[syncState].label}</p>
                 <h3 className="text-xl font-semibold text-[var(--ink-strong)]">Wardrobe data flow</h3>
                 <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{statusText}</p>
+                {user ? (
+                  <p className="mt-2 text-xs leading-5 text-[var(--muted)]">
+                    Current owner: {user.email}
+                  </p>
+                ) : null}
               </div>
             </div>
 

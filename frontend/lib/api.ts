@@ -1,3 +1,4 @@
+import { AuthSessionResponse, AuthUserSummary, clearStoredSession, getStoredAccessToken } from "@/lib/auth-session";
 import { categoryToSlot, colorToHex, FilterCategory, WardrobeCategory, WardrobeItem, WardrobeSlot } from "@/store/wardrobe-store";
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000").replace(/\/$/, "");
@@ -18,22 +19,52 @@ interface ApiWardrobeItem {
   created_at: string;
 }
 
-interface DemoUser {
-  id: number;
-  email: string;
-  avatar_url: string | null;
-  created_at: string;
-}
-
 interface DeleteWardrobeResponse {
   status: string;
   id: number;
 }
 
-export interface DemoLoginResponse {
-  access_token: string;
-  token_type: string;
-  user: DemoUser;
+interface ApiRecommendationOption {
+  title: string;
+  rationale: string;
+  item_ids: number[];
+}
+
+interface ApiAgentTraceStep {
+  node: string;
+  summary: string;
+}
+
+interface ApiRecommendationResponse {
+  source: string;
+  outfits: ApiRecommendationOption[];
+  agent_trace: ApiAgentTraceStep[];
+}
+
+interface ApiRequestOptions {
+  skipAuth?: boolean;
+}
+
+export interface EmailPasswordAuthPayload {
+  email: string;
+  password: string;
+}
+
+export interface AgentTraceStep {
+  node: string;
+  summary: string;
+}
+
+export interface RecommendationCard {
+  title: string;
+  rationale: string;
+  itemIds: number[];
+}
+
+export interface RecommendationResult {
+  source: string;
+  outfits: RecommendationCard[];
+  agentTrace: AgentTraceStep[];
 }
 
 export interface WardrobeFormValues {
@@ -72,12 +103,49 @@ function parseList(value: string) {
   return value.split(",").map((token) => token.trim()).filter(Boolean);
 }
 
-async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
+function extractErrorMessage(payload: unknown, status: number) {
+  if (typeof payload === "string" && payload.trim().length > 0) {
+    return payload;
+  }
+
+  if (payload && typeof payload === "object") {
+    const record = payload as Record<string, unknown>;
+
+    if (typeof record.detail === "string") {
+      return record.detail;
+    }
+
+    if (typeof record.message === "string") {
+      return record.message;
+    }
+  }
+
+  return `Request failed with status ${status}`;
+}
+
+export class ApiError extends Error {
+  readonly status: number;
+  readonly payload: unknown;
+
+  constructor(message: string, status: number, payload: unknown) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.payload = payload;
+  }
+}
+
+async function apiRequest<T>(path: string, init?: RequestInit, options?: ApiRequestOptions): Promise<T> {
   const isFormData = init?.body instanceof FormData;
   const headers = new Headers(init?.headers);
+  const accessToken = options?.skipAuth ? null : getStoredAccessToken();
 
   if (!isFormData && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
+  }
+
+  if (accessToken && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${accessToken}`);
   }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -87,12 +155,25 @@ async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   const text = await response.text();
+  const payload = text
+    ? (() => {
+      try {
+        return JSON.parse(text) as unknown;
+      } catch {
+        return text;
+      }
+    })()
+    : null;
 
   if (!response.ok) {
-    throw new Error(text || `Request failed with status ${response.status}`);
+    if (response.status === 401) {
+      clearStoredSession();
+    }
+
+    throw new ApiError(extractErrorMessage(payload, response.status), response.status, payload);
   }
 
-  return (text ? JSON.parse(text) : null) as T;
+  return payload as T;
 }
 
 export function mapApiWardrobeItem(item: ApiWardrobeItem): WardrobeItem {
@@ -201,9 +282,37 @@ export async function processWardrobeImage(itemId: number) {
   return mapApiWardrobeItem(item);
 }
 
-export async function demoLogin() {
-  return apiRequest<DemoLoginResponse>("/api/v1/auth/demo-login", {
+export async function signUpWithPassword(payload: EmailPasswordAuthPayload) {
+  return apiRequest<AuthSessionResponse>("/api/v1/auth/sign-up", {
     method: "POST",
-    body: JSON.stringify({})
+    body: JSON.stringify(payload)
+  }, { skipAuth: true });
+}
+
+export async function signInWithPassword(payload: EmailPasswordAuthPayload) {
+  return apiRequest<AuthSessionResponse>("/api/v1/auth/login", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  }, { skipAuth: true });
+}
+
+export async function fetchCurrentUser() {
+  return apiRequest<AuthUserSummary>("/api/v1/auth/me");
+}
+
+export async function fetchRecommendations(prompt: string) {
+  const payload = await apiRequest<ApiRecommendationResponse>("/api/v1/outfits/recommend", {
+    method: "POST",
+    body: JSON.stringify({ prompt })
   });
+
+  return {
+    source: payload.source,
+    outfits: payload.outfits.map((item) => ({
+      title: item.title,
+      rationale: item.rationale,
+      itemIds: item.item_ids
+    })),
+    agentTrace: payload.agent_trace
+  } satisfies RecommendationResult;
 }

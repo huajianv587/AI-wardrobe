@@ -42,8 +42,9 @@ def _sync_item(
     )
 
 
-def list_items(db: Session, category: str | None = None, query: str | None = None) -> list[ClothingItem]:
+def list_items(db: Session, user_id: int, category: str | None = None, query: str | None = None) -> list[ClothingItem]:
     statement = select(ClothingItem).order_by(ClothingItem.created_at.desc())
+    statement = statement.where(ClothingItem.user_id == user_id)
 
     if category and category != "all":
         statement = statement.where(ClothingItem.category == category)
@@ -61,15 +62,15 @@ def list_items(db: Session, category: str | None = None, query: str | None = Non
     return list(db.scalars(statement).all())
 
 
-def get_item(db: Session, item_id: int) -> ClothingItem:
+def get_item(db: Session, item_id: int, user_id: int) -> ClothingItem:
     item = db.get(ClothingItem, item_id)
-    if item is None:
+    if item is None or item.user_id != user_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Wardrobe item not found.")
     return item
 
 
-def create_item(db: Session, payload: ClothingItemCreate) -> ClothingItem:
-    item = ClothingItem(**payload.model_dump())
+def create_item(db: Session, payload: ClothingItemCreate, user_id: int) -> ClothingItem:
+    item = ClothingItem(**payload.model_dump(exclude={"user_id"}), user_id=user_id)
     item.tags = _dedupe_tokens(item.tags)
     item.occasions = _dedupe_tokens(item.occasions)
     db.add(item)
@@ -79,8 +80,8 @@ def create_item(db: Session, payload: ClothingItemCreate) -> ClothingItem:
     return item
 
 
-def update_item(db: Session, item_id: int, payload: ClothingItemUpdate) -> ClothingItem:
-    item = get_item(db, item_id)
+def update_item(db: Session, item_id: int, payload: ClothingItemUpdate, user_id: int) -> ClothingItem:
+    item = get_item(db, item_id, user_id)
 
     for field, value in payload.model_dump(exclude_unset=True).items():
         if field in {"tags", "occasions"} and value is not None:
@@ -95,8 +96,8 @@ def update_item(db: Session, item_id: int, payload: ClothingItemUpdate) -> Cloth
     return item
 
 
-def attach_item_image(db: Session, item_id: int, upload_file: UploadFile) -> ClothingItem:
-    item = get_item(db, item_id)
+def attach_item_image(db: Session, item_id: int, upload_file: UploadFile, user_id: int) -> ClothingItem:
+    item = get_item(db, item_id, user_id)
     asset = storage_service.save_upload("wardrobe/source", upload_file)
 
     item.image_url = asset.local_url
@@ -109,8 +110,8 @@ def attach_item_image(db: Session, item_id: int, upload_file: UploadFile) -> Clo
     return item
 
 
-def process_item_image(db: Session, item_id: int) -> ClothingItem:
-    item = get_item(db, item_id)
+def process_item_image(db: Session, item_id: int, user_id: int) -> ClothingItem:
+    item = get_item(db, item_id, user_id)
 
     if item.image_url:
         cleanup = image_pipeline_service.process_item_image(item.id, item.image_url)
@@ -135,8 +136,8 @@ def process_item_image(db: Session, item_id: int) -> ClothingItem:
     return item
 
 
-def delete_item(db: Session, item_id: int) -> int:
-    item = get_item(db, item_id)
+def delete_item(db: Session, item_id: int, user_id: int) -> int:
+    item = get_item(db, item_id, user_id)
     image_url = item.image_url
     processed_image_url = item.processed_image_url
 

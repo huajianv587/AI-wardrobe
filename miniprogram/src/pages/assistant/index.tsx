@@ -57,15 +57,20 @@ export default function AssistantPage() {
 
         <View className="card">
           <Text className="mini-title">少思考模式</Text>
-          <View className="stack">
+          <View className="chip-row">
             {["上班", "约会", "出门买咖啡", "今天不想费脑"].map((mode) => (
-              <View key={mode} className="mini-card" onClick={() => void handleQuickMode(mode)}>
-                <Text className="mini-title">{mode}</Text>
+              <View key={mode} className="chip-pill" onClick={() => void handleQuickMode(mode)}>
+                <Text>{mode}</Text>
               </View>
             ))}
           </View>
           <Text className="mini-copy">{quickModeSummary}</Text>
         </View>
+      </View>
+
+      <View className="floating-footer">
+        <Text className="mini-title">明日穿搭入口</Text>
+        <Text className="mini-copy">未来这里适合接定位授权、天气刷新和“一键出门”按钮。</Text>
       </View>
     </View>
   );

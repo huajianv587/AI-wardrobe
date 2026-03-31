@@ -7,6 +7,8 @@ import { ArrowRight, RefreshCw, Sparkles } from "lucide-react";
 import { AuthRequiredCard } from "@/components/auth/auth-required-card";
 import { RecommendationLookCard } from "@/components/outfit/recommendation-look-card";
 import { useAuthSession } from "@/hooks/use-auth-session";
+import { PanelSkeleton } from "@/components/ui/panel-skeleton";
+import { StateCard } from "@/components/ui/state-card";
 import { ApiError, fetchRecommendations, fetchWardrobeItems, RecommendationResult } from "@/lib/api";
 import { WardrobeItem, useWardrobeStore } from "@/store/wardrobe-store";
 
@@ -178,12 +180,7 @@ export function RecommendationPanel() {
   }
 
   if (!authReady) {
-    return (
-      <section className="section-card rounded-[32px] p-6">
-        <p className="pill mb-3">Checking account session</p>
-        <p className="text-sm leading-6 text-[var(--muted)]">Preparing the recommendation workspace.</p>
-      </section>
-    );
+    return <PanelSkeleton rows={2} />;
   }
 
   if (!isAuthenticated) {
@@ -259,10 +256,11 @@ export function RecommendationPanel() {
 
       <section className="space-y-4">
         {items.length === 0 ? (
-          <article className="section-card rounded-[32px] p-5">
-            <h4 className="text-lg font-semibold text-[var(--ink-strong)]">Your wardrobe is still empty</h4>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">Add a few real items in the wardrobe page first, then come back here to see recommendation cards tied to your own clothing inventory.</p>
-          </article>
+          <StateCard
+            variant="empty"
+            title="Your wardrobe is still empty"
+            description="先去衣橱页放几件真实单品，再回来让推荐卡真正围绕你的私有衣橱生成。这样理由、置信度和反馈学习才会开始变得像你。"
+          />
         ) : null}
 
         {result.outfits.map((outfit) => (

@@ -71,7 +71,7 @@ export function AddItemForm({ submitting, onSubmit }: AddItemFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="section-card rounded-[32px] p-5">
+    <form onSubmit={handleSubmit} className="section-card subtle-card rounded-[32px] p-5">
       <div className="mb-5 flex items-start justify-between gap-4">
         <div>
           <h3 className="text-xl font-semibold text-[var(--ink-strong)]">Add clothing</h3>
@@ -157,9 +157,11 @@ export function AddItemForm({ submitting, onSubmit }: AddItemFormProps) {
         </div>
       ) : null}
 
-      <button type="submit" disabled={submitting || form.name.trim().length < 2 || form.color.trim().length === 0} className="mt-5 inline-flex items-center gap-2 rounded-full bg-[var(--ink-strong)] px-5 py-3 text-sm text-white shadow-[var(--shadow-float)] transition hover:translate-y-[-1px] disabled:cursor-not-allowed disabled:opacity-60">
-        {submitting ? "Saving..." : form.imageFile ? "Save item and upload image" : "Save to wardrobe"}
-      </button>
+      <div className="sticky bottom-[5.4rem] mt-5 rounded-[24px] border border-[var(--line)] bg-white/88 px-3 py-3 shadow-[var(--shadow-soft)] backdrop-blur md:static md:border-0 md:bg-transparent md:p-0 md:shadow-none">
+        <button type="submit" disabled={submitting || form.name.trim().length < 2 || form.color.trim().length === 0} className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--ink-strong)] px-5 py-3 text-sm text-white shadow-[var(--shadow-float)] transition hover:translate-y-[-1px] disabled:cursor-not-allowed disabled:opacity-60 md:w-auto">
+          {submitting ? "Saving..." : form.imageFile ? "Save item and upload image" : "Save to wardrobe"}
+        </button>
+      </div>
     </form>
   );
 }

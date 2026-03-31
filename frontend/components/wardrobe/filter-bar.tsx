@@ -19,7 +19,7 @@ export function FilterBar() {
   const setSearchQuery = useWardrobeStore((state) => state.setSearchQuery);
 
   return (
-    <div className="section-card mb-6 rounded-[28px] p-4 md:p-5">
+    <div className="section-card subtle-card glow-card mb-6 rounded-[28px] p-4 md:p-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap gap-2">
           {categories.map((category) => {
@@ -30,7 +30,7 @@ export function FilterBar() {
                 key={category.value}
                 type="button"
                 onClick={() => setCategory(category.value)}
-                className={`rounded-full border px-4 py-2 text-sm transition ${
+                className={`tap-card rounded-full border px-4 py-2 text-sm transition ${
                   active
                     ? "border-transparent bg-[var(--ink-strong)] text-white"
                     : "border-[var(--line)] bg-white/80 text-[var(--ink)] hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
@@ -42,7 +42,7 @@ export function FilterBar() {
           })}
         </div>
 
-        <label className="flex w-full items-center gap-3 rounded-full border border-[var(--line)] bg-white/80 px-4 py-3 lg:max-w-sm">
+        <label className="status-bubble flex w-full items-center gap-3 rounded-full px-4 py-3 lg:max-w-sm">
           <Search className="size-4 text-[var(--muted)]" />
           <input
             value={searchQuery}

@@ -43,13 +43,15 @@ export default function IndexPage() {
       <View className="stack">
         <View className="card">
           <Text className="mini-title">Shortcuts</Text>
-          {(payload?.shortcuts ?? []).map((shortcut) => (
-            <View key={shortcut.id} className="mini-card">
-              <Text className="mini-title">{shortcut.title}</Text>
-              <Text className="mini-copy">{shortcut.subtitle}</Text>
-              <Text className="mini-copy">{shortcut.route} {shortcut.badge ? `· ${shortcut.badge}` : ""}</Text>
-            </View>
-          ))}
+          <View className="shortcut-grid">
+            {(payload?.shortcuts ?? []).map((shortcut) => (
+              <View key={shortcut.id} className="shortcut-card" onClick={() => Taro.navigateTo({ url: shortcut.route })}>
+                <Text className="mini-title">{shortcut.title}</Text>
+                <Text className="mini-copy">{shortcut.subtitle}</Text>
+                <Text className="mini-copy">{shortcut.badge ? `· ${shortcut.badge}` : shortcut.route}</Text>
+              </View>
+            ))}
+          </View>
         </View>
 
         <View className="card">
@@ -68,6 +70,11 @@ export default function IndexPage() {
             <Text className="mini-copy">{error}</Text>
           </View>
         ) : null}
+      </View>
+
+      <View className="floating-footer">
+        <Text className="mini-title">单手快速区</Text>
+        <Text className="mini-copy">把常用入口放到底部可触达区，未来这里适合做真正的 tab bar 和上传捷径。</Text>
       </View>
     </View>
   );

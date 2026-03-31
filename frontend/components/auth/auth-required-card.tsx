@@ -8,13 +8,13 @@ interface AuthRequiredCardProps {
 
 export function AuthRequiredCard({ title, description }: AuthRequiredCardProps) {
   return (
-    <section className="section-card rounded-[32px] p-6">
-      <div className="pill mb-4">
-        <LockKeyhole className="size-4" />
-        Private space
+    <section className="section-card playful-empty rounded-[32px] p-6">
+      <div className="floating-orb mx-auto mb-5 flex size-[4.5rem] items-center justify-center rounded-[26px] bg-white/92 shadow-[var(--shadow-soft)]">
+        <LockKeyhole className="size-7 text-[var(--accent)]" />
       </div>
+      <div className="pill mb-4">Private space</div>
       <h3 className="text-2xl font-semibold text-[var(--ink-strong)]">{title}</h3>
-      <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--muted)]">{description}</p>
+      <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-[var(--muted)]">{description}</p>
 
       <Link
         href="/login"

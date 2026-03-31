@@ -32,7 +32,7 @@ export default function HomePage() {
   return (
     <AppShell title="AI Wardrobe" subtitle="A warm, API-first styling assistant for wardrobe memory, 2.5D try-on, and future self-hosted model workflows.">
       <section className="grid gap-6 xl:grid-cols-[1.12fr_0.88fr]">
-        <div className="section-card story-gradient relative rounded-[40px] p-6 md:p-8">
+        <div className="section-card hero-panel relative rounded-[40px] p-6 md:p-8">
           <div className="hero-glow absolute inset-0 opacity-80" />
           <div className="relative">
             <div className="pill mb-4">Inspired by calm product storytelling from Apple and polished software density from Linear</div>
@@ -57,13 +57,13 @@ export default function HomePage() {
         </div>
 
         <div className="grid gap-4">
-          <article className="section-card rounded-[30px] p-5">
+          <article className="section-card subtle-card rounded-[30px] p-5">
             <div className="pill mb-4"><Database className="size-4" />Storage strategy</div>
             <h3 className="display-title text-2xl font-semibold text-[var(--ink-strong)]">Local first, cloud only when it helps</h3>
             <p className="mt-3 text-sm leading-7 text-[var(--muted)]">SQLite keeps the experience fast and private by default. Supabase is layered in for auth, backup, and sync visibility without forcing every interaction to wait on the network.</p>
           </article>
 
-          <article className="section-card rounded-[30px] p-5">
+          <article className="section-card subtle-card rounded-[30px] p-5">
             <div className="pill mb-4"><Cloud className="size-4" />Model handoff</div>
             <h3 className="display-title text-2xl font-semibold text-[var(--ink-strong)]">Swap demos for your own workers later</h3>
             <p className="mt-3 text-sm leading-7 text-[var(--muted)]">Qwen, BiRefNet, CLIP, Qwen-VL, OOTDiffusion, Real-ESRGAN, ControlNet, and 3D workers can now slot behind stable API routes instead of forcing product rewrites.</p>
@@ -81,7 +81,7 @@ export default function HomePage() {
 
         <div className="grid gap-4 lg:grid-cols-3">
           {capabilityCards.map((card) => (
-            <article key={card.title} className="section-card rounded-[32px] p-5">
+            <article key={card.title} className="section-card subtle-card glow-card rounded-[32px] p-5">
               <div className="mb-5 h-32 rounded-[24px]" style={{ background: `linear-gradient(140deg, ${card.accent} 0%, rgba(255,255,255,0.96) 100%)` }} />
               <h3 className="display-title text-2xl font-semibold text-[var(--ink-strong)]">{card.title}</h3>
               <p className="mt-3 text-sm leading-7 text-[var(--muted)]">{card.description}</p>
@@ -91,7 +91,7 @@ export default function HomePage() {
       </section>
 
       <section className="mt-8 grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-        <article className="section-card rounded-[34px] p-6">
+        <article className="section-card subtle-card rounded-[34px] p-6">
           <SectionHeading eyebrow="Architecture" title="Five-layer system design" description="Frontend, API gateway, business services, AI services, and data storage still stay clearly separated, but the product now exposes that architecture in a much more understandable way." />
           <div className="space-y-3">
             {["Frontend: Next.js web and future Taro mini program", "Gateway: FastAPI APIs and nginx routing", "Business: user, wardrobe, outfit, and sync logic", "AI: cleanup, classifier, recommendation, try-on, and avatar services", "Data: SQLite local-first + Supabase sync + S3-compatible assets"].map((item) => (
@@ -100,7 +100,7 @@ export default function HomePage() {
           </div>
         </article>
 
-        <article className="section-card rounded-[34px] p-6">
+        <article className="section-card subtle-card rounded-[34px] p-6">
           <SectionHeading eyebrow="Now runnable" title="The current demo lanes are already useful" description="The app can authenticate, manage wardrobe data, call unified AI demo APIs, check sync health, and prepare both the web UI and mini-program contracts for later self-hosted models." />
           <div className="space-y-3">
             {["Run every planned model lane through one demo API", "Use the AI lab as the stable contract for later workers", "Drag garments into the 2.5D try-on stage", "Mirror wardrobe state to Supabase when configured", "Surface account sync status in one place", "Scaffold mini-program API wrappers and page contracts"].map((step) => (

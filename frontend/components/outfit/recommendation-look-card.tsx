@@ -21,6 +21,7 @@ function findItem(items: WardrobeItem[], itemId: number) {
 
 export function RecommendationLookCard({ recommendation, items, prompt, scene, onActionComplete }: RecommendationLookCardProps) {
   const [busyAction, setBusyAction] = useState<string | null>(null);
+  const [actionEcho, setActionEcho] = useState<string>("");
 
   async function handleFeedback(action: string, successMessage: string) {
     setBusyAction(action);
@@ -38,9 +39,12 @@ export function RecommendationLookCard({ recommendation, items, prompt, scene, o
           confidence_label: recommendation.confidenceLabel
         }
       });
+      setActionEcho(successMessage);
       onActionComplete?.(successMessage);
     } catch (error) {
-      onActionComplete?.(error instanceof Error ? error.message : "Could not record recommendation feedback.");
+      const message = error instanceof Error ? error.message : "Could not record recommendation feedback.";
+      setActionEcho(message);
+      onActionComplete?.(message);
     } finally {
       setBusyAction(null);
     }
@@ -57,9 +61,12 @@ export function RecommendationLookCard({ recommendation, items, prompt, scene, o
         item_ids: recommendation.itemIds,
         reasoning: recommendation.rationale
       });
+      setActionEcho("这套已经存进你的私人搭配夹啦。");
       onActionComplete?.("这套已经存进你的私人搭配夹啦。");
     } catch (error) {
-      onActionComplete?.(error instanceof Error ? error.message : "Could not save the outfit.");
+      const message = error instanceof Error ? error.message : "Could not save the outfit.";
+      setActionEcho(message);
+      onActionComplete?.(message);
     } finally {
       setBusyAction(null);
     }
@@ -76,9 +83,12 @@ export function RecommendationLookCard({ recommendation, items, prompt, scene, o
         period: "all-day",
         feedback_note: "Marked as worn from the recommendation card."
       });
+      setActionEcho("已记成穿过记录，后续会帮你避开太像的重复搭配。");
       onActionComplete?.("已记成穿过记录，后续会帮你避开太像的重复搭配。");
     } catch (error) {
-      onActionComplete?.(error instanceof Error ? error.message : "Could not create the wear log.");
+      const message = error instanceof Error ? error.message : "Could not create the wear log.";
+      setActionEcho(message);
+      onActionComplete?.(message);
     } finally {
       setBusyAction(null);
     }
@@ -120,6 +130,16 @@ export function RecommendationLookCard({ recommendation, items, prompt, scene, o
         </div>
       ) : null}
 
+      {actionEcho ? (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-4 rounded-[22px] border border-[rgba(255,154,123,0.18)] bg-[rgba(255,255,255,0.92)] px-4 py-3 text-sm leading-6 text-[var(--ink)]"
+        >
+          {actionEcho}
+        </motion.div>
+      ) : null}
+
       <div className="mt-5 grid gap-3 md:grid-cols-2">
         {recommendation.itemIds.map((itemId) => {
           const piece = findItem(items, itemId);
@@ -128,7 +148,7 @@ export function RecommendationLookCard({ recommendation, items, prompt, scene, o
           }
 
           return (
-            <motion.div key={piece.id} whileHover={{ y: -3, scale: 1.01 }} className="rounded-[24px] border border-[var(--line)] bg-white/80 p-4">
+            <motion.div key={piece.id} whileHover={{ y: -4, scale: 1.015, rotate: -0.3 }} className="tap-card rounded-[24px] border border-[var(--line)] bg-white/80 p-4">
               <div className="mb-3 h-24 rounded-[18px]" style={{ background: `linear-gradient(160deg, ${piece.colorHex} 0%, rgba(255,255,255,0.96) 100%)` }} />
               <p className="font-medium text-[var(--ink-strong)]">{piece.name}</p>
               <p className="mt-1 text-sm text-[var(--muted)]">
@@ -149,45 +169,53 @@ export function RecommendationLookCard({ recommendation, items, prompt, scene, o
       ) : null}
 
       <div className="mt-5 flex flex-wrap gap-3">
-        <button
+        <motion.button
           type="button"
+          whileHover={{ y: -2, scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
           onClick={() => void handleFeedback("liked", "已记住你偏爱这套的方向。")}
           disabled={busyAction !== null}
           className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/85 px-4 py-3 text-sm text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {busyAction === "liked" ? <LoaderCircle className="size-4 animate-spin" /> : <Heart className="size-4" />}
           喜欢
-        </button>
+        </motion.button>
 
-        <button
+        <motion.button
           type="button"
+          whileHover={{ y: -2, scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
           onClick={() => void handleSave()}
           disabled={busyAction !== null}
           className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/85 px-4 py-3 text-sm text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {busyAction === "save" ? <LoaderCircle className="size-4 animate-spin" /> : <Bookmark className="size-4" />}
           保存这套
-        </button>
+        </motion.button>
 
-        <button
+        <motion.button
           type="button"
+          whileHover={{ y: -2, scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
           onClick={() => void handleWearLog()}
           disabled={busyAction !== null}
           className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/85 px-4 py-3 text-sm text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {busyAction === "wear" ? <LoaderCircle className="size-4 animate-spin" /> : <CheckCheck className="size-4" />}
           今天穿它
-        </button>
+        </motion.button>
 
-        <button
+        <motion.button
           type="button"
+          whileHover={{ y: -2, scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
           onClick={() => void handleFeedback("dismissed", "收到，这套的特征会被降低权重。")}
           disabled={busyAction !== null}
           className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/85 px-4 py-3 text-sm text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {busyAction === "dismissed" ? <LoaderCircle className="size-4 animate-spin" /> : <RotateCcw className="size-4" />}
           不太像我
-        </button>
+        </motion.button>
       </div>
     </motion.article>
   );

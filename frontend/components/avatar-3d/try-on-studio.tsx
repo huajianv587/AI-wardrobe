@@ -2,11 +2,13 @@
 
 import { startTransition, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { RefreshCw } from "lucide-react";
+import { GripVertical, RefreshCw, Sparkles } from "lucide-react";
 
 import { AuthRequiredCard } from "@/components/auth/auth-required-card";
 import { AvatarStage } from "@/components/avatar-3d/avatar-stage";
 import { useAuthSession } from "@/hooks/use-auth-session";
+import { PanelSkeleton } from "@/components/ui/panel-skeleton";
+import { StateCard } from "@/components/ui/state-card";
 import { fetchWardrobeItems } from "@/lib/api";
 import { useWardrobeStore } from "@/store/wardrobe-store";
 
@@ -22,6 +24,7 @@ export function TryOnStudio() {
   const [hasHydratedWardrobe, setHasHydratedWardrobe] = useState(false);
   const [statusText, setStatusText] = useState("");
   const [draggingItemId, setDraggingItemId] = useState<number | null>(null);
+  const [dropHovered, setDropHovered] = useState(false);
 
   const wearingItems = items.filter((item) => selectedTryOnIds.includes(item.id));
 
@@ -82,12 +85,7 @@ export function TryOnStudio() {
   }, [authReady, hasHydratedWardrobe, isAuthenticated, items.length, replaceItems]);
 
   if (!authReady) {
-    return (
-      <section className="section-card rounded-[32px] p-6">
-        <p className="pill mb-3">Checking account session</p>
-        <p className="text-sm leading-6 text-[var(--muted)]">Preparing your private try-on studio.</p>
-      </section>
-    );
+    return <PanelSkeleton rows={2} />;
   }
 
   if (!isAuthenticated) {
@@ -113,17 +111,17 @@ export function TryOnStudio() {
         <AvatarStage
           palette={wearingItems.map((item) => item.colorHex)}
           dropActive={draggingItemId !== null}
+          dropHovered={dropHovered}
           dragHint={draggingItem ? `Drop ${draggingItem.name} onto the avatar to wear or remove it` : undefined}
           onDragOver={(event) => {
             event.preventDefault();
             if (draggingItemId !== null) {
               event.dataTransfer.dropEffect = "copy";
+              setDropHovered(true);
             }
           }}
           onDragLeave={() => {
-            if (draggingItemId === null) {
-              return;
-            }
+            setDropHovered(false);
           }}
           onDrop={(event) => {
             event.preventDefault();
@@ -132,11 +130,12 @@ export function TryOnStudio() {
             if (!Number.isNaN(itemId)) {
               handleDropItem(itemId);
             }
+            setDropHovered(false);
           }}
         />
       </div>
 
-      <div className="section-card rounded-[32px] p-5">
+      <div className="section-card subtle-card rounded-[32px] p-5">
         <div className="mb-5 flex items-center justify-between gap-4">
           <div>
             <h3 className="text-xl font-semibold text-[var(--ink-strong)]">2.5D Try-On Studio</h3>
@@ -155,9 +154,11 @@ export function TryOnStudio() {
         </div>
 
         {items.length === 0 ? (
-          <div className="rounded-[24px] border border-[var(--line)] bg-white/75 p-4 text-sm leading-6 text-[var(--muted)]">
-            Add clothing in the wardrobe page first. Once items exist, you can toggle them here to preview a simple layered avatar composition.
-          </div>
+          <StateCard
+            variant={hydratingWardrobe ? "loading" : "empty"}
+            title={hydratingWardrobe ? "Loading your try-on rail" : "Your try-on rail is still empty"}
+            description={hydratingWardrobe ? "正在把你的私人衣橱装进试衣工作台。" : "先去衣橱页添加几件衣服，再回来拖到虚拟人身上，试衣区会立刻变得有意思起来。"}
+          />
         ) : null}
 
         <div className="space-y-3">
@@ -169,29 +170,38 @@ export function TryOnStudio() {
                 key={item.id}
                 type="button"
                 draggable
-                whileHover={{ y: -2, scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
+                whileHover={{ y: -4, scale: 1.015, rotate: active ? 0 : -0.35 }}
+                whileTap={{ scale: 0.985 }}
                 onDragStartCapture={(event) => {
                   event.dataTransfer.setData("text/plain", String(item.id));
                   event.dataTransfer.effectAllowed = "copy";
                   setDraggingItemId(item.id);
                   setStatusText(`Dragging ${item.name}. Drop it onto the avatar stage to add or remove the layer.`);
                 }}
-                onDragEndCapture={() => setDraggingItemId(null)}
+                onDragEndCapture={() => {
+                  setDraggingItemId(null);
+                  setDropHovered(false);
+                }}
                 onClick={() => toggleTryOnItem(item.id)}
-                className={`flex w-full items-center justify-between rounded-[24px] border px-4 py-4 text-left transition ${
+                className={`tap-card flex w-full items-center justify-between rounded-[24px] border px-4 py-4 text-left transition ${
                   active
                     ? "border-transparent bg-[var(--ink-strong)] text-white shadow-[var(--shadow-float)]"
                     : "border-[var(--line)] bg-white/70 text-[var(--ink)] hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
                 }`}
               >
                 <div>
-                  <p className="font-medium">{item.name}</p>
+                  <div className="flex items-center gap-2">
+                    <GripVertical className={`size-4 ${active ? "text-white/65" : "text-[var(--muted)]"}`} />
+                    <p className="font-medium">{item.name}</p>
+                  </div>
                   <p className={`mt-1 text-sm ${active ? "text-white/75" : "text-[var(--muted)]"}`}>{item.category} - {item.color}</p>
                   <p className={`mt-2 text-xs ${active ? "text-white/65" : "text-[var(--muted)]"}`}>{active ? "Tap or drag again to remove from avatar" : "Tap to wear instantly or drag onto the avatar stage"}</p>
                 </div>
 
-                <span className="size-4 rounded-full border" style={{ backgroundColor: item.colorHex, borderColor: active ? "rgba(255,255,255,0.55)" : "rgba(18,32,51,0.08)" }} />
+                <div className="flex items-center gap-3">
+                  {active ? <Sparkles className="size-4 text-white/80" /> : null}
+                  <span className="size-4 rounded-full border" style={{ backgroundColor: item.colorHex, borderColor: active ? "rgba(255,255,255,0.55)" : "rgba(18,32,51,0.08)" }} />
+                </div>
               </motion.button>
             );
           })}

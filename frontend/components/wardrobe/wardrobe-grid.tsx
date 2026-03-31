@@ -7,6 +7,7 @@ import { useDeferredValue } from "react";
 import { CheckCircle2, Image as ImageIcon } from "lucide-react";
 
 import { resolveAssetUrl } from "@/lib/api";
+import { StateCard } from "@/components/ui/state-card";
 import { useWardrobeStore } from "@/store/wardrobe-store";
 
 export function WardrobeGrid() {
@@ -30,10 +31,11 @@ export function WardrobeGrid() {
 
   if (filteredItems.length === 0) {
     return (
-      <div className="section-card rounded-[28px] p-8 text-center">
-        <p className="text-lg font-semibold text-[var(--ink-strong)]">No matching items</p>
-        <p className="mt-2 text-sm leading-6 text-[var(--muted)]">Try adjusting the search keywords or add a new item to keep building your wardrobe memory.</p>
-      </div>
+      <StateCard
+        variant="empty"
+        title="No matching items"
+        description="试着换一个关键词，或者给衣橱再添一件单品。你的衣橱记忆越丰富，后面的推荐和提醒就会越贴心。"
+      />
     );
   }
 
@@ -50,10 +52,10 @@ export function WardrobeGrid() {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: Math.min(index * 0.03, 0.18) }}
-            whileHover={{ y: -4, scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
+            whileHover={{ y: -6, scale: 1.015, rotate: selected ? 0 : -0.35 }}
+            whileTap={{ scale: 0.985 }}
             onClick={() => setSelectedItemId(item.id)}
-            className={`section-card interactive-card rounded-[28px] p-4 text-left ${
+            className={`section-card interactive-card tap-card rounded-[28px] p-4 text-left ${
               selected ? "border-[var(--accent)] ring-2 ring-[var(--accent-soft)]" : ""
             }`}
           >
@@ -86,10 +88,19 @@ export function WardrobeGrid() {
                 <h3 className="text-lg font-semibold text-[var(--ink-strong)]">{item.name}</h3>
                 <p className="mt-1 text-sm text-[var(--muted)]">{item.brand} - {item.color}</p>
               </div>
-              <span className="rounded-full bg-[var(--background-soft)] px-3 py-1 text-xs text-[var(--ink)]">{item.category}</span>
+              <div className="flex flex-col items-end gap-2">
+                <span className="rounded-full bg-[var(--background-soft)] px-3 py-1 text-xs text-[var(--ink)]">{item.category}</span>
+                {selected ? <span className="pill">Selected</span> : null}
+              </div>
             </div>
 
             <p className="mt-4 text-sm leading-6 text-[var(--muted)]">{item.note}</p>
+
+            {item.memoryCard?.highlights?.[0] ? (
+              <div className="mt-4 rounded-[20px] border border-[rgba(255,154,123,0.18)] bg-white/78 px-4 py-3 text-xs leading-5 text-[var(--ink)]">
+                {item.memoryCard.highlights[0]}
+              </div>
+            ) : null}
 
             <div className="mt-4 flex flex-wrap gap-2">
               {[...item.tags, ...item.occasions].slice(0, 4).map((token) => (

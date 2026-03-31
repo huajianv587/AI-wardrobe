@@ -6,6 +6,7 @@ import { Bot, BriefcaseBusiness, CalendarDays, CloudSun, MapPinned, Package2, Sp
 import { AuthRequiredCard } from "@/components/auth/auth-required-card";
 import { RecommendationLookCard } from "@/components/outfit/recommendation-look-card";
 import { useAuthSession } from "@/hooks/use-auth-session";
+import { PanelSkeleton } from "@/components/ui/panel-skeleton";
 import {
   AssistantOverview,
   fetchAssistantOverview,
@@ -226,12 +227,7 @@ export function AssistantDashboard() {
   }
 
   if (!authReady) {
-    return (
-      <section className="section-card rounded-[32px] p-6">
-        <p className="pill mb-3">Checking account session</p>
-        <p className="text-sm leading-6 text-[var(--muted)]">Preparing the assistant workspace.</p>
-      </section>
-    );
+    return <PanelSkeleton rows={3} />;
   }
 
   if (!isAuthenticated) {
@@ -356,9 +352,9 @@ export function AssistantDashboard() {
               One-click low-thought mode
             </div>
             <h4 className="text-xl font-semibold text-[var(--ink-strong)]">用户只点一个场景，直接给结果</h4>
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
               {quickModes.map((mode) => (
-                <button key={mode} type="button" onClick={() => void handleQuickMode(mode)} className="pill">
+                <button key={mode} type="button" onClick={() => void handleQuickMode(mode)} className="tap-card whitespace-nowrap rounded-full border border-[var(--line)] bg-white/85 px-4 py-3 text-sm text-[var(--ink)] shadow-[var(--shadow-soft)]">
                   {mode}
                 </button>
               ))}
@@ -375,7 +371,7 @@ export function AssistantDashboard() {
               Packing mode
             </div>
             <h4 className="text-xl font-semibold text-[var(--ink-strong)]">按城市、天数、天气生成胶囊衣橱</h4>
-            <button type="button" onClick={() => void handlePackingPlan()} disabled={busyKey === "packing"} className="mt-4 rounded-full border border-[var(--line)] bg-white/85 px-5 py-3 text-sm text-[var(--ink)]">
+            <button type="button" onClick={() => void handlePackingPlan()} disabled={busyKey === "packing"} className="mt-4 w-full rounded-full border border-[var(--line)] bg-white/85 px-5 py-3 text-sm text-[var(--ink)] shadow-[var(--shadow-soft)] md:w-auto">
               {busyKey === "packing" ? "Packing..." : "Generate packing plan"}
             </button>
             {packingSummary ? (
@@ -475,7 +471,7 @@ export function AssistantDashboard() {
             <textarea value={formState.personalNote} onChange={(event) => setFormState((current) => ({ ...current, personalNote: event.target.value }))} className="min-h-32 w-full rounded-[22px] border border-[var(--line)] bg-white/85 px-4 py-3 text-sm outline-none" />
           </label>
 
-          <button type="button" onClick={() => void handleSaveStyleProfile()} disabled={busyKey === "profile"} className="mt-5 rounded-full bg-[var(--ink-strong)] px-5 py-3 text-sm text-white disabled:opacity-60">
+          <button type="button" onClick={() => void handleSaveStyleProfile()} disabled={busyKey === "profile"} className="mt-5 w-full rounded-full bg-[var(--ink-strong)] px-5 py-3 text-sm text-white shadow-[var(--shadow-float)] disabled:opacity-60 md:w-auto">
             {busyKey === "profile" ? "Saving..." : "Save style memory"}
           </button>
         </article>

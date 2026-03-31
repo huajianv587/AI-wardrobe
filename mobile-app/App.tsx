@@ -22,6 +22,21 @@ export default function App() {
           <Text style={styles.cardCopy}>3. Wardrobe upload + image cleanup queue progress.</Text>
           <Text style={styles.cardCopy}>4. Quick mode and saved outfits tabs.</Text>
         </View>
+
+        <View style={styles.thumbZone}>
+          <View style={styles.thumbItem}>
+            <Text style={styles.thumbLabel}>Home</Text>
+          </View>
+          <View style={[styles.thumbItem, styles.thumbItemActive]}>
+            <Text style={styles.thumbLabelActive}>Assistant</Text>
+          </View>
+          <View style={styles.thumbItem}>
+            <Text style={styles.thumbLabel}>Closet</Text>
+          </View>
+          <View style={styles.thumbItem}>
+            <Text style={styles.thumbLabel}>Looks</Text>
+          </View>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -72,5 +87,32 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     color: "#5f6b7a"
+  },
+  thumbZone: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderRadius: 28,
+    backgroundColor: "rgba(255,255,255,0.92)",
+    padding: 10
+  },
+  thumbItem: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 54,
+    borderRadius: 18
+  },
+  thumbItemActive: {
+    backgroundColor: "#1b2432"
+  },
+  thumbLabel: {
+    fontSize: 13,
+    color: "#6d7382"
+  },
+  thumbLabelActive: {
+    fontSize: 13,
+    color: "#ffffff",
+    fontWeight: "700"
   }
 });

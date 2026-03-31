@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { Canvas } from "@react-three/fiber";
 import { Float, OrbitControls } from "@react-three/drei";
 import { Sparkles } from "lucide-react";
@@ -7,6 +8,7 @@ import { Sparkles } from "lucide-react";
 interface AvatarStageProps {
   palette: string[];
   dropActive?: boolean;
+  dropHovered?: boolean;
   dragHint?: string;
   onDragOver?: (event: React.DragEvent<HTMLDivElement>) => void;
   onDragLeave?: () => void;
@@ -40,17 +42,32 @@ function AvatarFigure({ palette }: Pick<AvatarStageProps, "palette">) {
   );
 }
 
-export function AvatarStage({ palette, dropActive = false, dragHint, onDragOver, onDragLeave, onDrop }: AvatarStageProps) {
+export function AvatarStage({ palette, dropActive = false, dropHovered = false, dragHint, onDragOver, onDragLeave, onDrop }: AvatarStageProps) {
   return (
     <div
-      className={`section-card story-gradient relative h-[520px] overflow-hidden rounded-[34px] p-4 transition ${dropActive ? "ring-2 ring-[var(--accent)] shadow-[var(--shadow-glow)]" : ""}`}
+      className={`section-card story-gradient relative h-[520px] overflow-hidden rounded-[34px] p-4 transition ${dropActive ? "ring-2 ring-[var(--accent)] shadow-[var(--shadow-glow)]" : ""} ${dropHovered ? "scale-[1.01]" : ""}`}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
     >
       <div className="hero-glow absolute inset-0 opacity-80" />
       {dropActive ? (
-        <div className="pointer-events-none absolute inset-6 z-10 rounded-[28px] border-2 border-dashed border-[var(--accent)] bg-white/35" />
+        <motion.div
+          initial={{ opacity: 0.45, scale: 0.98 }}
+          animate={{ opacity: dropHovered ? 0.92 : 0.6, scale: dropHovered ? 1 : 0.985 }}
+          className="pointer-events-none absolute inset-6 z-10 rounded-[28px] border-2 border-dashed border-[var(--accent)] bg-white/35"
+        />
+      ) : null}
+      {dropActive ? (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.92 }}
+          animate={{ opacity: 1, scale: dropHovered ? 1.02 : 1 }}
+          className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
+        >
+          <div className={`rounded-full px-5 py-3 text-sm shadow-[var(--shadow-float)] ${dropHovered ? "bg-[var(--accent)] text-white" : "bg-white/88 text-[var(--ink)]"}`}>
+            {dropHovered ? "Release to style the avatar" : "Bring it closer to the avatar"}
+          </div>
+        </motion.div>
       ) : null}
       <div className="pointer-events-none absolute inset-x-4 top-4 z-10 flex items-center justify-between gap-3">
         <div className="pill bg-white/85">
@@ -64,6 +81,17 @@ export function AvatarStage({ palette, dropActive = false, dragHint, onDragOver,
       <div className="pointer-events-none absolute inset-x-6 bottom-5 z-10">
         <div className="mx-auto max-w-md rounded-full border border-white/70 bg-white/72 px-4 py-3 text-center text-xs leading-5 text-[var(--muted)] shadow-[var(--shadow-soft)]">
           Drag from the wardrobe rail to layer pieces onto the 2.5D avatar. This keeps the MVP playful now and ready for generated try-on later.
+        </div>
+        <div className="mt-4 flex items-center justify-center gap-2">
+          {(palette.length > 0 ? palette : ["#c9eddc", "#f3ead4", "#355172"]).slice(0, 5).map((color, index) => (
+            <motion.span
+              key={`${color}-${index}`}
+              animate={{ y: [0, -5, 0] }}
+              transition={{ duration: 1.8, repeat: Infinity, delay: index * 0.12 }}
+              className="size-3 rounded-full border border-white/80 shadow-[var(--shadow-soft)]"
+              style={{ backgroundColor: color }}
+            />
+          ))}
         </div>
       </div>
       <Canvas camera={{ position: [0, 0.2, 5.2], fov: 34 }}>

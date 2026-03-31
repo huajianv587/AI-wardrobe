@@ -4,6 +4,7 @@ import { startTransition, useCallback, useEffect, useState } from "react";
 import { Cloud, Database, RefreshCw } from "lucide-react";
 
 import { AuthRequiredCard } from "@/components/auth/auth-required-card";
+import { PanelSkeleton } from "@/components/ui/panel-skeleton";
 import { AddItemForm } from "@/components/wardrobe/add-item-form";
 import { FilterBar } from "@/components/wardrobe/filter-bar";
 import { ItemDetailPanel } from "@/components/wardrobe/item-detail-panel";
@@ -260,12 +261,7 @@ export function WardrobeWorkspace() {
   }
 
   if (!authReady) {
-    return (
-      <section className="section-card rounded-[32px] p-6">
-        <p className="pill mb-3">Checking account session</p>
-        <p className="text-sm leading-6 text-[var(--muted)]">Preparing your protected wardrobe workspace.</p>
-      </section>
-    );
+    return <PanelSkeleton rows={3} />;
   }
 
   if (!isAuthenticated) {

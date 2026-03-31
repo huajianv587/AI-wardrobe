@@ -18,6 +18,14 @@ const navItems = [
   { href: "/login", label: "Account", shortLabel: "Login", icon: LogIn }
 ];
 
+const mobileDockItems = [
+  { href: "/", label: "Home", icon: Sparkles },
+  { href: "/wardrobe", label: "Closet", icon: Shirt },
+  { href: "/try-on", label: "Try-On", icon: ScanFace },
+  { href: "/recommend", label: "Looks", icon: Wand2 },
+  { href: "/assistant", label: "Assist", icon: Bot }
+];
+
 interface AppShellProps {
   title: string;
   subtitle: string;
@@ -30,7 +38,7 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
   const { user, isAuthenticated } = useAuthSession();
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-10 pt-5 md:px-6">
+    <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-28 pt-5 md:px-6 md:pb-10">
       <AuthSessionBootstrap />
       <motion.header
         initial={{ opacity: 0, y: 18 }}
@@ -50,9 +58,14 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
                 Signed in as <span className="font-medium text-[var(--ink)]">{user.email}</span>
               </p>
             ) : null}
+            {isMobile ? (
+              <Link href="/login" className="mt-3 inline-flex items-center rounded-full border border-[var(--line)] bg-white/88 px-4 py-2 text-xs text-[var(--ink)] shadow-[var(--shadow-soft)]">
+                Account
+              </Link>
+            ) : null}
           </div>
 
-          <nav className="flex flex-wrap gap-2">
+          <nav className="hidden flex-wrap gap-2 md:flex">
             {navItems.map(({ href, label, shortLabel, icon: Icon }) => {
               const active = pathname === href;
 
@@ -76,7 +89,30 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
         </div>
       </motion.header>
 
-      <main className="flex-1">{children}</main>
+      <motion.main
+        key={pathname}
+        initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
+        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        transition={{ duration: 0.36, ease: [0.22, 1, 0.36, 1] }}
+        className="page-fade flex-1"
+      >
+        {children}
+      </motion.main>
+
+      {isMobile ? (
+        <nav className="mobile-dock md:hidden">
+          {mobileDockItems.map(({ href, label, icon: Icon }) => {
+            const active = pathname === href;
+
+            return (
+              <Link key={href} href={href} className="mobile-dock-item" data-active={active ? "true" : "false"}>
+                <Icon className="size-4" />
+                <span>{label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      ) : null}
     </div>
   );
 }

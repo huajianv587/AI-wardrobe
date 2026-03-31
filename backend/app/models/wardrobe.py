@@ -48,3 +48,4 @@ class ClothingItem(Base):
     occasions: Mapped[list[str]] = mapped_column(JSON, default=list)
     style_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    last_synced_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

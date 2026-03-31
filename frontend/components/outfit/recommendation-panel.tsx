@@ -1,6 +1,7 @@
 "use client";
 
 import { startTransition, useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { ArrowRight, RefreshCw, Sparkles } from "lucide-react";
 
 import { AuthRequiredCard } from "@/components/auth/auth-required-card";
@@ -178,25 +179,42 @@ export function RecommendationPanel() {
 
   return (
     <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-      <section className="section-card rounded-[32px] p-5">
+      <section className="section-card story-gradient rounded-[32px] p-5">
         <div className="mb-5">
           <div className="pill mb-3"><Sparkles className="size-4" />LangGraph-ready flow</div>
           <h3 className="text-2xl font-semibold text-[var(--ink-strong)]">Prompt your styling agent</h3>
           <p className="mt-2 text-sm leading-6 text-[var(--muted)]">The panel now sends your Bearer token to the backend recommendation endpoint, and falls back to local heuristics only when the API is temporarily unavailable.</p>
         </div>
 
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="metric-tile p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Retriever scope</p>
+            <p className="mt-2 text-lg font-semibold text-[var(--ink-strong)]">{items.length} private items</p>
+          </div>
+          <div className="metric-tile p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Request mode</p>
+            <p className="mt-2 text-lg font-semibold text-[var(--ink-strong)]">{result.source === "api" ? "Backend API" : "Local fallback"}</p>
+          </div>
+          <div className="metric-tile p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">One more look</p>
+            <p className="mt-2 text-lg font-semibold text-[var(--ink-strong)]">Built in</p>
+          </div>
+        </div>
+
+        <div className="ambient-divider my-5" />
+
         <textarea
           value={prompt}
           onChange={(event) => setPrompt(event.target.value)}
-          className="min-h-40 w-full rounded-[24px] border border-[var(--line)] bg-white/85 p-4 text-sm leading-6 text-[var(--ink)] outline-none placeholder:text-[var(--muted)]"
+          className="min-h-40 w-full rounded-[24px] border border-[var(--line)] bg-white/85 p-4 text-sm leading-6 text-[var(--ink)] outline-none placeholder:text-[var(--muted)] transition focus:border-[var(--accent)] focus:bg-white"
           placeholder="Describe scene, mood, weather, and style direction..."
         />
 
         <div className="mt-4 flex flex-wrap gap-2">
           {promptPresets.map((preset) => (
-            <button key={preset} type="button" onClick={() => void handleGenerate(preset)} className="pill transition hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]">
+            <motion.button key={preset} type="button" whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }} onClick={() => void handleGenerate(preset)} className="pill transition hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]">
               {preset}
-            </button>
+            </motion.button>
           ))}
         </div>
 
@@ -230,7 +248,7 @@ export function RecommendationPanel() {
         ) : null}
 
         {result.outfits.map((outfit) => (
-          <article key={outfit.title} className="section-card rounded-[32px] p-5">
+          <motion.article key={outfit.title} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} className="section-card rounded-[32px] p-5">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h4 className="text-xl font-semibold text-[var(--ink-strong)]">{outfit.title}</h4>
@@ -247,15 +265,15 @@ export function RecommendationPanel() {
                 }
 
                 return (
-                  <div key={piece.id} className="rounded-[24px] border border-[var(--line)] bg-white/80 p-4">
+                  <motion.div key={piece.id} whileHover={{ y: -3, scale: 1.01 }} className="rounded-[24px] border border-[var(--line)] bg-white/80 p-4">
                     <div className="mb-3 h-24 rounded-[18px]" style={{ background: `linear-gradient(160deg, ${piece.colorHex} 0%, rgba(255,255,255,0.96) 100%)` }} />
                     <p className="font-medium text-[var(--ink-strong)]">{piece.name}</p>
                     <p className="mt-1 text-sm text-[var(--muted)]">{piece.category} - {piece.color}</p>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
-          </article>
+          </motion.article>
         ))}
 
         <article className="section-card rounded-[32px] p-5">

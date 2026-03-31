@@ -41,6 +41,30 @@ interface ApiRecommendationResponse {
   agent_trace: ApiAgentTraceStep[];
 }
 
+interface ApiStatusMessageResponse {
+  status: string;
+  message: string;
+}
+
+interface ApiAiDemoArtifact {
+  kind: string;
+  label: string;
+  value: string | null;
+  preview_url: string | null;
+  payload: Record<string, unknown> | unknown[] | null;
+}
+
+interface ApiAiDemoRunResponse {
+  workflow_id: string;
+  workflow_title: string;
+  provider_mode: string;
+  status: string;
+  headline: string;
+  summary: string;
+  model_upgrade_path: string;
+  artifacts: ApiAiDemoArtifact[];
+}
+
 interface ApiRequestOptions {
   skipAuth?: boolean;
 }
@@ -65,6 +89,102 @@ export interface RecommendationResult {
   source: string;
   outfits: RecommendationCard[];
   agentTrace: AgentTraceStep[];
+}
+
+export interface SyncStatus {
+  mode: string;
+  cloud_enabled: boolean;
+  storage_bucket: string | null;
+  sync_table: string | null;
+  user_id: number;
+  supabase_user_id: string | null;
+  items_total: number;
+  items_with_source_image: number;
+  items_with_processed_image: number;
+  items_synced_to_cloud: number;
+  latest_item_created_at: string | null;
+  latest_cloud_sync_at: string | null;
+}
+
+export interface SyncRunResponse {
+  status: string;
+  synced_items: number;
+  failed_items: number;
+  attempted_items: number;
+  latest_cloud_sync_at: string | null;
+  message: string;
+}
+
+export interface AiDemoWorkflow {
+  id: string;
+  title: string;
+  model_name: string;
+  task: string;
+  priority: string;
+  gpu_requirement: string;
+  stage: string;
+  api_route: string;
+  sample_prompt: string;
+  sample_image_hint: string | null;
+  summary: string;
+  service_slot: string;
+  configured_worker_url: string | null;
+  delivery_mode: string;
+}
+
+export interface AiDemoArtifact {
+  kind: string;
+  label: string;
+  value: string | null;
+  previewUrl: string | null;
+  payload: Record<string, unknown> | unknown[] | null;
+}
+
+export interface AiDemoRunResponse {
+  workflow_id: string;
+  workflow_title: string;
+  provider_mode: string;
+  status: string;
+  headline: string;
+  summary: string;
+  model_upgrade_path: string;
+  artifacts: AiDemoArtifact[];
+}
+
+export interface AiDemoServiceStatus {
+  workflow_id: string;
+  title: string;
+  service_slot: string;
+  configured: boolean;
+  healthy: boolean | null;
+  mode: string;
+  worker_url: string | null;
+  note: string;
+}
+
+export interface MiniProgramShortcut {
+  id: string;
+  title: string;
+  subtitle: string;
+  route: string;
+  badge: string | null;
+}
+
+export interface MiniProgramWorkflowPreview {
+  id: string;
+  title: string;
+  priority: string;
+  stage: string;
+}
+
+export interface MiniProgramHomeResponse {
+  greeting: string;
+  user_email: string;
+  wardrobe_count: number;
+  synced_count: number;
+  recommended_prompt: string;
+  shortcuts: MiniProgramShortcut[];
+  workflow_preview: MiniProgramWorkflowPreview[];
 }
 
 export interface WardrobeFormValues {
@@ -300,6 +420,20 @@ export async function fetchCurrentUser() {
   return apiRequest<AuthUserSummary>("/api/v1/auth/me");
 }
 
+export async function refreshAuthSession(payload: { refresh_token: string; access_token?: string | null }) {
+  return apiRequest<AuthSessionResponse>("/api/v1/auth/refresh", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  }, { skipAuth: true });
+}
+
+export async function logoutAuthSession(refreshToken?: string | null) {
+  return apiRequest<ApiStatusMessageResponse>("/api/v1/auth/logout", {
+    method: "POST",
+    body: JSON.stringify({ refresh_token: refreshToken ?? null })
+  });
+}
+
 export async function fetchRecommendations(prompt: string) {
   const payload = await apiRequest<ApiRecommendationResponse>("/api/v1/outfits/recommend", {
     method: "POST",
@@ -315,4 +449,52 @@ export async function fetchRecommendations(prompt: string) {
     })),
     agentTrace: payload.agent_trace
   } satisfies RecommendationResult;
+}
+
+export async function fetchSyncStatus() {
+  return apiRequest<SyncStatus>("/api/v1/sync/status");
+}
+
+export async function runWardrobeSync() {
+  return apiRequest<SyncRunResponse>("/api/v1/sync/wardrobe", {
+    method: "POST"
+  });
+}
+
+export async function fetchAiDemoWorkflows() {
+  return apiRequest<AiDemoWorkflow[]>("/api/v1/ai-demo/workflows");
+}
+
+export async function fetchAiDemoServiceStatuses() {
+  return apiRequest<AiDemoServiceStatus[]>("/api/v1/ai-demo/status");
+}
+
+export async function runAiDemoWorkflow(payload: {
+  workflow_id: string;
+  prompt: string;
+  source_image_url?: string;
+  garment_name?: string;
+  style?: string;
+  occasion?: string;
+  weather?: string;
+}) {
+  const response = await apiRequest<ApiAiDemoRunResponse>("/api/v1/ai-demo/run", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+
+  return {
+    ...response,
+    artifacts: response.artifacts.map((artifact) => ({
+      kind: artifact.kind,
+      label: artifact.label,
+      value: artifact.value,
+      previewUrl: artifact.preview_url,
+      payload: artifact.payload
+    }))
+  } satisfies AiDemoRunResponse;
+}
+
+export async function fetchMiniProgramHome() {
+  return apiRequest<MiniProgramHomeResponse>("/api/v1/mini-program/home");
 }

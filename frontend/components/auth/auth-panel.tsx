@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, LoaderCircle, LogOut, LogIn, RefreshCw, ShieldCheck, UserPlus } from "lucide-react";
 
-import { clearStoredSession, persistAuthSession, updateStoredSessionUser } from "@/lib/auth-session";
-import { ApiError, fetchCurrentUser, signInWithPassword, signUpWithPassword } from "@/lib/api";
+import { clearStoredSession, persistAuthSession, readStoredSession, updateStoredSessionUser } from "@/lib/auth-session";
+import { ApiError, fetchCurrentUser, logoutAuthSession, signInWithPassword, signUpWithPassword } from "@/lib/api";
 import { useAuthSession } from "@/hooks/use-auth-session";
 
 type AuthMode = "login" | "sign-up";
@@ -84,11 +84,21 @@ export function AuthPanel() {
     }
   }
 
-  function handleSignOut() {
-    clearStoredSession();
-    setPassword("");
-    setMessage("Signed out on this device. Supabase tokens were removed from local storage.");
-    setError("");
+  async function handleSignOut() {
+    const currentSession = readStoredSession();
+
+    try {
+      if (currentSession?.access_token) {
+        await logoutAuthSession(currentSession.refresh_token);
+      }
+    } catch {
+      // Local session is still cleared even if server-side revoke fails.
+    } finally {
+      clearStoredSession();
+      setPassword("");
+      setMessage("Signed out on this device. Local tokens were cleared and the backend logout endpoint was notified.");
+      setError("");
+    }
   }
 
   const submitLabel = loading
@@ -100,7 +110,7 @@ export function AuthPanel() {
       : "Create account";
 
   return (
-    <article className="section-card rounded-[34px] p-6">
+    <article className="section-card soft-panel rounded-[34px] p-6">
       <div className="mb-5 flex items-center justify-between gap-3">
         <div>
           <div className="pill mb-3">
@@ -116,14 +126,14 @@ export function AuthPanel() {
           <button
             type="button"
             onClick={() => setMode("login")}
-            className={`rounded-full px-4 py-2 text-sm transition ${mode === "login" ? "bg-[var(--ink-strong)] text-white" : "text-[var(--ink)]"}`}
+            className={`rounded-full px-4 py-2 text-sm transition ${mode === "login" ? "bg-[var(--ink-strong)] text-white shadow-[var(--shadow-float)]" : "text-[var(--ink)]"}`}
           >
             Sign in
           </button>
           <button
             type="button"
             onClick={() => setMode("sign-up")}
-            className={`rounded-full px-4 py-2 text-sm transition ${mode === "sign-up" ? "bg-[var(--ink-strong)] text-white" : "text-[var(--ink)]"}`}
+            className={`rounded-full px-4 py-2 text-sm transition ${mode === "sign-up" ? "bg-[var(--ink-strong)] text-white shadow-[var(--shadow-float)]" : "text-[var(--ink)]"}`}
           >
             Sign up
           </button>
@@ -161,7 +171,7 @@ export function AuthPanel() {
 
             <button
               type="button"
-              onClick={handleSignOut}
+              onClick={() => void handleSignOut()}
               className="inline-flex items-center gap-2 rounded-full border border-[var(--accent-rose)] bg-[var(--accent-rose)]/25 px-5 py-3 text-sm text-[var(--ink)]"
             >
               <LogOut className="size-4" />
@@ -179,7 +189,7 @@ export function AuthPanel() {
             onChange={(event) => setEmail(event.target.value)}
             type="email"
             required
-            className="w-full rounded-[24px] border border-[var(--line)] bg-white/85 px-4 py-3 text-sm outline-none placeholder:text-[var(--muted)]"
+            className="w-full rounded-[24px] border border-[var(--line)] bg-white/85 px-4 py-3 text-sm outline-none placeholder:text-[var(--muted)] transition focus:border-[var(--accent)] focus:bg-white"
             placeholder="you@example.com"
           />
         </label>
@@ -192,7 +202,7 @@ export function AuthPanel() {
             type="password"
             required
             minLength={6}
-            className="w-full rounded-[24px] border border-[var(--line)] bg-white/85 px-4 py-3 text-sm outline-none placeholder:text-[var(--muted)]"
+            className="w-full rounded-[24px] border border-[var(--line)] bg-white/85 px-4 py-3 text-sm outline-none placeholder:text-[var(--muted)] transition focus:border-[var(--accent)] focus:bg-white"
             placeholder="At least 6 characters"
           />
         </label>

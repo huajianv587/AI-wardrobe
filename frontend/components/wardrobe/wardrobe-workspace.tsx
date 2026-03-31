@@ -195,7 +195,7 @@ export function WardrobeWorkspace() {
   return (
     <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
       <div className="space-y-6">
-        <section className="section-card rounded-[32px] p-5">
+        <section className="section-card story-gradient rounded-[32px] p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-start gap-4">
               <div className="rounded-[24px] p-3" style={{ background: syncStateCopy[syncState].accent }}>
@@ -221,6 +221,28 @@ export function WardrobeWorkspace() {
                 <RefreshCw className="size-4" />
                 Refresh
               </button>
+            </div>
+          </div>
+
+          <div className="ambient-divider my-5" />
+
+          <div className="grid gap-3 md:grid-cols-3">
+            <div className="metric-tile p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Owner</p>
+              <p className="mt-2 text-lg font-semibold text-[var(--ink-strong)]">{user?.email ?? "Signed-out session"}</p>
+              <p className="mt-2 text-xs leading-5 text-[var(--muted)]">Wardrobe cards, uploads, and cloud sync are now isolated per authenticated user.</p>
+            </div>
+
+            <div className="metric-tile p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Storage mode</p>
+              <p className="mt-2 text-lg font-semibold text-[var(--ink-strong)]">SQLite first</p>
+              <p className="mt-2 text-xs leading-5 text-[var(--muted)]">Fast local CRUD first, with optional Supabase backup layered in only when configured.</p>
+            </div>
+
+            <div className="metric-tile p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Image lane</p>
+              <p className="mt-2 text-lg font-semibold text-[var(--ink-strong)]">Upload / cleanup / sync</p>
+              <p className="mt-2 text-xs leading-5 text-[var(--muted)]">Each item can carry a source image, a processed asset, and later your own self-hosted AI pipeline output.</p>
             </div>
           </div>
         </section>

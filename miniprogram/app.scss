@@ -1,0 +1,100 @@
+page {
+  background: #fdf8f2;
+  color: #1b2432;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.page-shell {
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.card {
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 20px 50px rgba(69, 54, 31, 0.08);
+  padding: 24px;
+}
+
+.hero-card {
+  border-radius: 32px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.97), rgba(255, 238, 223, 0.92));
+  box-shadow: 0 20px 60px rgba(255, 154, 123, 0.14);
+  padding: 28px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #5d6472;
+  font-size: 24px;
+}
+
+.title {
+  margin-top: 18px;
+  font-size: 44px;
+  font-weight: 600;
+  color: #1b2432;
+}
+
+.copy {
+  margin-top: 14px;
+  font-size: 28px;
+  line-height: 1.7;
+  color: #728098;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.metric-card {
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.88);
+  padding: 20px;
+  box-shadow: 0 14px 32px rgba(69, 54, 31, 0.06);
+}
+
+.metric-label {
+  font-size: 22px;
+  color: #728098;
+}
+
+.metric-value {
+  margin-top: 10px;
+  font-size: 36px;
+  font-weight: 600;
+  color: #1b2432;
+}
+
+.stack {
+  display: grid;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.mini-card {
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.84);
+  padding: 20px;
+  box-shadow: 0 12px 28px rgba(69, 54, 31, 0.06);
+}
+
+.mini-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1b2432;
+}
+
+.mini-copy {
+  margin-top: 10px;
+  font-size: 24px;
+  line-height: 1.7;
+  color: #728098;
+}

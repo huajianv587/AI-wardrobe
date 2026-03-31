@@ -73,3 +73,49 @@ def test_me_endpoint(client):
     assert response.status_code == 200
     assert payload["email"] == "tester@ai-wardrobe.dev"
     assert payload["supabase_user_id"] == "supabase-user-test-001"
+
+
+def test_refresh_endpoint(client, monkeypatch):
+    def fake_refresh(db, refresh_token, *, access_token=None):
+        assert refresh_token == "refresh-token"
+        assert access_token == "access-token"
+        return AuthSessionResponse(
+            access_token="new-access-token",
+            refresh_token="new-refresh-token",
+            expires_at=1999999999,
+            expires_in=3600,
+            message="Session refreshed successfully.",
+            user=_user_summary(),
+        )
+
+    monkeypatch.setattr(auth_service, "refresh_session", fake_refresh)
+
+    response = client.post(
+        "/api/v1/auth/refresh",
+        json={"refresh_token": "refresh-token", "access_token": "access-token"},
+    )
+    payload = response.json()
+
+    assert response.status_code == 200
+    assert payload["access_token"] == "new-access-token"
+    assert payload["refresh_token"] == "new-refresh-token"
+
+
+def test_logout_endpoint(client, monkeypatch):
+    requests = []
+
+    def fake_logout(access_token, refresh_token=None):
+        requests.append({"access_token": access_token, "refresh_token": refresh_token})
+
+    monkeypatch.setattr(auth_service, "sign_out_session", fake_logout)
+
+    response = client.post(
+        "/api/v1/auth/logout",
+        headers={"Authorization": "Bearer active-token"},
+        json={"refresh_token": "refresh-token"},
+    )
+    payload = response.json()
+
+    assert response.status_code == 200
+    assert payload["status"] == "signed_out"
+    assert requests == [{"access_token": "active-token", "refresh_token": "refresh-token"}]

@@ -2,12 +2,18 @@
 
 import { Canvas } from "@react-three/fiber";
 import { Float, OrbitControls } from "@react-three/drei";
+import { Sparkles } from "lucide-react";
 
 interface AvatarStageProps {
   palette: string[];
+  dropActive?: boolean;
+  dragHint?: string;
+  onDragOver?: (event: React.DragEvent<HTMLDivElement>) => void;
+  onDragLeave?: () => void;
+  onDrop?: (event: React.DragEvent<HTMLDivElement>) => void;
 }
 
-function AvatarFigure({ palette }: AvatarStageProps) {
+function AvatarFigure({ palette }: Pick<AvatarStageProps, "palette">) {
   const layers = palette.length > 0 ? palette : ["#c9eddc", "#f3ead4", "#355172"];
 
   return (
@@ -34,14 +40,36 @@ function AvatarFigure({ palette }: AvatarStageProps) {
   );
 }
 
-export function AvatarStage({ palette }: AvatarStageProps) {
+export function AvatarStage({ palette, dropActive = false, dragHint, onDragOver, onDragLeave, onDrop }: AvatarStageProps) {
   return (
-    <div className="section-card relative h-[520px] overflow-hidden rounded-[34px] p-4">
+    <div
+      className={`section-card story-gradient relative h-[520px] overflow-hidden rounded-[34px] p-4 transition ${dropActive ? "ring-2 ring-[var(--accent)] shadow-[var(--shadow-glow)]" : ""}`}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+    >
       <div className="hero-glow absolute inset-0 opacity-80" />
+      {dropActive ? (
+        <div className="pointer-events-none absolute inset-6 z-10 rounded-[28px] border-2 border-dashed border-[var(--accent)] bg-white/35" />
+      ) : null}
+      <div className="pointer-events-none absolute inset-x-4 top-4 z-10 flex items-center justify-between gap-3">
+        <div className="pill bg-white/85">
+          <Sparkles className="size-4" />
+          {dragHint ?? "Drag garments here or tap on the right to preview layers"}
+        </div>
+        <div className={`rounded-full px-3 py-1 text-xs ${dropActive ? "bg-[var(--accent)] text-white" : "bg-white/80 text-[var(--ink)]"}`}>
+          {dropActive ? "Release to wear" : `${palette.length} active layers`}
+        </div>
+      </div>
+      <div className="pointer-events-none absolute inset-x-6 bottom-5 z-10">
+        <div className="mx-auto max-w-md rounded-full border border-white/70 bg-white/72 px-4 py-3 text-center text-xs leading-5 text-[var(--muted)] shadow-[var(--shadow-soft)]">
+          Drag from the wardrobe rail to layer pieces onto the 2.5D avatar. This keeps the MVP playful now and ready for generated try-on later.
+        </div>
+      </div>
       <Canvas camera={{ position: [0, 0.2, 5.2], fov: 34 }}>
         <ambientLight intensity={1.4} />
         <directionalLight position={[3, 4, 4]} intensity={2.2} />
-        <directionalLight position={[-3, 2, 2]} intensity={1.2} color="#d8cff7" />
+        <directionalLight position={[-3, 2, 2]} intensity={1.2} color="#ffe2d5" />
         <AvatarFigure palette={palette} />
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -2.25, 0]}>
           <circleGeometry args={[2.1, 50]} />

@@ -90,6 +90,18 @@ export function getStoredAccessToken() {
   return readStoredSession()?.access_token ?? null;
 }
 
+export function getStoredRefreshToken() {
+  return readStoredSession()?.refresh_token ?? null;
+}
+
+export function shouldRefreshSession(session: AuthSessionResponse, thresholdMs = 60_000) {
+  if (!session.access_token || !session.refresh_token || !session.expires_at) {
+    return false;
+  }
+
+  return session.expires_at * 1000 - Date.now() <= thresholdMs;
+}
+
 export function subscribeToAuthSession(listener: () => void) {
   if (!isBrowser()) {
     return () => {};

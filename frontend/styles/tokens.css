@@ -1,16 +1,23 @@
 :root {
-  --background: #fafaf8;
-  --background-soft: #f1efe8;
-  --card: rgba(255, 255, 255, 0.78);
-  --line: rgba(30, 41, 59, 0.1);
-  --ink-strong: #122033;
-  --ink: #2b3d54;
-  --muted: #60748a;
-  --accent: #7bb2f5;
-  --accent-soft: #d8ebff;
-  --accent-rose: #f6c6b9;
-  --accent-lilac: #d8cff7;
-  --accent-mint: #c9eddc;
-  --shadow-soft: 0 24px 70px rgba(15, 23, 42, 0.08);
-  --shadow-float: 0 14px 40px rgba(77, 116, 168, 0.16);
+  --background: #fdf8f2;
+  --background-soft: #f6efe4;
+  --background-contrast: #fff7ef;
+  --card: rgba(255, 252, 247, 0.86);
+  --card-strong: rgba(255, 255, 255, 0.95);
+  --line: rgba(62, 69, 84, 0.1);
+  --ink-strong: #1b2432;
+  --ink: #34425a;
+  --muted: #728098;
+  --accent: #ff9a7b;
+  --accent-soft: #ffe5d8;
+  --accent-rose: #ffc8c2;
+  --accent-sky: #d7ebff;
+  --accent-lilac: #ece4ff;
+  --accent-mint: #d8f3e4;
+  --accent-butter: #fff0c9;
+  --shadow-soft: 0 26px 70px rgba(69, 54, 31, 0.08);
+  --shadow-float: 0 16px 44px rgba(255, 154, 123, 0.16);
+  --shadow-glow: 0 18px 60px rgba(253, 197, 166, 0.24);
+  --font-display: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+  --font-body: "Avenir Next", "Trebuchet MS", "PingFang SC", "Microsoft YaHei", sans-serif;
 }

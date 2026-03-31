@@ -2,6 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 
+import { motion } from "framer-motion";
 import { useDeferredValue } from "react";
 import { CheckCircle2, Image as ImageIcon } from "lucide-react";
 
@@ -38,16 +39,21 @@ export function WardrobeGrid() {
 
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {filteredItems.map((item) => {
+      {filteredItems.map((item, index) => {
         const selected = item.id === selectedItemId;
         const previewUrl = resolveAssetUrl(item.processedImageUrl ?? item.imageUrl);
 
         return (
-          <button
+          <motion.button
             key={item.id}
             type="button"
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: Math.min(index * 0.03, 0.18) }}
+            whileHover={{ y: -4, scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
             onClick={() => setSelectedItemId(item.id)}
-            className={`section-card rounded-[28px] p-4 text-left transition hover:-translate-y-1 hover:shadow-[var(--shadow-float)] ${
+            className={`section-card interactive-card rounded-[28px] p-4 text-left ${
               selected ? "border-[var(--accent)] ring-2 ring-[var(--accent-soft)]" : ""
             }`}
           >
@@ -98,7 +104,7 @@ export function WardrobeGrid() {
               </span>
               {selected ? <CheckCircle2 className="size-4 text-[var(--accent)]" /> : null}
             </div>
-          </button>
+          </motion.button>
         );
       })}
     </div>

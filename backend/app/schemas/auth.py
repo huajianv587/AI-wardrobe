@@ -17,6 +17,20 @@ class EmailPasswordAuthRequest(BaseModel):
     password: str = Field(min_length=6, max_length=128)
 
 
+class RefreshSessionRequest(BaseModel):
+    refresh_token: str = Field(min_length=8)
+    access_token: str | None = None
+
+
+class LogoutRequest(BaseModel):
+    refresh_token: str | None = None
+
+
+class StatusMessageResponse(BaseModel):
+    status: str
+    message: str
+
+
 class AuthSessionResponse(BaseModel):
     access_token: str | None = None
     refresh_token: str | None = None

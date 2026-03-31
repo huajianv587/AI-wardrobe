@@ -1,0 +1,13 @@
+{
+  "miniprogramRoot": "./",
+  "compileType": "miniprogram",
+  "projectname": "AI-wardrobe",
+  "description": "Taro scaffold for AI Wardrobe mini program",
+  "appid": "touristappid",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "postcss": true,
+    "minified": false
+  }
+}

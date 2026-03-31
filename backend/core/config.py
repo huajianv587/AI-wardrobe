@@ -29,8 +29,16 @@ class Settings(BaseSettings):
     ai_cleanup_api_url: str = ""
     ai_cleanup_api_key: str = ""
     ai_cleanup_timeout_seconds: float = 45.0
+    ai_demo_adapter_timeout_seconds: float = 8.0
     vllm_base_url: str = ""
     qwen_model_name: str = "Qwen2.5-7B-Instruct"
+    llm_recommender_api_url: str = ""
+    image_processor_api_url: str = ""
+    classifier_api_url: str = ""
+    multimodal_reader_api_url: str = ""
+    virtual_tryon_api_url: str = ""
+    product_renderer_api_url: str = ""
+    avatar_builder_api_url: str = ""
 
 
 settings = Settings()

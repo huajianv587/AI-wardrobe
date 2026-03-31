@@ -34,6 +34,13 @@ def _auth_client():
     return create_client(settings.supabase_url, settings.supabase_anon_key)
 
 
+def _service_client():
+    if not settings.supabase_url or not settings.supabase_service_role_key:
+        return None
+
+    return create_client(settings.supabase_url, settings.supabase_service_role_key)
+
+
 def _coerce_datetime(value: datetime | str | None) -> datetime:
     if isinstance(value, datetime):
         return value
@@ -148,6 +155,49 @@ def sign_in_with_password(db: Session, email: str, password: str) -> AuthSession
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Sign-in did not return an active session.")
 
     return _build_session_response(db, auth_response)
+
+
+def refresh_session(
+    db: Session,
+    refresh_token: str,
+    *,
+    access_token: str | None = None,
+) -> AuthSessionResponse:
+    try:
+        if access_token:
+            auth_response = _auth_client().auth.set_session(access_token, refresh_token)
+        else:
+            auth_response = _auth_client().auth.refresh_session(refresh_token)
+    except Exception as exc:
+        logger.warning("Supabase session refresh failed: %s", exc)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token is invalid or expired.") from exc
+
+    if auth_response.session is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Supabase did not return a refreshed session.")
+
+    return _build_session_response(db, auth_response, fallback_message="Session refreshed successfully.")
+
+
+def sign_out_session(access_token: str, refresh_token: str | None = None) -> None:
+    if not is_enabled():
+        return
+
+    admin_client = _service_client()
+    if admin_client is not None:
+        try:
+            admin_client.auth.admin.sign_out(access_token, "global")
+            return
+        except Exception as exc:
+            logger.warning("Supabase admin sign-out failed, falling back to session sign-out: %s", exc)
+
+    if refresh_token:
+        try:
+            client = _auth_client()
+            if access_token:
+                client.auth.set_session(access_token, refresh_token)
+            client.auth.sign_out({"scope": "global"})
+        except Exception as exc:
+            logger.warning("Supabase session sign-out failed: %s", exc)
 
 
 def get_current_user_from_token(db: Session, access_token: str) -> User:

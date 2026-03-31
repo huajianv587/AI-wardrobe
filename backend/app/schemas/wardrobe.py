@@ -38,6 +38,7 @@ class ClothingItemRead(ClothingItemBase):
     id: int
     user_id: int | None = None
     created_at: datetime
+    last_synced_at: datetime | None = None
 
 
 class DeleteResponse(BaseModel):

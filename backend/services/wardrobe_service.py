@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+from datetime import datetime
+
 from fastapi import HTTPException, UploadFile, status
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
+from app.models.user import User
 from app.models.wardrobe import ClothingItem
 from app.schemas.wardrobe import ClothingItemCreate, ClothingItemUpdate
 from services import image_pipeline_service, storage_service, supabase_service
@@ -30,16 +33,26 @@ def _without_tags(values: list[str], removed: set[str]) -> list[str]:
 
 
 def _sync_item(
+    db: Session,
     item: ClothingItem,
     *,
+    owner_supabase_user_id: str | None = None,
+    owner_email: str | None = None,
     image_backup_url: str | None = None,
     processed_backup_url: str | None = None,
 ) -> None:
-    supabase_service.sync_clothing_item(
+    synced = supabase_service.sync_clothing_item(
         item,
+        owner_supabase_user_id=owner_supabase_user_id,
+        owner_email=owner_email,
         image_backup_url=image_backup_url,
         processed_backup_url=processed_backup_url,
     )
+
+    if synced:
+        item.last_synced_at = datetime.utcnow()
+        db.commit()
+        db.refresh(item)
 
 
 def list_items(db: Session, user_id: int, category: str | None = None, query: str | None = None) -> list[ClothingItem]:
@@ -69,19 +82,20 @@ def get_item(db: Session, item_id: int, user_id: int) -> ClothingItem:
     return item
 
 
-def create_item(db: Session, payload: ClothingItemCreate, user_id: int) -> ClothingItem:
+def create_item(db: Session, payload: ClothingItemCreate, user: User) -> ClothingItem:
+    user_id = user.id
     item = ClothingItem(**payload.model_dump(exclude={"user_id"}), user_id=user_id)
     item.tags = _dedupe_tokens(item.tags)
     item.occasions = _dedupe_tokens(item.occasions)
     db.add(item)
     db.commit()
     db.refresh(item)
-    _sync_item(item)
+    _sync_item(db, item, owner_supabase_user_id=user.supabase_user_id, owner_email=user.email)
     return item
 
 
-def update_item(db: Session, item_id: int, payload: ClothingItemUpdate, user_id: int) -> ClothingItem:
-    item = get_item(db, item_id, user_id)
+def update_item(db: Session, item_id: int, payload: ClothingItemUpdate, user: User) -> ClothingItem:
+    item = get_item(db, item_id, user.id)
 
     for field, value in payload.model_dump(exclude_unset=True).items():
         if field in {"tags", "occasions"} and value is not None:
@@ -92,12 +106,12 @@ def update_item(db: Session, item_id: int, payload: ClothingItemUpdate, user_id:
 
     db.commit()
     db.refresh(item)
-    _sync_item(item)
+    _sync_item(db, item, owner_supabase_user_id=user.supabase_user_id, owner_email=user.email)
     return item
 
 
-def attach_item_image(db: Session, item_id: int, upload_file: UploadFile, user_id: int) -> ClothingItem:
-    item = get_item(db, item_id, user_id)
+def attach_item_image(db: Session, item_id: int, upload_file: UploadFile, user: User) -> ClothingItem:
+    item = get_item(db, item_id, user.id)
     asset = storage_service.save_upload("wardrobe/source", upload_file)
 
     item.image_url = asset.local_url
@@ -106,12 +120,18 @@ def attach_item_image(db: Session, item_id: int, upload_file: UploadFile, user_i
     item.style_notes = _append_note(item.style_notes, "Source image uploaded for cleanup and recommendation preview.")
     db.commit()
     db.refresh(item)
-    _sync_item(item, image_backup_url=asset.backup_url)
+    _sync_item(
+        db,
+        item,
+        owner_supabase_user_id=user.supabase_user_id,
+        owner_email=user.email,
+        image_backup_url=asset.backup_url,
+    )
     return item
 
 
-def process_item_image(db: Session, item_id: int, user_id: int) -> ClothingItem:
-    item = get_item(db, item_id, user_id)
+def process_item_image(db: Session, item_id: int, user: User) -> ClothingItem:
+    item = get_item(db, item_id, user.id)
 
     if item.image_url:
         cleanup = image_pipeline_service.process_item_image(item.id, item.image_url)
@@ -126,18 +146,24 @@ def process_item_image(db: Session, item_id: int, user_id: int) -> ClothingItem:
         item.style_notes = _append_note(item.style_notes, cleanup.note)
         db.commit()
         db.refresh(item)
-        _sync_item(item, processed_backup_url=processed_asset.backup_url)
+        _sync_item(
+            db,
+            item,
+            owner_supabase_user_id=user.supabase_user_id,
+            owner_email=user.email,
+            processed_backup_url=processed_asset.backup_url,
+        )
         return item
 
     item.style_notes = _append_note(item.style_notes, "Upload an image before running the cleanup pipeline.")
     db.commit()
     db.refresh(item)
-    _sync_item(item)
+    _sync_item(db, item, owner_supabase_user_id=user.supabase_user_id, owner_email=user.email)
     return item
 
 
-def delete_item(db: Session, item_id: int, user_id: int) -> int:
-    item = get_item(db, item_id, user_id)
+def delete_item(db: Session, item_id: int, user: User) -> int:
+    item = get_item(db, item_id, user.id)
     image_url = item.image_url
     processed_image_url = item.processed_image_url
 

@@ -7,16 +7,31 @@ html {
 
 body {
   min-height: 100vh;
-  font-family: "Avenir Next", "Segoe UI", "PingFang SC", sans-serif;
+  font-family: var(--font-body);
   background:
-    radial-gradient(circle at top left, rgba(123, 178, 245, 0.22), transparent 30%),
-    radial-gradient(circle at top right, rgba(214, 207, 247, 0.22), transparent 24%),
-    linear-gradient(180deg, #fcfbf8 0%, #f4f1e9 100%);
+    radial-gradient(circle at 12% 12%, rgba(255, 182, 153, 0.26), transparent 22%),
+    radial-gradient(circle at 88% 10%, rgba(215, 235, 255, 0.45), transparent 24%),
+    radial-gradient(circle at 60% 42%, rgba(216, 243, 228, 0.28), transparent 28%),
+    linear-gradient(180deg, #fffdf9 0%, #f8f0e6 46%, #fbf6ef 100%);
   color: var(--ink);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.38;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.35) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.35) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.4), transparent 85%);
 }
 
 * {
   border-color: var(--line);
+  box-sizing: border-box;
 }
 
 a {
@@ -25,10 +40,33 @@ a {
 }
 
 .section-card {
+  position: relative;
   border: 1px solid var(--line);
   background: var(--card);
   box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(18px);
+  backdrop-filter: blur(22px);
+  overflow: hidden;
+}
+
+.section-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), transparent 32%);
+  opacity: 0.8;
+}
+
+.section-card::after {
+  content: "";
+  position: absolute;
+  right: -14%;
+  bottom: -28%;
+  width: 220px;
+  height: 220px;
+  pointer-events: none;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 188, 164, 0.18), transparent 68%);
 }
 
 .pill {
@@ -36,8 +74,8 @@ a {
   align-items: center;
   gap: 0.4rem;
   border-radius: 999px;
-  border: 1px solid rgba(123, 178, 245, 0.28);
-  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 154, 123, 0.24);
+  background: rgba(255, 255, 255, 0.78);
   padding: 0.4rem 0.85rem;
   font-size: 0.78rem;
   color: var(--ink);
@@ -45,6 +83,56 @@ a {
 
 .hero-glow {
   background:
-    radial-gradient(circle at center, rgba(123, 178, 245, 0.38), transparent 52%),
-    radial-gradient(circle at center, rgba(246, 198, 185, 0.3), transparent 65%);
+    radial-gradient(circle at center, rgba(255, 154, 123, 0.26), transparent 44%),
+    radial-gradient(circle at center, rgba(215, 235, 255, 0.34), transparent 60%);
+}
+
+.display-title {
+  font-family: var(--font-display);
+}
+
+.soft-panel {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 248, 239, 0.88));
+  box-shadow: var(--shadow-glow);
+}
+
+.story-gradient {
+  background:
+    radial-gradient(circle at top left, rgba(255, 154, 123, 0.18), transparent 24%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(255, 241, 229, 0.88));
+}
+
+.mood-chip {
+  border-radius: 999px;
+  border: 1px solid rgba(255, 154, 123, 0.2);
+  background: rgba(255, 255, 255, 0.86);
+  padding: 0.55rem 0.95rem;
+  font-size: 0.8rem;
+  color: var(--ink);
+}
+
+.metric-tile {
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: var(--shadow-soft);
+}
+
+.ambient-divider {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 154, 123, 0.38), transparent);
+}
+
+.interactive-card {
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease,
+    background-color 0.22s ease;
+}
+
+.interactive-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-float);
 }

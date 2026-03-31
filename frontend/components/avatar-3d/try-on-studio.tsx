@@ -1,6 +1,7 @@
 "use client";
 
 import { startTransition, useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { RefreshCw } from "lucide-react";
 
 import { AuthRequiredCard } from "@/components/auth/auth-required-card";
@@ -20,6 +21,7 @@ export function TryOnStudio() {
   const [hydratingWardrobe, setHydratingWardrobe] = useState(false);
   const [hasHydratedWardrobe, setHasHydratedWardrobe] = useState(false);
   const [statusText, setStatusText] = useState("");
+  const [draggingItemId, setDraggingItemId] = useState<number | null>(null);
 
   const wearingItems = items.filter((item) => selectedTryOnIds.includes(item.id));
 
@@ -97,10 +99,41 @@ export function TryOnStudio() {
     );
   }
 
+  const draggingItem = items.find((item) => item.id === draggingItemId) ?? null;
+
+  function handleDropItem(itemId: number) {
+    toggleTryOnItem(itemId);
+    setDraggingItemId(null);
+    setStatusText(`Updated avatar layers with ${items.find((item) => item.id === itemId)?.name ?? "the selected garment"}.`);
+  }
+
   return (
     <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
       <div>
-        <AvatarStage palette={wearingItems.map((item) => item.colorHex)} />
+        <AvatarStage
+          palette={wearingItems.map((item) => item.colorHex)}
+          dropActive={draggingItemId !== null}
+          dragHint={draggingItem ? `Drop ${draggingItem.name} onto the avatar to wear or remove it` : undefined}
+          onDragOver={(event) => {
+            event.preventDefault();
+            if (draggingItemId !== null) {
+              event.dataTransfer.dropEffect = "copy";
+            }
+          }}
+          onDragLeave={() => {
+            if (draggingItemId === null) {
+              return;
+            }
+          }}
+          onDrop={(event) => {
+            event.preventDefault();
+            const itemId = Number(event.dataTransfer.getData("text/plain"));
+
+            if (!Number.isNaN(itemId)) {
+              handleDropItem(itemId);
+            }
+          }}
+        />
       </div>
 
       <div className="section-card rounded-[32px] p-5">
@@ -132,9 +165,19 @@ export function TryOnStudio() {
             const active = selectedTryOnIds.includes(item.id);
 
             return (
-              <button
+              <motion.button
                 key={item.id}
                 type="button"
+                draggable
+                whileHover={{ y: -2, scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                onDragStartCapture={(event) => {
+                  event.dataTransfer.setData("text/plain", String(item.id));
+                  event.dataTransfer.effectAllowed = "copy";
+                  setDraggingItemId(item.id);
+                  setStatusText(`Dragging ${item.name}. Drop it onto the avatar stage to add or remove the layer.`);
+                }}
+                onDragEndCapture={() => setDraggingItemId(null)}
                 onClick={() => toggleTryOnItem(item.id)}
                 className={`flex w-full items-center justify-between rounded-[24px] border px-4 py-4 text-left transition ${
                   active
@@ -145,10 +188,11 @@ export function TryOnStudio() {
                 <div>
                   <p className="font-medium">{item.name}</p>
                   <p className={`mt-1 text-sm ${active ? "text-white/75" : "text-[var(--muted)]"}`}>{item.category} - {item.color}</p>
+                  <p className={`mt-2 text-xs ${active ? "text-white/65" : "text-[var(--muted)]"}`}>{active ? "Tap or drag again to remove from avatar" : "Tap to wear instantly or drag onto the avatar stage"}</p>
                 </div>
 
                 <span className="size-4 rounded-full border" style={{ backgroundColor: item.colorHex, borderColor: active ? "rgba(255,255,255,0.55)" : "rgba(18,32,51,0.08)" }} />
-              </button>
+              </motion.button>
             );
           })}
         </div>

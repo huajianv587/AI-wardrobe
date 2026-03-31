@@ -116,12 +116,16 @@ def delete_asset(asset_url: str | None) -> None:
 def _clothing_item_payload(
     item: ClothingItem,
     *,
+    owner_supabase_user_id: str | None = None,
+    owner_email: str | None = None,
     image_backup_url: str | None = None,
     processed_backup_url: str | None = None,
 ) -> dict[str, Any]:
     return {
         "id": item.id,
         "user_id": item.user_id,
+        "owner_supabase_user_id": owner_supabase_user_id,
+        "owner_email": owner_email,
         "name": item.name,
         "category": item.category,
         "slot": item.slot,
@@ -142,6 +146,8 @@ def _clothing_item_payload(
 def sync_clothing_item(
     item: ClothingItem,
     *,
+    owner_supabase_user_id: str | None = None,
+    owner_email: str | None = None,
     image_backup_url: str | None = None,
     processed_backup_url: str | None = None,
 ) -> bool:
@@ -151,6 +157,8 @@ def sync_clothing_item(
 
     payload = _clothing_item_payload(
         item,
+        owner_supabase_user_id=owner_supabase_user_id,
+        owner_email=owner_email,
         image_backup_url=image_backup_url,
         processed_backup_url=processed_backup_url,
     )

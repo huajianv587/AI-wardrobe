@@ -1,12 +1,21 @@
 from fastapi import APIRouter, Depends
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
 from app.models.user import User
-from app.schemas.auth import AuthSessionResponse, EmailPasswordAuthRequest, UserSummary
+from app.schemas.auth import (
+    AuthSessionResponse,
+    EmailPasswordAuthRequest,
+    LogoutRequest,
+    RefreshSessionRequest,
+    StatusMessageResponse,
+    UserSummary,
+)
 from services import auth_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+bearer_scheme = HTTPBearer(auto_error=False)
 
 
 @router.post("/sign-up", response_model=AuthSessionResponse)
@@ -17,6 +26,22 @@ def sign_up(payload: EmailPasswordAuthRequest, db: Session = Depends(get_db)) ->
 @router.post("/login", response_model=AuthSessionResponse)
 def login(payload: EmailPasswordAuthRequest, db: Session = Depends(get_db)) -> AuthSessionResponse:
     return auth_service.sign_in_with_password(db, payload.email, payload.password)
+
+
+@router.post("/refresh", response_model=AuthSessionResponse)
+def refresh(payload: RefreshSessionRequest, db: Session = Depends(get_db)) -> AuthSessionResponse:
+    return auth_service.refresh_session(db, payload.refresh_token, access_token=payload.access_token)
+
+
+@router.post("/logout", response_model=StatusMessageResponse)
+def logout(
+    payload: LogoutRequest,
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+) -> StatusMessageResponse:
+    if credentials and credentials.scheme.lower() == "bearer":
+        auth_service.sign_out_session(credentials.credentials, payload.refresh_token)
+
+    return StatusMessageResponse(status="signed_out", message="The local session can be cleared on this device.")
 
 
 @router.get("/me", response_model=UserSummary)

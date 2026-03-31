@@ -81,3 +81,34 @@ export interface MiniProgramSession {
   accessToken: string;
   refreshToken: string;
 }
+
+export interface UserSummary {
+  id: number;
+  supabase_user_id?: string | null;
+  email: string;
+  display_name?: string | null;
+  auth_provider?: string | null;
+  avatar_url?: string | null;
+  created_at: string;
+}
+
+export interface AuthSessionResponse {
+  access_token?: string | null;
+  refresh_token?: string | null;
+  expires_at?: number | null;
+  expires_in?: number | null;
+  token_type: string;
+  requires_email_confirmation: boolean;
+  message?: string | null;
+  user: UserSummary;
+}
+
+export interface MiniProgramAuthOptionsResponse {
+  wechat_login_enabled: boolean;
+  wechat_test_mode: boolean;
+  email_test_login_enabled: boolean;
+  wechat_app_id?: string | null;
+  request_domain?: string | null;
+  upload_domain?: string | null;
+  socket_domain?: string | null;
+}

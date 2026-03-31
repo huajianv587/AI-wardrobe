@@ -7,6 +7,7 @@ from urllib.request import Request, urlopen
 
 from app.models.user import User
 from app.schemas.ai_demo import AiDemoArtifact, AiDemoRunRequest, AiDemoRunResponse, AiDemoServiceStatus, AiDemoWorkflow
+from core import local_model
 from core.config import settings
 
 
@@ -147,6 +148,8 @@ WORKFLOW_INDEX = {config.id: config for config in WORKFLOW_CONFIGS}
 
 
 def _configured_worker_url(config: WorkflowConfig) -> str | None:
+    if local_model.should_use_local_model(config.service_slot):
+        return None
     value = getattr(settings, config.settings_attr, "")
     if isinstance(value, str):
         value = value.strip()

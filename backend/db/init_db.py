@@ -3,6 +3,7 @@ from sqlalchemy import inspect, text
 from db.base import Base
 from db.session import SessionLocal, engine
 from app.models import (
+    AuthSessionToken,
     AssistantTask,
     Avatar3D,
     Category,
@@ -29,8 +30,15 @@ def _ensure_auth_columns() -> None:
     with engine.begin() as connection:
         if "supabase_user_id" not in columns:
             connection.execute(text("ALTER TABLE users ADD COLUMN supabase_user_id VARCHAR(255)"))
+        if "display_name" not in columns:
+            connection.execute(text("ALTER TABLE users ADD COLUMN display_name VARCHAR(255)"))
+        if "auth_provider" not in columns:
+            connection.execute(text("ALTER TABLE users ADD COLUMN auth_provider VARCHAR(32) DEFAULT 'supabase'"))
+        if "wechat_open_id" not in columns:
+            connection.execute(text("ALTER TABLE users ADD COLUMN wechat_open_id VARCHAR(255)"))
 
         connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_users_supabase_user_id ON users (supabase_user_id)"))
+        connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_users_wechat_open_id ON users (wechat_open_id)"))
 
 
 def _ensure_wardrobe_columns() -> None:

@@ -1,17 +1,15 @@
-import { request } from "./http";
+import { requestWithStoredSession } from "./http";
 
-export function fetchAiDemoWorkflows(session) {
-  return request({
+export function fetchAiDemoWorkflows() {
+  return requestWithStoredSession({
     path: "/api/v1/client/ai/workflows",
-    accessToken: session.accessToken
   });
 }
 
-export function runAiDemoWorkflow(session, data) {
-  return request({
+export function runAiDemoWorkflow(data) {
+  return requestWithStoredSession({
     path: "/api/v1/ai-demo/run",
     method: "POST",
     data,
-    accessToken: session.accessToken
   });
 }

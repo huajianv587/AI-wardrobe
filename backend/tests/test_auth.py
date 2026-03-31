@@ -119,3 +119,60 @@ def test_logout_endpoint(client, monkeypatch):
     assert response.status_code == 200
     assert payload["status"] == "signed_out"
     assert requests == [{"access_token": "active-token", "refresh_token": "refresh-token"}]
+
+
+def test_mini_program_auth_options_endpoint(client, monkeypatch):
+    monkeypatch.setattr(
+        auth_service,
+        "get_mini_program_auth_options",
+        lambda: {
+            "wechat_login_enabled": True,
+            "wechat_test_mode": True,
+            "email_test_login_enabled": True,
+            "wechat_app_id": "wx123",
+            "request_domain": "https://api.example.com",
+            "upload_domain": "https://upload.example.com",
+            "socket_domain": "wss://socket.example.com",
+        },
+    )
+
+    response = client.get("/api/v1/auth/mini-program/options")
+    payload = response.json()
+
+    assert response.status_code == 200
+    assert payload["wechat_login_enabled"] is True
+    assert payload["wechat_app_id"] == "wx123"
+
+
+def test_mini_program_wechat_login_endpoint(client, monkeypatch):
+    def fake_wechat_login(db, **kwargs):
+        assert kwargs["code"] == "wechat-code"
+        assert kwargs["display_name"] == "Mini User"
+        assert kwargs["device_label"] == "wechat-mini-program"
+        return AuthSessionResponse(
+            access_token="local-access-token",
+            refresh_token="local-refresh-token",
+            expires_at=2999999999,
+            expires_in=7200,
+            message="WeChat mini program session established successfully.",
+            user=UserSummary(
+                id=3,
+                email="wx_openid@mini.ai-wardrobe.dev",
+                display_name="Mini User",
+                auth_provider="wechat-mini",
+                avatar_url=None,
+                created_at=datetime.utcnow(),
+            ),
+        )
+
+    monkeypatch.setattr(auth_service, "sign_in_with_wechat_code", fake_wechat_login)
+
+    response = client.post(
+        "/api/v1/auth/mini-program/login/wechat",
+        json={"code": "wechat-code", "display_name": "Mini User", "device_label": "wechat-mini-program"},
+    )
+    payload = response.json()
+
+    assert response.status_code == 200
+    assert payload["access_token"] == "local-access-token"
+    assert payload["user"]["auth_provider"] == "wechat-mini"

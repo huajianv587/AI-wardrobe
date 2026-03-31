@@ -1,15 +1,13 @@
-import { request } from "./http";
+import { requestWithStoredSession } from "./http";
 
-export function fetchMiniProgramHome(session) {
-  return request({
+export function fetchMiniProgramHome() {
+  return requestWithStoredSession({
     path: "/api/v1/client/bootstrap",
-    accessToken: session.accessToken
   });
 }
 
-export function fetchMiniProgramAccount(session) {
-  return request({
+export function fetchMiniProgramAccount() {
+  return requestWithStoredSession({
     path: "/api/v1/client/account",
-    accessToken: session.accessToken
   });
 }

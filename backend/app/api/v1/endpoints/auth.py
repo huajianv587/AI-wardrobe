@@ -8,9 +8,11 @@ from app.schemas.auth import (
     AuthSessionResponse,
     EmailPasswordAuthRequest,
     LogoutRequest,
+    MiniProgramAuthOptionsResponse,
     RefreshSessionRequest,
     StatusMessageResponse,
     UserSummary,
+    WeChatMiniLoginRequest,
 )
 from services import auth_service
 
@@ -42,6 +44,22 @@ def logout(
         auth_service.sign_out_session(credentials.credentials, payload.refresh_token)
 
     return StatusMessageResponse(status="signed_out", message="The local session can be cleared on this device.")
+
+
+@router.get("/mini-program/options", response_model=MiniProgramAuthOptionsResponse)
+def mini_program_auth_options() -> MiniProgramAuthOptionsResponse:
+    return auth_service.get_mini_program_auth_options()
+
+
+@router.post("/mini-program/login/wechat", response_model=AuthSessionResponse)
+def mini_program_wechat_login(payload: WeChatMiniLoginRequest, db: Session = Depends(get_db)) -> AuthSessionResponse:
+    return auth_service.sign_in_with_wechat_code(
+        db,
+        code=payload.code,
+        display_name=payload.display_name,
+        avatar_url=payload.avatar_url,
+        device_label=payload.device_label,
+    )
 
 
 @router.get("/me", response_model=UserSummary)

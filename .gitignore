@@ -13,6 +13,10 @@ venv/
 # Environment
 .env
 .env.local
+env_mini
+env_mini.*
+.env.mini
+.env.mini.local
 
 # Data / models
 backend/data/

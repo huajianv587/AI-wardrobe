@@ -1,10 +1,9 @@
-import { request } from "./http";
+import { requestWithStoredSession } from "./http";
 
-export function fetchRecommendation(session, prompt) {
-  return request({
+export function fetchRecommendation(prompt) {
+  return requestWithStoredSession({
     path: "/api/v1/outfits/recommend",
     method: "POST",
     data: { prompt },
-    accessToken: session.accessToken
   });
 }

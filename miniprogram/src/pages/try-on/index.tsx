@@ -1,42 +1,48 @@
-import { useEffect, useState } from "react";
-import Taro from "@tarojs/taro";
-import { Text, View } from "@tarojs/components";
+import { useState } from "react";
+import Taro, { useDidShow } from "@tarojs/taro";
+import { Button, Text, View } from "@tarojs/components";
 
 import { fetchAiDemoWorkflows, runAiDemoWorkflow } from "../../services/ai";
-
-function readDemoSession() {
-  return {
-    accessToken: Taro.getStorageSync("accessToken") ?? "",
-    refreshToken: Taro.getStorageSync("refreshToken") ?? ""
-  };
-}
+import { hasStoredSession } from "../../services/session";
 
 export default function TryOnPage() {
   const [workflow, setWorkflow] = useState(null);
   const [summary, setSummary] = useState("Loading virtual try-on adapter...");
+  const [signedIn, setSignedIn] = useState(hasStoredSession());
 
-  useEffect(() => {
-    const session = readDemoSession();
+  async function loadTryOn() {
+    if (!hasStoredSession()) {
+      setSignedIn(false);
+      setWorkflow(null);
+      setSummary("请先登录，再让试衣区读取你的账户与 AI workflow。");
+      return;
+    }
 
-    fetchAiDemoWorkflows(session).then((workflows) => {
+    try {
+      const workflows = await fetchAiDemoWorkflows();
       const target = workflows.find((item) => item.id === "ootdiffusion-virtual-tryon") ?? null;
       setWorkflow(target);
+      setSignedIn(true);
 
       if (!target) {
         setSummary("Virtual try-on workflow is not available yet.");
         return;
       }
 
-      return runAiDemoWorkflow(session, {
+      const payload = await runAiDemoWorkflow({
         workflow_id: target.id,
-        prompt: "Generate a polished try-on preview for a weekend look"
-      }).then((payload) => {
-        setSummary(payload.summary);
+        prompt: "Generate a polished try-on preview for a weekend look",
       });
-    }).catch((nextError) => {
+      setSummary(payload.summary);
+    } catch (nextError) {
+      setSignedIn(false);
       setSummary(nextError instanceof Error ? nextError.message : "Could not load try-on adapter.");
-    });
-  }, []);
+    }
+  }
+
+  useDidShow(() => {
+    void loadTryOn();
+  });
 
   return (
     <View className="page-shell">
@@ -50,6 +56,11 @@ export default function TryOnPage() {
         <View className="card">
           <Text className="mini-title">Adapter response</Text>
           <Text className="mini-copy">{summary}</Text>
+          {!signedIn ? (
+            <Button className="primary-button" onClick={() => Taro.navigateTo({ url: "/pages/account/index" })}>
+              去登录中心
+            </Button>
+          ) : null}
         </View>
       </View>
     </View>

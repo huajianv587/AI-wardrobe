@@ -33,7 +33,9 @@ Recommended backend aggregation endpoint:
 
 Recommended next implementation order:
 
-1. Replace the current local storage token reads with real mini program login + refresh flow
-2. Add Taro request interceptors for `Authorization` and token refresh
-3. Add image upload and garment creation flows
-4. Open the project in WeChat DevTools using `dist/` after running `npm run build:weapp`
+1. Fill `WECHAT_MINIPROGRAM_APP_ID` / `WECHAT_MINIPROGRAM_APP_SECRET` in the backend `.env`
+2. Replace `project.config.json` `appid` with the real mini program app id
+3. Configure legal request / upload / websocket domains in WeChat admin and mirror them in `.env`
+4. Use the built-in account page to test either WeChat login or email-based test login
+5. Add image upload and garment creation flows
+6. Open the project in WeChat DevTools using `dist/` after running `npm run build:weapp`

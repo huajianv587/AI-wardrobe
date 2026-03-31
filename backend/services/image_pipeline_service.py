@@ -8,6 +8,7 @@ from dataclasses import dataclass
 import httpx
 
 from core.config import settings
+from core import local_model
 from services import storage_service
 
 logger = logging.getLogger(__name__)
@@ -91,7 +92,7 @@ def _call_remote_cleanup(source: storage_service.LoadedAsset, item_id: int) -> C
 def process_item_image(item_id: int, image_url: str) -> CleanupResult:
     source = storage_service.load_asset_bytes(image_url)
 
-    if settings.ai_cleanup_api_url:
+    if not local_model.should_use_local_model("image_cleanup") and settings.ai_cleanup_api_url:
         try:
             return _call_remote_cleanup(source, item_id)
         except Exception as exc:

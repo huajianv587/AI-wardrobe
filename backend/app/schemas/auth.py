@@ -8,6 +8,8 @@ class UserSummary(BaseModel):
     id: int
     supabase_user_id: str | None = None
     email: EmailStr
+    display_name: str | None = None
+    auth_provider: str | None = None
     avatar_url: str | None = None
     created_at: datetime
 
@@ -40,3 +42,20 @@ class AuthSessionResponse(BaseModel):
     requires_email_confirmation: bool = False
     message: str | None = None
     user: UserSummary
+
+
+class MiniProgramAuthOptionsResponse(BaseModel):
+    wechat_login_enabled: bool
+    wechat_test_mode: bool
+    email_test_login_enabled: bool
+    wechat_app_id: str | None = None
+    request_domain: str | None = None
+    upload_domain: str | None = None
+    socket_domain: str | None = None
+
+
+class WeChatMiniLoginRequest(BaseModel):
+    code: str = Field(min_length=2)
+    display_name: str | None = Field(default=None, max_length=255)
+    avatar_url: str | None = Field(default=None, max_length=500)
+    device_label: str | None = Field(default="wechat-mini-program", max_length=120)

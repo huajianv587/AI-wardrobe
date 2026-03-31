@@ -32,6 +32,8 @@ class Settings(BaseSettings):
     ai_demo_adapter_timeout_seconds: float = 8.0
     vllm_base_url: str = ""
     qwen_model_name: str = "Qwen2.5-7B-Instruct"
+    next_public_app_url: str = "http://localhost:3000"
+    backend_public_base_url: str = "http://localhost:8000"
     llm_recommender_api_url: str = ""
     image_processor_api_url: str = ""
     classifier_api_url: str = ""
@@ -39,6 +41,29 @@ class Settings(BaseSettings):
     virtual_tryon_api_url: str = ""
     product_renderer_api_url: str = ""
     avatar_builder_api_url: str = ""
+    model_use_local_default: bool = True
+    model_use_local_llm_recommender: bool | None = None
+    model_use_local_image_cleanup: bool | None = None
+    model_use_local_classifier: bool | None = None
+    model_use_local_multimodal_reader: bool | None = None
+    model_use_local_virtual_tryon: bool | None = None
+    model_use_local_product_renderer: bool | None = None
+    model_use_local_avatar_builder: bool | None = None
+    wechat_miniprogram_app_id: str = ""
+    wechat_miniprogram_app_secret: str = ""
+    wechat_miniprogram_login_enabled: bool = False
+    wechat_miniprogram_test_mode: bool = True
+    wechat_miniprogram_request_domain: str = ""
+    wechat_miniprogram_upload_domain: str = ""
+    wechat_miniprogram_socket_domain: str = ""
+    wechat_code2session_base_url: str = "https://api.weixin.qq.com"
+    local_access_token_ttl_minutes: int = 120
+    local_refresh_token_ttl_days: int = 30
+    expo_public_api_base_url: str = ""
+    expo_project_id: str = ""
+    ios_bundle_id: str = ""
+    android_package_name: str = ""
+    app_store_display_name: str = "AI Wardrobe"
 
 
 settings = Settings()

@@ -1,26 +1,23 @@
-import { request } from "./http";
+import { requestWithStoredSession } from "./http";
 
-export function fetchAssistantOverview(session) {
-  return request({
+export function fetchAssistantOverview() {
+  return requestWithStoredSession({
     path: "/api/v1/client/assistant/overview",
-    accessToken: session.accessToken
   });
 }
 
-export function runQuickMode(session, mode) {
-  return request({
+export function runQuickMode(mode) {
+  return requestWithStoredSession({
     path: "/api/v1/client/assistant/quick-mode",
     method: "POST",
     data: { mode },
-    accessToken: session.accessToken
   });
 }
 
-export function fetchTomorrowAssistant(session, payload) {
-  return request({
+export function fetchTomorrowAssistant(payload) {
+  return requestWithStoredSession({
     path: "/api/v1/client/assistant/tomorrow",
     method: "POST",
     data: payload,
-    accessToken: session.accessToken
   });
 }

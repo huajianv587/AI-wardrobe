@@ -27,6 +27,11 @@ export default function IndexPage() {
         <Text className="eyebrow">Pocket assistant</Text>
         <Text className="title">{payload?.greeting ?? "Mini program home is ready for API wiring."}</Text>
         <Text className="copy">This page now talks to the shared mobile bootstrap API, so future iOS and Android clients can reuse the same aggregated payloads.</Text>
+        <View className="story-chip-row">
+          <Text className="story-chip">温柔首页</Text>
+          <Text className="story-chip">单手操作区</Text>
+          <Text className="story-chip">共用移动端 API</Text>
+        </View>
 
         <View className="metric-grid">
           <View className="metric-card">
@@ -43,6 +48,7 @@ export default function IndexPage() {
       <View className="stack">
         <View className="card">
           <Text className="mini-title">Shortcuts</Text>
+          <Text className="soft-note">把最常用的几个入口前置，未来这里可以直接变成上传、明日穿搭、少思考模式的快捷区。</Text>
           <View className="shortcut-grid">
             {(payload?.shortcuts ?? []).map((shortcut) => (
               <View key={shortcut.id} className="shortcut-card" onClick={() => Taro.navigateTo({ url: shortcut.route })}>

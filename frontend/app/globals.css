@@ -264,8 +264,280 @@ a {
 }
 
 .mobile-dock-item[data-active="true"] {
-  background: rgba(27, 36, 50, 0.95);
+  background: transparent;
   color: white;
+  transform: translateY(-2px);
+}
+
+.scene-shell {
+  position: relative;
+}
+
+.scene-shell-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.scene-sticker {
+  position: absolute;
+  top: -14px;
+  right: 20px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.55rem 1rem;
+  font-size: 0.78rem;
+  color: var(--ink);
+  box-shadow: 0 16px 40px rgba(69, 54, 31, 0.12);
+  backdrop-filter: blur(18px);
+}
+
+.scene-sticker-peach {
+  box-shadow: 0 16px 40px rgba(255, 154, 123, 0.16);
+}
+
+.scene-sticker-mint {
+  box-shadow: 0 16px 40px rgba(147, 205, 172, 0.16);
+}
+
+.scene-sticker-sky {
+  box-shadow: 0 16px 40px rgba(111, 164, 220, 0.16);
+}
+
+.scene-sticker-lilac {
+  box-shadow: 0 16px 40px rgba(167, 141, 223, 0.16);
+}
+
+.scene-sticker-butter {
+  box-shadow: 0 16px 40px rgba(230, 183, 88, 0.18);
+}
+
+.scene-orbit {
+  position: absolute;
+  z-index: 0;
+  border-radius: 999px;
+  filter: blur(12px);
+  opacity: 0.58;
+}
+
+.scene-orbit-left {
+  top: 20px;
+  left: -18px;
+  width: 90px;
+  height: 90px;
+}
+
+.scene-orbit-right {
+  right: 18px;
+  bottom: -12px;
+  width: 120px;
+  height: 120px;
+}
+
+.scene-orbit-peach {
+  background:
+    radial-gradient(circle at center, rgba(255, 190, 166, 0.72), transparent 68%);
+}
+
+.scene-orbit-mint {
+  background:
+    radial-gradient(circle at center, rgba(190, 235, 214, 0.74), transparent 68%);
+}
+
+.scene-orbit-sky {
+  background:
+    radial-gradient(circle at center, rgba(193, 220, 248, 0.76), transparent 68%);
+}
+
+.scene-orbit-lilac {
+  background:
+    radial-gradient(circle at center, rgba(221, 209, 252, 0.76), transparent 68%);
+}
+
+.scene-orbit-butter {
+  background:
+    radial-gradient(circle at center, rgba(255, 239, 200, 0.78), transparent 68%);
+}
+
+.shell-orb {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 999px;
+  filter: blur(18px);
+  opacity: 0.6;
+}
+
+.shell-orb-peach {
+  top: 92px;
+  right: 4%;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle at center, rgba(255, 188, 164, 0.42), transparent 68%);
+}
+
+.shell-orb-mint {
+  top: 38%;
+  left: -60px;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle at center, rgba(216, 243, 228, 0.46), transparent 70%);
+}
+
+.shell-orb-sky {
+  right: -36px;
+  bottom: 12%;
+  width: 210px;
+  height: 210px;
+  background: radial-gradient(circle at center, rgba(215, 235, 255, 0.44), transparent 70%);
+}
+
+.story-cluster {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1rem 1rem 0.2rem;
+}
+
+.story-cluster-compact {
+  gap: 0.6rem;
+  padding: 0.6rem 0.8rem 0;
+}
+
+.story-cluster-halo {
+  position: absolute;
+  inset: 6px 0 auto;
+  height: 88px;
+  border-radius: 32px;
+  filter: blur(8px);
+}
+
+.story-cluster-peach .story-cluster-halo {
+  background: radial-gradient(circle at center, rgba(255, 190, 166, 0.28), transparent 70%);
+}
+
+.story-cluster-mint .story-cluster-halo {
+  background: radial-gradient(circle at center, rgba(190, 235, 214, 0.28), transparent 70%);
+}
+
+.story-cluster-sky .story-cluster-halo {
+  background: radial-gradient(circle at center, rgba(193, 220, 248, 0.3), transparent 70%);
+}
+
+.story-cluster-lilac .story-cluster-halo {
+  background: radial-gradient(circle at center, rgba(221, 209, 252, 0.3), transparent 70%);
+}
+
+.story-cluster-spark {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--accent);
+  box-shadow: var(--shadow-soft);
+}
+
+.story-cluster-core {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 3.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.7rem 1rem;
+  box-shadow: var(--shadow-soft);
+}
+
+.story-cluster-emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 18px;
+  background: rgba(255, 245, 238, 0.92);
+  font-size: 1.2rem;
+}
+
+.story-cluster-title {
+  font-size: 0.84rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--ink-strong);
+}
+
+.story-cluster-chip-row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.story-cluster-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  padding: 0.35rem 0.8rem;
+  font-size: 0.74rem;
+  color: var(--muted);
+  box-shadow: 0 12px 28px rgba(69, 54, 31, 0.08);
+}
+
+.magnetic-stage {
+  position: relative;
+}
+
+.magnetic-stage::after {
+  content: "";
+  position: absolute;
+  inset: 16px;
+  pointer-events: none;
+  border-radius: 28px;
+  border: 1px dashed rgba(255, 154, 123, 0.24);
+  opacity: 0;
+  transform: scale(0.98);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.magnetic-stage[data-active="true"]::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.snap-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 154, 123, 0.16);
+  background: rgba(255, 255, 255, 0.88);
+  padding: 0.55rem 0.9rem;
+  font-size: 0.78rem;
+  color: var(--ink);
+  box-shadow: 0 14px 34px rgba(69, 54, 31, 0.1);
 }
 
 .floating-orb {
@@ -302,6 +574,17 @@ a {
 @media (max-width: 860px) {
   body::before {
     opacity: 0.2;
+  }
+
+  .scene-sticker {
+    top: -12px;
+    right: 14px;
+  }
+
+  .shell-orb-peach,
+  .shell-orb-mint,
+  .shell-orb-sky {
+    opacity: 0.42;
   }
 }
 

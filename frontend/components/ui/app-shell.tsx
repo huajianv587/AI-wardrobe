@@ -38,12 +38,27 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
   const { user, isAuthenticated } = useAuthSession();
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-28 pt-5 md:px-6 md:pb-10">
+    <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-28 pt-5 md:px-6 md:pb-10">
       <AuthSessionBootstrap />
+      <motion.span
+        animate={{ x: [0, -20, 0], y: [0, 14, 0], scale: [1, 1.06, 1] }}
+        transition={{ duration: 10.5, repeat: Infinity, ease: "easeInOut" }}
+        className="shell-orb shell-orb-peach"
+      />
+      <motion.span
+        animate={{ x: [0, 24, 0], y: [0, -18, 0], scale: [1, 0.96, 1] }}
+        transition={{ duration: 12.8, repeat: Infinity, ease: "easeInOut" }}
+        className="shell-orb shell-orb-mint"
+      />
+      <motion.span
+        animate={{ x: [0, -18, 0], y: [0, 12, 0], scale: [1, 1.04, 1] }}
+        transition={{ duration: 11.4, repeat: Infinity, ease: "easeInOut" }}
+        className="shell-orb shell-orb-sky"
+      />
       <motion.header
-        initial={{ opacity: 0, y: 18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, ease: "easeOut" }}
+        initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
         className="section-card soft-panel sticky top-4 z-30 mb-6 rounded-[32px] px-4 py-4 md:px-6"
       >
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -65,27 +80,56 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
             ) : null}
           </div>
 
-          <nav className="hidden flex-wrap gap-2 md:flex">
+          <motion.nav
+            initial="hidden"
+            animate="show"
+            variants={{
+              hidden: {},
+              show: {
+                transition: {
+                  staggerChildren: 0.05,
+                  delayChildren: 0.08
+                }
+              }
+            }}
+            className="hidden flex-wrap gap-2 md:flex"
+          >
             {navItems.map(({ href, label, shortLabel, icon: Icon }) => {
               const active = pathname === href;
 
               return (
-                <Link
+                <motion.div
                   key={href}
-                  href={href}
-                  className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition ${
-                    active
-                      ? "border-transparent bg-[var(--ink-strong)] text-white shadow-[var(--shadow-float)]"
-                      : "border-[var(--line)] bg-white/90 text-[var(--ink)] hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
-                  }`}
+                  variants={{
+                    hidden: { opacity: 0, y: 10 },
+                    show: { opacity: 1, y: 0 }
+                  }}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.985 }}
                 >
-                  <Icon className="size-4" />
-                  <span>{isMobile ? shortLabel : label}</span>
-                  {active ? <span className="size-1.5 rounded-full bg-white/85" /> : null}
-                </Link>
+                  <Link
+                    href={href}
+                    className={`relative inline-flex items-center gap-2 overflow-hidden rounded-full border px-4 py-2 text-sm transition ${
+                      active
+                        ? "border-transparent text-white shadow-[var(--shadow-float)]"
+                        : "border-[var(--line)] bg-white/90 text-[var(--ink)] hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
+                    }`}
+                  >
+                    {active ? (
+                      <motion.span
+                        layoutId="desktop-nav-active"
+                        className="absolute inset-0 rounded-full bg-[var(--ink-strong)]"
+                        transition={{ type: "spring", stiffness: 320, damping: 26 }}
+                      />
+                    ) : null}
+                    <Icon className="relative z-10 size-4" />
+                    <span className="relative z-10">{isMobile ? shortLabel : label}</span>
+                    {active ? <span className="relative z-10 size-1.5 rounded-full bg-white/85" /> : null}
+                  </Link>
+                </motion.div>
               );
             })}
-          </nav>
+          </motion.nav>
         </div>
       </motion.header>
 
@@ -94,7 +138,7 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
         initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
         animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
         transition={{ duration: 0.36, ease: [0.22, 1, 0.36, 1] }}
-        className="page-fade flex-1"
+        className="page-fade relative z-10 flex-1"
       >
         {children}
       </motion.main>
@@ -105,9 +149,16 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
             const active = pathname === href;
 
             return (
-              <Link key={href} href={href} className="mobile-dock-item" data-active={active ? "true" : "false"}>
-                <Icon className="size-4" />
-                <span>{label}</span>
+              <Link key={href} href={href} className="mobile-dock-item relative overflow-hidden" data-active={active ? "true" : "false"}>
+                {active ? (
+                  <motion.span
+                    layoutId="mobile-dock-active"
+                    className="absolute inset-0 rounded-[18px] bg-[var(--ink-strong)]"
+                    transition={{ type: "spring", stiffness: 320, damping: 28 }}
+                  />
+                ) : null}
+                <Icon className="relative z-10 size-4" />
+                <span className="relative z-10">{label}</span>
               </Link>
             );
           })}

@@ -47,6 +47,11 @@ export default function AssistantPage() {
         <Text className="eyebrow">贴心助理</Text>
         <Text className="title">明日穿搭、少思考模式、提醒与缺口</Text>
         <Text className="copy">小程序现在直接复用移动端 assistant 聚合接口，未来 App 也可以走同一套返回结构。</Text>
+        <View className="story-chip-row">
+          <Text className="story-chip">懂你一点点</Text>
+          <Text className="story-chip">天气联动</Text>
+          <Text className="story-chip">低负担决策</Text>
+        </View>
       </View>
 
       <View className="stack">
@@ -57,6 +62,7 @@ export default function AssistantPage() {
 
         <View className="card">
           <Text className="mini-title">少思考模式</Text>
+          <Text className="soft-note">只点一下就给结果，适合在微信里快速做决定，不让用户先被复杂表单绊住。</Text>
           <View className="chip-row">
             {["上班", "约会", "出门买咖啡", "今天不想费脑"].map((mode) => (
               <View key={mode} className="chip-pill" onClick={() => void handleQuickMode(mode)}>

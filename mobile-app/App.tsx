@@ -13,6 +13,11 @@ export default function App() {
             Reuse `/api/v1/client/bootstrap`, `/api/v1/client/wardrobe`, and `/api/v1/client/assistant/*`
             so the app can share the same assistant, wardrobe, and recommendation contracts as web and mini-program.
           </Text>
+          <View style={styles.storyChipRow}>
+            <Text style={styles.storyChip}>Thumb-first</Text>
+            <Text style={styles.storyChip}>Soft planning</Text>
+            <Text style={styles.storyChip}>Shared API</Text>
+          </View>
         </View>
 
         <View style={styles.card}>
@@ -54,7 +59,12 @@ const styles = StyleSheet.create({
   hero: {
     borderRadius: 28,
     backgroundColor: "#fff4e9",
-    padding: 24
+    padding: 24,
+    shadowColor: "#ff9a7b",
+    shadowOpacity: 0.12,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 10
   },
   eyebrow: {
     fontSize: 14,
@@ -72,10 +82,29 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     color: "#5f6b7a"
   },
+  storyChipRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginTop: 18
+  },
+  storyChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.84)",
+    color: "#5f6b7a",
+    overflow: "hidden"
+  },
   card: {
     borderRadius: 24,
     backgroundColor: "#ffffff",
-    padding: 20
+    padding: 20,
+    shadowColor: "#45361f",
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 8
   },
   cardTitle: {
     fontSize: 20,
@@ -94,7 +123,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     borderRadius: 28,
     backgroundColor: "rgba(255,255,255,0.92)",
-    padding: 10
+    padding: 10,
+    shadowColor: "#45361f",
+    shadowOpacity: 0.1,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 8
   },
   thumbItem: {
     flex: 1,

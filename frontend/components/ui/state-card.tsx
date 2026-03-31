@@ -1,6 +1,7 @@
 "use client";
 
 import { LoaderCircle, Sparkles, TriangleAlert } from "lucide-react";
+import { StoryCluster } from "@/components/ui/story-cluster";
 
 type StateVariant = "loading" | "empty" | "error";
 
@@ -14,19 +15,28 @@ const variantMap = {
   loading: {
     icon: LoaderCircle,
     badge: "Getting things ready",
-    iconClass: "animate-spin"
+    iconClass: "animate-spin",
+    emoji: "🫖",
+    tone: "sky" as const,
+    chips: ["brewing", "warming up", "almost there"]
   },
   empty: {
     icon: Sparkles,
     badge: "A soft blank canvas",
-    iconClass: ""
+    iconClass: "",
+    emoji: "🌷",
+    tone: "peach" as const,
+    chips: ["tiny delight", "ready when you are", "start softly"]
   },
   error: {
     icon: TriangleAlert,
     badge: "A tiny hiccup",
-    iconClass: ""
+    iconClass: "",
+    emoji: "☁️",
+    tone: "lilac" as const,
+    chips: ["small wobble", "safe to retry", "nothing lost"]
   }
-} satisfies Record<StateVariant, { icon: React.ComponentType<{ className?: string }>; badge: string; iconClass: string }>;
+} satisfies Record<StateVariant, { icon: React.ComponentType<{ className?: string }>; badge: string; iconClass: string; emoji: string; tone: "sky" | "peach" | "lilac"; chips: string[] }>;
 
 export function StateCard({ variant, title, description }: StateCardProps) {
   const config = variantMap[variant];
@@ -34,8 +44,11 @@ export function StateCard({ variant, title, description }: StateCardProps) {
 
   return (
     <section className="section-card playful-empty rounded-[30px] p-6 text-center">
-      <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-[22px] bg-white/92 shadow-[var(--shadow-soft)]">
+      <div className="mx-auto mb-2 flex size-16 items-center justify-center rounded-[22px] bg-white/92 shadow-[var(--shadow-soft)]">
         <Icon className={`size-7 text-[var(--accent)] ${config.iconClass}`.trim()} />
+      </div>
+      <div className="mb-2 flex justify-center">
+        <StoryCluster emoji={config.emoji} tone={config.tone} chips={config.chips} title={config.badge} compact />
       </div>
       <div className="pill mb-4">{config.badge}</div>
       <h3 className="text-xl font-semibold text-[var(--ink-strong)]">{title}</h3>

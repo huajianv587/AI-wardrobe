@@ -1,5 +1,6 @@
 "use client";
 
+import type { RefObject } from "react";
 import { motion } from "framer-motion";
 import { Canvas } from "@react-three/fiber";
 import { Float, OrbitControls } from "@react-three/drei";
@@ -10,9 +11,10 @@ interface AvatarStageProps {
   dropActive?: boolean;
   dropHovered?: boolean;
   dragHint?: string;
-  onDragOver?: (event: React.DragEvent<HTMLDivElement>) => void;
-  onDragLeave?: () => void;
-  onDrop?: (event: React.DragEvent<HTMLDivElement>) => void;
+  stageRef?: RefObject<HTMLDivElement | null>;
+  dropTone?: string;
+  absorbLabel?: string | null;
+  absorbActive?: boolean;
 }
 
 function AvatarFigure({ palette }: Pick<AvatarStageProps, "palette">) {
@@ -42,20 +44,54 @@ function AvatarFigure({ palette }: Pick<AvatarStageProps, "palette">) {
   );
 }
 
-export function AvatarStage({ palette, dropActive = false, dropHovered = false, dragHint, onDragOver, onDragLeave, onDrop }: AvatarStageProps) {
+export function AvatarStage({
+  palette,
+  dropActive = false,
+  dropHovered = false,
+  dragHint,
+  stageRef,
+  dropTone = "var(--accent)",
+  absorbLabel,
+  absorbActive = false
+}: AvatarStageProps) {
+  const visiblePalette = palette.length > 0 ? palette : ["#c9eddc", "#f3ead4", "#355172"];
+
   return (
     <div
-      className={`section-card story-gradient relative h-[520px] overflow-hidden rounded-[34px] p-4 transition ${dropActive ? "ring-2 ring-[var(--accent)] shadow-[var(--shadow-glow)]" : ""} ${dropHovered ? "scale-[1.01]" : ""}`}
-      onDragOver={onDragOver}
-      onDragLeave={onDragLeave}
-      onDrop={onDrop}
+      ref={stageRef}
+      data-active={dropActive ? "true" : "false"}
+      className={`section-card story-gradient magnetic-stage relative h-[520px] overflow-hidden rounded-[34px] p-4 transition ${dropActive ? "shadow-[var(--shadow-glow)]" : ""} ${dropHovered ? "scale-[1.01]" : ""}`}
+      style={{
+        boxShadow: dropActive ? `0 20px 70px color-mix(in srgb, ${dropTone} 22%, rgba(255,255,255,0.48))` : undefined
+      }}
     >
       <div className="hero-glow absolute inset-0 opacity-80" />
+      {dropActive ? (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: dropHovered ? 0.64 : 0.38, scale: dropHovered ? 1.05 : 1 }}
+            className="pointer-events-none absolute inset-[14%] rounded-full blur-3xl"
+            style={{ background: `radial-gradient(circle, color-mix(in srgb, ${dropTone} 28%, rgba(255,255,255,0.55)) 0%, transparent 68%)` }}
+          />
+          {[0, 1].map((ring) => (
+            <motion.div
+              key={ring}
+              initial={{ opacity: 0, scale: 0.88 }}
+              animate={{ opacity: dropHovered ? [0.12, 0.24, 0.12] : [0.08, 0.16, 0.08], scale: dropHovered ? [0.94, 1.03, 0.94] : [0.92, 1, 0.92] }}
+              transition={{ duration: 2.2, repeat: Infinity, delay: ring * 0.2, ease: "easeInOut" }}
+              className="pointer-events-none absolute inset-[18%] rounded-full border"
+              style={{ borderColor: `color-mix(in srgb, ${dropTone} 60%, rgba(255,255,255,0.72))` }}
+            />
+          ))}
+        </>
+      ) : null}
       {dropActive ? (
         <motion.div
           initial={{ opacity: 0.45, scale: 0.98 }}
           animate={{ opacity: dropHovered ? 0.92 : 0.6, scale: dropHovered ? 1 : 0.985 }}
-          className="pointer-events-none absolute inset-6 z-10 rounded-[28px] border-2 border-dashed border-[var(--accent)] bg-white/35"
+          className="pointer-events-none absolute inset-6 z-10 rounded-[28px] border-2 border-dashed bg-white/35"
+          style={{ borderColor: dropTone }}
         />
       ) : null}
       {dropActive ? (
@@ -64,8 +100,27 @@ export function AvatarStage({ palette, dropActive = false, dropHovered = false, 
           animate={{ opacity: 1, scale: dropHovered ? 1.02 : 1 }}
           className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
         >
-          <div className={`rounded-full px-5 py-3 text-sm shadow-[var(--shadow-float)] ${dropHovered ? "bg-[var(--accent)] text-white" : "bg-white/88 text-[var(--ink)]"}`}>
-            {dropHovered ? "Release to style the avatar" : "Bring it closer to the avatar"}
+          <div
+            className={`rounded-full px-5 py-3 text-sm shadow-[var(--shadow-float)] ${dropHovered ? "text-white" : "bg-white/88 text-[var(--ink)]"}`}
+            style={dropHovered ? { backgroundColor: dropTone } : undefined}
+          >
+            {dropHovered ? "Release and let the stage absorb it" : "Bring it into the avatar's magnetic field"}
+          </div>
+        </motion.div>
+      ) : null}
+      {absorbActive ? (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: [0, 1, 0], scale: [0.86, 1.08, 1.16] }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
+        >
+          <div
+            className="snap-hint rounded-full px-5 py-3 text-sm"
+            style={{ borderColor: `color-mix(in srgb, ${dropTone} 42%, rgba(255,255,255,0.8))` }}
+          >
+            <Sparkles className="size-4" />
+            {absorbLabel ? `${absorbLabel} is now on the avatar` : "Layer added to the avatar"}
           </div>
         </motion.div>
       ) : null}
@@ -74,7 +129,10 @@ export function AvatarStage({ palette, dropActive = false, dropHovered = false, 
           <Sparkles className="size-4" />
           {dragHint ?? "Drag garments here or tap on the right to preview layers"}
         </div>
-        <div className={`rounded-full px-3 py-1 text-xs ${dropActive ? "bg-[var(--accent)] text-white" : "bg-white/80 text-[var(--ink)]"}`}>
+        <div
+          className={`rounded-full px-3 py-1 text-xs ${dropActive ? "text-white" : "bg-white/80 text-[var(--ink)]"}`}
+          style={dropActive ? { backgroundColor: dropTone } : undefined}
+        >
           {dropActive ? "Release to wear" : `${palette.length} active layers`}
         </div>
       </div>
@@ -83,7 +141,7 @@ export function AvatarStage({ palette, dropActive = false, dropHovered = false, 
           Drag from the wardrobe rail to layer pieces onto the 2.5D avatar. This keeps the MVP playful now and ready for generated try-on later.
         </div>
         <div className="mt-4 flex items-center justify-center gap-2">
-          {(palette.length > 0 ? palette : ["#c9eddc", "#f3ead4", "#355172"]).slice(0, 5).map((color, index) => (
+          {visiblePalette.slice(0, 5).map((color, index) => (
             <motion.span
               key={`${color}-${index}`}
               animate={{ y: [0, -5, 0] }}

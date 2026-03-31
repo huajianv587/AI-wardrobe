@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Bookmark, CheckCheck, Heart, LoaderCircle, RotateCcw, Sparkles } from "lucide-react";
 
 import { createWearLog, recordRecommendationFeedback, RecommendationCard as RecommendationCardData, saveAssistantOutfit } from "@/lib/api";
+import { StoryCluster } from "@/components/ui/story-cluster";
 import { WardrobeItem } from "@/store/wardrobe-store";
 
 interface RecommendationLookCardProps {
@@ -115,8 +116,17 @@ export function RecommendationLookCard({ recommendation, items, prompt, scene, o
       </div>
 
       {recommendation.charmCopy ? (
-        <div className="mt-4 rounded-[24px] border border-[rgba(255,154,123,0.22)] bg-[rgba(255,255,255,0.9)] px-4 py-4 text-sm leading-6 text-[var(--ink)] shadow-[var(--shadow-soft)]">
-          {recommendation.charmCopy}
+        <div className="mt-4 rounded-[28px] border border-[rgba(255,154,123,0.22)] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(255,247,239,0.9))] px-4 py-4 text-sm leading-6 text-[var(--ink)] shadow-[var(--shadow-soft)]">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <p className="max-w-2xl">{recommendation.charmCopy}</p>
+            <StoryCluster
+              emoji={recommendation.moodEmoji ?? "💛"}
+              title="feels like you"
+              chips={recommendation.reasonBadges.length > 0 ? recommendation.reasonBadges : ["balanced", "easy", "soft confidence"]}
+              tone="peach"
+              compact
+            />
+          </div>
         </div>
       ) : null}
 
@@ -134,7 +144,7 @@ export function RecommendationLookCard({ recommendation, items, prompt, scene, o
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-4 rounded-[22px] border border-[rgba(255,154,123,0.18)] bg-[rgba(255,255,255,0.92)] px-4 py-3 text-sm leading-6 text-[var(--ink)]"
+          className="mt-4 rounded-[22px] border border-[rgba(255,154,123,0.18)] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(255,247,239,0.92))] px-4 py-3 text-sm leading-6 text-[var(--ink)]"
         >
           {actionEcho}
         </motion.div>

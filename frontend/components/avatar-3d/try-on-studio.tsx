@@ -23,6 +23,16 @@ interface AbsorbBurst {
   endY: number;
 }
 
+interface DragTelemetry {
+  itemId: number;
+  point: { x: number; y: number };
+  center: { x: number; y: number };
+  strength: number;
+  distance: number;
+  engaged: boolean;
+  vector: { x: number; y: number };
+}
+
 export function TryOnStudio() {
   const reduceMotion = useReducedMotion();
   const { ready: authReady, isAuthenticated } = useAuthSession();
@@ -39,6 +49,7 @@ export function TryOnStudio() {
   const [dropHovered, setDropHovered] = useState(false);
   const [absorbBurst, setAbsorbBurst] = useState<AbsorbBurst | null>(null);
   const [absorbLabel, setAbsorbLabel] = useState<string | null>(null);
+  const [dragTelemetry, setDragTelemetry] = useState<DragTelemetry | null>(null);
 
   const stageRef = useRef<HTMLDivElement | null>(null);
   const dragGuardRef = useRef<{ itemId: number | null; until: number }>({ itemId: null, until: 0 });
@@ -148,38 +159,38 @@ export function TryOnStudio() {
     return stageRef.current?.getBoundingClientRect() ?? null;
   }
 
-  function isPointInsideMagneticZone(point: { x: number; y: number }) {
+  function getMagneticTelemetry(itemId: number, point: { x: number; y: number }): DragTelemetry | null {
     const rect = getStageRect();
 
     if (!rect) {
-      return false;
+      return null;
     }
 
     const magneticPadding = 42;
-
-    return (
+    const center = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    const rawX = (point.x - center.x) / (rect.width / 2);
+    const rawY = (point.y - center.y) / (rect.height / 2);
+    const distance = Math.hypot(rawX, rawY);
+    const withinPadding =
       point.x >= rect.left - magneticPadding &&
       point.x <= rect.right + magneticPadding &&
       point.y >= rect.top - magneticPadding &&
-      point.y <= rect.bottom + magneticPadding
-    );
-  }
+      point.y <= rect.bottom + magneticPadding;
+    const strength = Math.max(0, 1 - distance / 1.26);
+    const engaged = withinPadding || strength > 0.28;
 
-  function setStageHoverFromPoint(point: { x: number; y: number }, itemName?: string) {
-    const nextHovered = isPointInsideMagneticZone(point);
-
-    if (nextHovered !== dropHovered) {
-      setStatusText(
-        nextHovered
-          ? `${itemName ?? "This piece"} is inside the avatar's magnetic field. Let go and the stage will snap it in.`
-          : itemName
-            ? `Keep pulling ${itemName} toward the avatar to let the stage absorb it.`
-            : "Keep pulling toward the avatar to let the stage absorb the garment."
-      );
-    }
-
-    setDropHovered(nextHovered);
-    return nextHovered;
+    return {
+      itemId,
+      point,
+      center,
+      strength: withinPadding ? Math.max(strength, 0.34) : strength,
+      distance,
+      engaged,
+      vector: {
+        x: Math.max(-1, Math.min(1, rawX)),
+        y: Math.max(-1, Math.min(1, rawY))
+      }
+    };
   }
 
   function triggerAbsorbBurst(itemId: number, point: { x: number; y: number }) {
@@ -225,16 +236,32 @@ export function TryOnStudio() {
   function handleDrag(itemId: number, info: PanInfo) {
     const item = items.find((entry) => entry.id === itemId);
     setDraggingItemId(itemId);
-    setStageHoverFromPoint(info.point, item?.name);
+    const telemetry = getMagneticTelemetry(itemId, info.point);
+    setDragTelemetry(telemetry);
+    const nextHovered = Boolean(telemetry?.engaged);
+
+    if (nextHovered !== dropHovered) {
+      setStatusText(
+        nextHovered
+          ? `${item?.name ?? "This piece"} is inside the avatar's magnetic field. Let go and the stage will snap it in.`
+          : item?.name
+            ? `Keep pulling ${item.name} toward the avatar to let the stage absorb it.`
+            : "Keep pulling toward the avatar to let the stage absorb the garment."
+      );
+    }
+
+    setDropHovered(nextHovered);
   }
 
   function handleDragEnd(itemId: number, info: PanInfo) {
     const item = items.find((entry) => entry.id === itemId);
-    const snapped = isPointInsideMagneticZone(info.point);
+    const telemetry = getMagneticTelemetry(itemId, info.point);
+    const snapped = Boolean(telemetry?.engaged);
 
     dragGuardRef.current = { itemId, until: Date.now() + 180 };
     setDraggingItemId(null);
     setDropHovered(false);
+    setDragTelemetry(null);
 
     if (snapped) {
       triggerAbsorbBurst(itemId, info.point);
@@ -248,6 +275,53 @@ export function TryOnStudio() {
   return (
     <div className="relative grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
       <AnimatePresence>
+        {dragTelemetry && draggingItem ? (
+          <motion.div
+            key={`tether-${dragTelemetry.itemId}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: dragTelemetry.strength > 0.08 ? 1 : 0 }}
+            exit={{ opacity: 0 }}
+            className="magnetic-tether"
+            style={{
+              left: dragTelemetry.point.x,
+              top: dragTelemetry.point.y,
+              width: Math.hypot(dragTelemetry.center.x - dragTelemetry.point.x, dragTelemetry.center.y - dragTelemetry.point.y),
+              transform: `translateY(-50%) rotate(${Math.atan2(dragTelemetry.center.y - dragTelemetry.point.y, dragTelemetry.center.x - dragTelemetry.point.x)}rad)`
+            }}
+          >
+            <motion.span
+              animate={{ opacity: 0.2 + dragTelemetry.strength * 0.85 }}
+              className="magnetic-tether-line"
+              style={{
+                width: "100%",
+                background: `linear-gradient(90deg, color-mix(in srgb, ${draggingItem.colorHex} 70%, rgba(255,255,255,0.95)), rgba(255,255,255,0.12))`
+              }}
+            />
+          </motion.div>
+        ) : null}
+
+        {dragTelemetry && draggingItem && dragTelemetry.strength > 0.55 ? (
+          <motion.div
+            key={`whisper-${dragTelemetry.itemId}`}
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1, x: dragTelemetry.point.x + 16, y: dragTelemetry.point.y - 42 }}
+            exit={{ opacity: 0, scale: 0.92 }}
+            transition={{ type: "spring", stiffness: 260, damping: 24, mass: 0.5 }}
+            className="gesture-whisper"
+          >
+            <div
+              className="snap-hint rounded-full px-4 py-2 text-xs"
+              style={{
+                borderColor: `color-mix(in srgb, ${draggingItem.colorHex} 38%, rgba(255,255,255,0.82))`,
+                background: `linear-gradient(180deg, rgba(255,255,255,0.96), color-mix(in srgb, ${draggingItem.colorHex} 14%, rgba(255,247,239,0.94)))`
+              }}
+            >
+              <Sparkles className="size-3.5" />
+              {dragTelemetry.strength > 0.78 ? "Locked on" : "Almost snapped"}
+            </div>
+          </motion.div>
+        ) : null}
+
         {absorbBurst ? (
           <motion.div
             key={`${absorbBurst.id}-${absorbBurst.startX}-${absorbBurst.startY}`}
@@ -280,6 +354,8 @@ export function TryOnStudio() {
           dropTone={draggingItem?.colorHex ?? "var(--accent)"}
           absorbActive={Boolean(absorbLabel)}
           absorbLabel={absorbLabel}
+          magneticStrength={dragTelemetry?.strength ?? 0}
+          magneticVector={dragTelemetry?.vector ?? null}
           dragHint={draggingItem ? `Drop ${draggingItem.name} onto the avatar to wear or remove it` : undefined}
         />
       </div>
@@ -324,13 +400,26 @@ export function TryOnStudio() {
             className="mb-3 snap-hint"
           >
             <Sparkles className="size-4 text-[var(--accent)]" />
-            {dropHovered ? `The avatar is pulling ${draggingItem.name} in.` : `Drag ${draggingItem.name} toward the avatar for a snap-in preview.`}
+            {dropHovered
+              ? `The avatar is pulling ${draggingItem.name} in.`
+              : dragTelemetry && dragTelemetry.strength > 0.2
+                ? `${draggingItem.name} is feeling the stage's pull.`
+                : `Drag ${draggingItem.name} toward the avatar for a snap-in preview.`}
           </motion.div>
         ) : null}
 
         <div className="space-y-3">
           {items.map((item) => {
             const active = selectedTryOnIds.includes(item.id);
+            const magneticStrength = draggingItemId === item.id ? dragTelemetry?.strength ?? 0 : 0;
+            const dynamicShadow =
+              draggingItemId === item.id
+                ? `0 ${24 + magneticStrength * 20}px ${54 + magneticStrength * 32}px color-mix(in srgb, ${item.colorHex} 20%, rgba(69,54,31,0.18))`
+                : undefined;
+            const dynamicBackground =
+              !active && magneticStrength > 0.12
+                ? `linear-gradient(160deg, color-mix(in srgb, ${item.colorHex} 14%, rgba(255,255,255,0.98)) 0%, rgba(255,255,255,0.92) 100%)`
+                : undefined;
 
             return (
               <motion.button
@@ -344,12 +433,23 @@ export function TryOnStudio() {
                 whileHover={{ y: -4, scale: 1.015, rotate: active ? 0 : -0.35 }}
                 whileTap={{ scale: 0.985 }}
                 whileDrag={{
-                  scale: 1.04,
-                  rotate: active ? 0 : -1.3,
+                  scale: 1.04 + magneticStrength * 0.025,
+                  rotate: active ? 0 : -1.3 - magneticStrength * 1.4,
                   zIndex: 50,
-                  boxShadow: "0 26px 62px rgba(69, 54, 31, 0.18)",
+                  boxShadow: dynamicShadow ?? "0 26px 62px rgba(69, 54, 31, 0.18)",
                   cursor: "grabbing"
                 }}
+                animate={
+                  draggingItemId === item.id
+                    ? {
+                        y: -magneticStrength * 8,
+                        rotate: active ? 0 : -magneticStrength * 1.2
+                      }
+                    : {
+                        y: 0,
+                        rotate: 0
+                      }
+                }
                 onDragStart={() => {
                   setDraggingItemId(item.id);
                   setStatusText(`Dragging ${item.name}. Pull it into the avatar's magnetic field to style the stage.`);
@@ -362,7 +462,12 @@ export function TryOnStudio() {
                     ? "border-transparent bg-[var(--ink-strong)] text-white shadow-[var(--shadow-float)]"
                     : "border-[var(--line)] bg-white/70 text-[var(--ink)] hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
                 }`}
-                style={{ touchAction: "none" }}
+                style={{
+                  touchAction: "none",
+                  boxShadow: dynamicShadow,
+                  background: dynamicBackground,
+                  borderColor: !active && magneticStrength > 0.12 ? `color-mix(in srgb, ${item.colorHex} 38%, rgba(255,154,123,0.26))` : undefined
+                }}
               >
                 <div>
                   <div className="flex items-center gap-2">

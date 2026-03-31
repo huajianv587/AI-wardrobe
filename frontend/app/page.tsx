@@ -4,6 +4,7 @@ import { AppShell } from "@/components/ui/app-shell";
 import { SceneSection } from "@/components/ui/scene-section";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StoryCluster } from "@/components/ui/story-cluster";
+import { StoryPostcard } from "@/components/ui/story-postcard";
 
 const capabilityCards = [
   { title: "Digital Wardrobe", description: "Categorize clothing, keep metadata searchable, and make each item ready for sync, styling, and future model calls.", accent: "var(--accent-soft)" },
@@ -59,12 +60,23 @@ export default function HomePage() {
               </div>
 
               <div className="justify-self-start xl:justify-self-end">
-                <StoryCluster
-                  emoji="🧸"
-                  title="closet calm"
-                  chips={["soft planning", "gentle memory", "thoughtful looks"]}
-                  tone="mint"
-                />
+                <div className="flex flex-col items-start gap-3">
+                  <StoryCluster
+                    emoji="🧸"
+                    title="closet calm"
+                    chips={["soft planning", "gentle memory", "thoughtful looks"]}
+                    tone="mint"
+                  />
+                  <StoryPostcard
+                    emoji="🪞"
+                    eyebrow="editor's note"
+                    title="Dress like the product remembers your mornings."
+                    description="The last layer of polish is about making every route feel staged, every drag feel responsive, and every empty corner feel emotionally intentional."
+                    chips={["cinematic entry", "magnetic try-on", "gentle delight"]}
+                    tone="peach"
+                    compact
+                  />
+                </div>
               </div>
             </div>
           </div>

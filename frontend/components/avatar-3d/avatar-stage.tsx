@@ -15,6 +15,8 @@ interface AvatarStageProps {
   dropTone?: string;
   absorbLabel?: string | null;
   absorbActive?: boolean;
+  magneticStrength?: number;
+  magneticVector?: { x: number; y: number } | null;
 }
 
 function AvatarFigure({ palette }: Pick<AvatarStageProps, "palette">) {
@@ -52,17 +54,28 @@ export function AvatarStage({
   stageRef,
   dropTone = "var(--accent)",
   absorbLabel,
-  absorbActive = false
+  absorbActive = false,
+  magneticStrength = 0,
+  magneticVector = null
 }: AvatarStageProps) {
   const visiblePalette = palette.length > 0 ? palette : ["#c9eddc", "#f3ead4", "#355172"];
 
   return (
-    <div
+    <motion.div
       ref={stageRef}
       data-active={dropActive ? "true" : "false"}
-      className={`section-card story-gradient magnetic-stage relative h-[520px] overflow-hidden rounded-[34px] p-4 transition ${dropActive ? "shadow-[var(--shadow-glow)]" : ""} ${dropHovered ? "scale-[1.01]" : ""}`}
+      initial={false}
+      animate={{
+        scale: dropHovered ? 1.012 + magneticStrength * 0.02 : dropActive ? 1 + magneticStrength * 0.012 : 1,
+        rotateX: magneticVector ? -magneticVector.y * (1.2 + magneticStrength * 6) : 0,
+        rotateY: magneticVector ? magneticVector.x * (1.8 + magneticStrength * 7) : 0
+      }}
+      transition={{ type: "spring", stiffness: 220, damping: 24, mass: 0.7 }}
+      className={`section-card story-gradient magnetic-stage relative h-[520px] overflow-hidden rounded-[34px] p-4 transition ${dropActive ? "shadow-[var(--shadow-glow)]" : ""}`}
       style={{
-        boxShadow: dropActive ? `0 20px 70px color-mix(in srgb, ${dropTone} 22%, rgba(255,255,255,0.48))` : undefined
+        transformPerspective: 1400,
+        transformStyle: "preserve-3d",
+        boxShadow: dropActive ? `0 20px ${70 + magneticStrength * 22}px color-mix(in srgb, ${dropTone} ${22 + magneticStrength * 18}%, rgba(255,255,255,0.48))` : undefined
       }}
     >
       <div className="hero-glow absolute inset-0 opacity-80" />
@@ -70,7 +83,7 @@ export function AvatarStage({
         <>
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: dropHovered ? 0.64 : 0.38, scale: dropHovered ? 1.05 : 1 }}
+            animate={{ opacity: dropHovered ? 0.64 + magneticStrength * 0.16 : 0.38 + magneticStrength * 0.18, scale: dropHovered ? 1.05 + magneticStrength * 0.06 : 1 + magneticStrength * 0.04 }}
             className="pointer-events-none absolute inset-[14%] rounded-full blur-3xl"
             style={{ background: `radial-gradient(circle, color-mix(in srgb, ${dropTone} 28%, rgba(255,255,255,0.55)) 0%, transparent 68%)` }}
           />
@@ -78,7 +91,10 @@ export function AvatarStage({
             <motion.div
               key={ring}
               initial={{ opacity: 0, scale: 0.88 }}
-              animate={{ opacity: dropHovered ? [0.12, 0.24, 0.12] : [0.08, 0.16, 0.08], scale: dropHovered ? [0.94, 1.03, 0.94] : [0.92, 1, 0.92] }}
+              animate={{
+                opacity: dropHovered ? [0.12, 0.24 + magneticStrength * 0.22, 0.12] : [0.08, 0.16 + magneticStrength * 0.16, 0.08],
+                scale: dropHovered ? [0.94, 1.03 + magneticStrength * 0.06, 0.94] : [0.92, 1 + magneticStrength * 0.05, 0.92]
+              }}
               transition={{ duration: 2.2, repeat: Infinity, delay: ring * 0.2, ease: "easeInOut" }}
               className="pointer-events-none absolute inset-[18%] rounded-full border"
               style={{ borderColor: `color-mix(in srgb, ${dropTone} 60%, rgba(255,255,255,0.72))` }}
@@ -89,7 +105,7 @@ export function AvatarStage({
       {dropActive ? (
         <motion.div
           initial={{ opacity: 0.45, scale: 0.98 }}
-          animate={{ opacity: dropHovered ? 0.92 : 0.6, scale: dropHovered ? 1 : 0.985 }}
+          animate={{ opacity: dropHovered ? 0.92 : 0.6 + magneticStrength * 0.14, scale: dropHovered ? 1 : 0.985 + magneticStrength * 0.02 }}
           className="pointer-events-none absolute inset-6 z-10 rounded-[28px] border-2 border-dashed bg-white/35"
           style={{ borderColor: dropTone }}
         />
@@ -104,7 +120,7 @@ export function AvatarStage({
             className={`rounded-full px-5 py-3 text-sm shadow-[var(--shadow-float)] ${dropHovered ? "text-white" : "bg-white/88 text-[var(--ink)]"}`}
             style={dropHovered ? { backgroundColor: dropTone } : undefined}
           >
-            {dropHovered ? "Release and let the stage absorb it" : "Bring it into the avatar's magnetic field"}
+            {dropHovered ? "Release and let the stage absorb it" : magneticStrength > 0.45 ? "The stage is starting to lock on" : "Bring it into the avatar's magnetic field"}
           </div>
         </motion.div>
       ) : null}
@@ -133,7 +149,7 @@ export function AvatarStage({
           className={`rounded-full px-3 py-1 text-xs ${dropActive ? "text-white" : "bg-white/80 text-[var(--ink)]"}`}
           style={dropActive ? { backgroundColor: dropTone } : undefined}
         >
-          {dropActive ? "Release to wear" : `${palette.length} active layers`}
+          {dropActive ? `${Math.round((0.35 + magneticStrength * 0.65) * 100)}% locked` : `${palette.length} active layers`}
         </div>
       </div>
       <div className="pointer-events-none absolute inset-x-6 bottom-5 z-10">
@@ -163,6 +179,6 @@ export function AvatarStage({
         </mesh>
         <OrbitControls enablePan={false} enableZoom={false} minAzimuthAngle={-0.5} maxAzimuthAngle={0.5} />
       </Canvas>
-    </div>
+    </motion.div>
   );
 }

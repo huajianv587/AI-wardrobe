@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Bot, LogIn, ScanFace, Shirt, Sparkles, Wand2 } from "lucide-react";
 import { AuthSessionBootstrap } from "@/components/auth/auth-session-bootstrap";
 import { useAuthSession } from "@/hooks/use-auth-session";
@@ -133,15 +133,31 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
         </div>
       </motion.header>
 
-      <motion.main
-        key={pathname}
-        initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
-        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-        transition={{ duration: 0.36, ease: [0.22, 1, 0.36, 1] }}
-        className="page-fade relative z-10 flex-1"
-      >
-        {children}
-      </motion.main>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.main
+          key={pathname}
+          initial={{ opacity: 0, y: 18, scale: 0.988, filter: "blur(10px)" }}
+          animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+          exit={{ opacity: 0, y: -12, scale: 1.008, filter: "blur(8px)" }}
+          transition={{ duration: 0.48, ease: [0.22, 1, 0.36, 1] }}
+          className="page-fade relative z-10 flex-1"
+        >
+          <motion.div
+            initial={{ opacity: 0.6, scale: 0.92 }}
+            animate={{ opacity: 0, scale: 1.06 }}
+            transition={{ duration: 0.72, ease: [0.18, 1, 0.3, 1] }}
+            className="route-veil"
+          >
+            <motion.span
+              initial={{ opacity: 0.85, x: -70 }}
+              animate={{ opacity: 0, x: 120 }}
+              transition={{ duration: 0.78, ease: [0.18, 1, 0.3, 1] }}
+              className="route-spotlight"
+            />
+          </motion.div>
+          {children}
+        </motion.main>
+      </AnimatePresence>
 
       {isMobile ? (
         <nav className="mobile-dock md:hidden">

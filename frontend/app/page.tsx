@@ -12,6 +12,7 @@ const capabilityCards = [
 const quickLinks = [
   { href: "/wardrobe", label: "Open wardrobe", icon: Sparkles },
   { href: "/recommend", label: "Generate outfit", icon: Wand2 },
+  { href: "/assistant", label: "Open assistant", icon: Bot },
   { href: "/try-on", label: "Enter try-on studio", icon: ScanFace },
   { href: "/ai-demo", label: "Open AI demo lab", icon: Bot }
 ];

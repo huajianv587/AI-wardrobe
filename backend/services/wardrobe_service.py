@@ -3,8 +3,10 @@ from __future__ import annotations
 from datetime import datetime
 
 from fastapi import HTTPException, UploadFile, status
+from sqlalchemy import create_engine
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
+from sqlalchemy.orm import sessionmaker
 
 from app.models.user import User
 from app.models.wardrobe import ClothingItem
@@ -55,6 +57,46 @@ def _sync_item(
         db.refresh(item)
 
 
+def _attach_memory_cards(db: Session, items: list[ClothingItem], user_id: int) -> list[ClothingItem]:
+    if not items:
+        return items
+
+    from services import assistant_service
+
+    return assistant_service.attach_memory_cards(db, items, user_id)
+
+
+def _attach_memory_card(db: Session, item: ClothingItem, user_id: int) -> ClothingItem:
+    from services import assistant_service
+
+    return assistant_service.attach_memory_card(db, item, user_id)
+
+
+def _auto_enrich(db: Session, item: ClothingItem, user: User) -> ClothingItem:
+    from services import assistant_service
+
+    return assistant_service.auto_enrich_item(db, item, user)
+
+
+def _serialize_item(item: ClothingItem) -> dict:
+    return {
+        "id": item.id,
+        "user_id": item.user_id,
+        "name": item.name,
+        "category": item.category,
+        "slot": item.slot,
+        "color": item.color,
+        "brand": item.brand,
+        "image_url": item.image_url,
+        "processed_image_url": item.processed_image_url,
+        "tags": list(item.tags or []),
+        "occasions": list(item.occasions or []),
+        "style_notes": item.style_notes,
+        "created_at": item.created_at.isoformat() if item.created_at else None,
+        "last_synced_at": item.last_synced_at.isoformat() if item.last_synced_at else None,
+    }
+
+
 def list_items(db: Session, user_id: int, category: str | None = None, query: str | None = None) -> list[ClothingItem]:
     statement = select(ClothingItem).order_by(ClothingItem.created_at.desc())
     statement = statement.where(ClothingItem.user_id == user_id)
@@ -72,14 +114,15 @@ def list_items(db: Session, user_id: int, category: str | None = None, query: st
             )
         )
 
-    return list(db.scalars(statement).all())
+    items = list(db.scalars(statement).all())
+    return _attach_memory_cards(db, items, user_id)
 
 
 def get_item(db: Session, item_id: int, user_id: int) -> ClothingItem:
     item = db.get(ClothingItem, item_id)
     if item is None or item.user_id != user_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Wardrobe item not found.")
-    return item
+    return _attach_memory_card(db, item, user_id)
 
 
 def create_item(db: Session, payload: ClothingItemCreate, user: User) -> ClothingItem:
@@ -90,8 +133,9 @@ def create_item(db: Session, payload: ClothingItemCreate, user: User) -> Clothin
     db.add(item)
     db.commit()
     db.refresh(item)
+    item = _auto_enrich(db, item, user)
     _sync_item(db, item, owner_supabase_user_id=user.supabase_user_id, owner_email=user.email)
-    return item
+    return _attach_memory_card(db, item, user_id)
 
 
 def update_item(db: Session, item_id: int, payload: ClothingItemUpdate, user: User) -> ClothingItem:
@@ -106,8 +150,9 @@ def update_item(db: Session, item_id: int, payload: ClothingItemUpdate, user: Us
 
     db.commit()
     db.refresh(item)
+    item = _auto_enrich(db, item, user)
     _sync_item(db, item, owner_supabase_user_id=user.supabase_user_id, owner_email=user.email)
-    return item
+    return _attach_memory_card(db, item, user.id)
 
 
 def attach_item_image(db: Session, item_id: int, upload_file: UploadFile, user: User) -> ClothingItem:
@@ -120,6 +165,7 @@ def attach_item_image(db: Session, item_id: int, upload_file: UploadFile, user: 
     item.style_notes = _append_note(item.style_notes, "Source image uploaded for cleanup and recommendation preview.")
     db.commit()
     db.refresh(item)
+    item = _auto_enrich(db, item, user)
     _sync_item(
         db,
         item,
@@ -127,7 +173,7 @@ def attach_item_image(db: Session, item_id: int, upload_file: UploadFile, user: 
         owner_email=user.email,
         image_backup_url=asset.backup_url,
     )
-    return item
+    return _attach_memory_card(db, item, user.id)
 
 
 def process_item_image(db: Session, item_id: int, user: User) -> ClothingItem:
@@ -146,6 +192,7 @@ def process_item_image(db: Session, item_id: int, user: User) -> ClothingItem:
         item.style_notes = _append_note(item.style_notes, cleanup.note)
         db.commit()
         db.refresh(item)
+        item = _auto_enrich(db, item, user)
         _sync_item(
             db,
             item,
@@ -153,13 +200,56 @@ def process_item_image(db: Session, item_id: int, user: User) -> ClothingItem:
             owner_email=user.email,
             processed_backup_url=processed_asset.backup_url,
         )
-        return item
+        return _attach_memory_card(db, item, user.id)
 
     item.style_notes = _append_note(item.style_notes, "Upload an image before running the cleanup pipeline.")
     db.commit()
     db.refresh(item)
     _sync_item(db, item, owner_supabase_user_id=user.supabase_user_id, owner_email=user.email)
-    return item
+    return _attach_memory_card(db, item, user.id)
+
+
+def queue_image_processing_task(db: Session, item_id: int, user: User):
+    item = get_item(db, item_id, user.id)
+    from services import assistant_service
+
+    return assistant_service.create_task(
+        db,
+        user,
+        "image-cleanup",
+        {"item_id": item.id, "item_name": item.name},
+    )
+
+
+def run_image_processing_task(task_id: int, item_id: int, user_id: int, database_url: str) -> None:
+    from services import assistant_service
+
+    connect_args = {"check_same_thread": False} if database_url.startswith("sqlite") else {}
+    engine = create_engine(database_url, connect_args=connect_args, future=True)
+    session_local = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
+    db = session_local()
+    try:
+        task = assistant_service.mark_task_running(db, task_id)
+        user = db.get(User, user_id)
+        if user is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found for assistant task.")
+
+        item = process_item_image(db, item_id, user)
+        assistant_service.complete_task(
+            db,
+            task.id,
+            {"item": _serialize_item(item), "message": f"Processed {item.name} successfully."},
+        )
+    except Exception as exc:  # pragma: no cover - background task failure path
+        assistant_service.fail_task(db, task_id, str(exc))
+    finally:
+        db.close()
+        engine.dispose()
+
+
+def enrich_item_metadata(db: Session, item_id: int, user: User) -> ClothingItem:
+    item = get_item(db, item_id, user.id)
+    return _auto_enrich(db, item, user)
 
 
 def delete_item(db: Session, item_id: int, user: User) -> int:

@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, RefreshCw, Sparkles } from "lucide-react";
 
 import { AuthRequiredCard } from "@/components/auth/auth-required-card";
+import { RecommendationLookCard } from "@/components/outfit/recommendation-look-card";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { ApiError, fetchRecommendations, fetchWardrobeItems, RecommendationResult } from "@/lib/api";
 import { WardrobeItem, useWardrobeStore } from "@/store/wardrobe-store";
@@ -42,12 +43,26 @@ function buildFallbackRecommendations(prompt: string, availableItems: WardrobeIt
       {
         title: officeMode ? "Soft Formal Balance" : dateMode ? "Rosy Evening Layer" : "Light Weekend Edit",
         rationale: officeMode ? "Use structured neutrals to keep the look professional, then soften the impression with light layers so the result stays approachable." : dateMode ? "A softer palette and one refined accessory create a polished date look without feeling overdone." : "Keep the silhouette relaxed, then add one clean anchor piece so the outfit still feels intentional.",
-        itemIds: optionOne.map((item) => item.id)
+        itemIds: optionOne.map((item) => item.id),
+        confidence: 0.74,
+        confidenceLabel: "Local draft",
+        keyItemId: optionOne[0]?.id ?? null,
+        substituteItemIds: optionTwo.slice(0, 2).map((item) => item.id),
+        reasonBadges: scenarioKeywords.slice(0, 3),
+        charmCopy: "✨ 先给你一套本地草稿，等后端可用时会替换成带画像记忆的正式建议。",
+        moodEmoji: officeMode ? "☁️" : dateMode ? "💞" : "🌷"
       },
       {
         title: "Change Another Look",
         rationale: "This alternative composition keeps the same scene fit while reducing repeated hero pieces, closer to the final one-more-look interaction.",
-        itemIds: optionTwo.map((item) => item.id)
+        itemIds: optionTwo.map((item) => item.id),
+        confidence: 0.69,
+        confidenceLabel: "Backup look",
+        keyItemId: optionTwo[0]?.id ?? null,
+        substituteItemIds: optionOne.slice(0, 2).map((item) => item.id),
+        reasonBadges: ["fallback", "swap-friendly"],
+        charmCopy: "✨ 这套更像备用答案，适合想换口气但又不想完全推翻原来场景的时候。",
+        moodEmoji: "✨"
       }
     ],
     agentTrace: [
@@ -55,7 +70,10 @@ function buildFallbackRecommendations(prompt: string, availableItems: WardrobeIt
       { node: "Retriever Agent", summary: "Matched wardrobe candidates by slot, occasion tags, and color safety." },
       { node: "Stylist Agent", summary: "Composed the silhouette hierarchy and styling explanation." },
       { node: "Verifier Agent", summary: "Checked that the look remains wearable and coherent." }
-    ]
+    ],
+    profileSummary: "本地草稿模式暂时没有读到你的完整画像，所以只按提示词和衣橱基础结构组合。",
+    closetGaps: [],
+    reminderFlags: []
   };
 }
 
@@ -248,36 +266,32 @@ export function RecommendationPanel() {
         ) : null}
 
         {result.outfits.map((outfit) => (
-          <motion.article key={outfit.title} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} className="section-card rounded-[32px] p-5">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h4 className="text-xl font-semibold text-[var(--ink-strong)]">{outfit.title}</h4>
-                <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{outfit.rationale}</p>
-              </div>
-              <span className="pill">{outfit.itemIds.length} pieces</span>
-            </div>
-
-            <div className="mt-5 grid gap-3 md:grid-cols-2">
-              {outfit.itemIds.map((itemId) => {
-                const piece = items.find((item) => item.id === itemId);
-                if (!piece) {
-                  return null;
-                }
-
-                return (
-                  <motion.div key={piece.id} whileHover={{ y: -3, scale: 1.01 }} className="rounded-[24px] border border-[var(--line)] bg-white/80 p-4">
-                    <div className="mb-3 h-24 rounded-[18px]" style={{ background: `linear-gradient(160deg, ${piece.colorHex} 0%, rgba(255,255,255,0.96) 100%)` }} />
-                    <p className="font-medium text-[var(--ink-strong)]">{piece.name}</p>
-                    <p className="mt-1 text-sm text-[var(--muted)]">{piece.category} - {piece.color}</p>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </motion.article>
+          <RecommendationLookCard key={outfit.title} recommendation={outfit} items={items} prompt={prompt} scene="recommendation-panel" onActionComplete={setStatusText} />
         ))}
 
         <article className="section-card rounded-[32px] p-5">
           <h4 className="text-lg font-semibold text-[var(--ink-strong)]">Agent Trace</h4>
+          {result.profileSummary ? (
+            <div className="mt-4 rounded-[22px] border border-[var(--line)] bg-white/80 px-4 py-4 text-sm leading-6 text-[var(--ink)]">
+              {result.profileSummary}
+            </div>
+          ) : null}
+          {(result.closetGaps.length > 0 || result.reminderFlags.length > 0) ? (
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              {result.closetGaps.length > 0 ? (
+                <div className="rounded-[22px] border border-[var(--line)] bg-white/80 p-4">
+                  <p className="text-sm font-semibold text-[var(--ink-strong)]">Closet gaps</p>
+                  <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{result.closetGaps.join(" / ")}</p>
+                </div>
+              ) : null}
+              {result.reminderFlags.length > 0 ? (
+                <div className="rounded-[22px] border border-[var(--line)] bg-white/80 p-4">
+                  <p className="text-sm font-semibold text-[var(--ink-strong)]">Gentle reminders</p>
+                  <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{result.reminderFlags.join(" / ")}</p>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
           <div className="mt-4 space-y-3">
             {result.agentTrace.map((step) => (
               <div key={step.node} className="rounded-[22px] border border-[var(--line)] bg-white/80 p-4">

@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useState } from "react";
-import { LoaderCircle, Save, Sparkles, Trash2, UploadCloud } from "lucide-react";
+import { LoaderCircle, Save, Sparkles, Trash2, UploadCloud, WandSparkles } from "lucide-react";
 
 import { resolveAssetUrl, WardrobeFormValues } from "@/lib/api";
 import { WardrobeCategory, WardrobeItem } from "@/store/wardrobe-store";
@@ -13,9 +13,22 @@ interface ItemDetailPanelProps {
   saving: boolean;
   deleting: boolean;
   processing: boolean;
+  queueing: boolean;
   onUpdate: (itemId: number, values: WardrobeFormValues) => Promise<void>;
   onDelete: (itemId: number) => Promise<void>;
   onProcess: (itemId: number) => Promise<void>;
+  onProcessAsync: (itemId: number) => Promise<void>;
+  onAutoEnrich: (itemId: number) => Promise<void>;
+  onUpdateMemoryCard: (
+    itemId: number,
+    payload: {
+      highlights: string[];
+      avoid_contexts: string[];
+      care_status: string;
+      care_note: string | null;
+      season_tags: string[];
+    }
+  ) => Promise<void>;
 }
 
 const categories: { value: WardrobeCategory; label: string }[] = [
@@ -40,9 +53,14 @@ function toFormValues(item: WardrobeItem): WardrobeFormValues {
   };
 }
 
-function ItemDetailEditor({ item, saving, deleting, processing, onUpdate, onDelete, onProcess }: ItemDetailPanelProps & { item: WardrobeItem }) {
+function ItemDetailEditor({ item, saving, deleting, processing, queueing, onUpdate, onDelete, onProcess, onProcessAsync, onAutoEnrich, onUpdateMemoryCard }: ItemDetailPanelProps & { item: WardrobeItem }) {
   const [form, setForm] = useState<WardrobeFormValues>(() => toFormValues(item));
   const [error, setError] = useState("");
+  const [memoryHighlights, setMemoryHighlights] = useState(item.memoryCard?.highlights.join(", ") ?? "");
+  const [memoryAvoids, setMemoryAvoids] = useState(item.memoryCard?.avoidContexts.join(", ") ?? "");
+  const [careStatus, setCareStatus] = useState(item.memoryCard?.careStatus ?? "fresh");
+  const [careNote, setCareNote] = useState(item.memoryCard?.careNote ?? "");
+  const [seasonTags, setSeasonTags] = useState(item.memoryCard?.seasonTags.join(", ") ?? "");
   const previewUrl = resolveAssetUrl(item.processedImageUrl ?? item.imageUrl);
 
   function updateField<Key extends keyof WardrobeFormValues>(key: Key, value: WardrobeFormValues[Key]) {
@@ -84,6 +102,42 @@ function ItemDetailEditor({ item, saving, deleting, processing, onUpdate, onDele
       await onProcess(item.id);
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : "Could not process the image.");
+    }
+  }
+
+  async function handleProcessAsync() {
+    setError("");
+
+    try {
+      await onProcessAsync(item.id);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : "Could not queue the async process.");
+    }
+  }
+
+  async function handleAutoEnrich() {
+    setError("");
+
+    try {
+      await onAutoEnrich(item.id);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : "Could not auto-enrich the item.");
+    }
+  }
+
+  async function handleMemoryCardSave() {
+    setError("");
+
+    try {
+      await onUpdateMemoryCard(item.id, {
+        highlights: parseCsv(memoryHighlights),
+        avoid_contexts: parseCsv(memoryAvoids),
+        care_status: careStatus,
+        care_note: careNote.trim() || null,
+        season_tags: parseCsv(seasonTags)
+      });
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : "Could not save the memory card.");
     }
   }
 
@@ -196,17 +250,77 @@ function ItemDetailEditor({ item, saving, deleting, processing, onUpdate, onDele
             {processing ? "Processing..." : "Run AI cleanup"}
           </button>
 
+          <button type="button" onClick={() => void handleProcessAsync()} disabled={queueing} className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/80 px-5 py-3 text-sm text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-60">
+            {queueing ? <LoaderCircle className="size-4 animate-spin" /> : <UploadCloud className="size-4" />}
+            {queueing ? "Queued..." : "Queue cleanup"}
+          </button>
+
+          <button type="button" onClick={() => void handleAutoEnrich()} disabled={saving} className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/80 px-5 py-3 text-sm text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-60">
+            {saving ? <LoaderCircle className="size-4 animate-spin" /> : <WandSparkles className="size-4" />}
+            {saving ? "Refreshing..." : "Auto enrich"}
+          </button>
+
           <button type="button" onClick={() => void handleDelete()} disabled={deleting} className="inline-flex items-center gap-2 rounded-full border border-[var(--accent-rose)] bg-[var(--accent-rose)]/25 px-5 py-3 text-sm text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-60">
             {deleting ? <LoaderCircle className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
             {deleting ? "Deleting..." : "Delete item"}
           </button>
         </div>
       </form>
+
+      <div className="ambient-divider my-5" />
+
+      <div className="space-y-4">
+        <div>
+          <h4 className="text-lg font-semibold text-[var(--ink-strong)]">Clothing memory card</h4>
+          <p className="mt-2 text-sm leading-6 text-[var(--muted)]">让系统记住这件衣服的性格，比如显气色、适合拍照、适合冷气房，或者雨天别穿。</p>
+        </div>
+
+        <label className="block">
+          <span className="mb-2 block text-sm font-medium text-[var(--ink)]">Highlights</span>
+          <input value={memoryHighlights} onChange={(event) => setMemoryHighlights(event.target.value)} className="w-full rounded-[22px] border border-[var(--line)] bg-white/85 px-4 py-3 text-sm outline-none" />
+        </label>
+
+        <label className="block">
+          <span className="mb-2 block text-sm font-medium text-[var(--ink)]">Avoid contexts</span>
+          <input value={memoryAvoids} onChange={(event) => setMemoryAvoids(event.target.value)} className="w-full rounded-[22px] border border-[var(--line)] bg-white/85 px-4 py-3 text-sm outline-none" />
+        </label>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium text-[var(--ink)]">Care status</span>
+            <select value={careStatus} onChange={(event) => setCareStatus(event.target.value)} className="w-full rounded-[22px] border border-[var(--line)] bg-white/85 px-4 py-3 text-sm outline-none">
+              <option value="fresh">fresh</option>
+              <option value="needs-laundry">needs-laundry</option>
+              <option value="repair">repair</option>
+              <option value="resting">resting</option>
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium text-[var(--ink)]">Season tags</span>
+            <input value={seasonTags} onChange={(event) => setSeasonTags(event.target.value)} className="w-full rounded-[22px] border border-[var(--line)] bg-white/85 px-4 py-3 text-sm outline-none" />
+          </label>
+        </div>
+
+        <label className="block">
+          <span className="mb-2 block text-sm font-medium text-[var(--ink)]">Care note</span>
+          <textarea value={careNote} onChange={(event) => setCareNote(event.target.value)} className="min-h-24 w-full rounded-[22px] border border-[var(--line)] bg-white/85 px-4 py-3 text-sm outline-none" />
+        </label>
+
+        <button type="button" onClick={() => void handleMemoryCardSave()} disabled={saving} className="inline-flex items-center gap-2 rounded-full bg-[var(--ink-strong)] px-5 py-3 text-sm text-white disabled:opacity-60">
+          {saving ? <LoaderCircle className="size-4 animate-spin" /> : <Save className="size-4" />}
+          {saving ? "Saving..." : "Save memory card"}
+        </button>
+      </div>
     </section>
   );
 }
 
-export function ItemDetailPanel({ item, saving, deleting, processing, onUpdate, onDelete, onProcess }: ItemDetailPanelProps) {
+function parseCsv(value: string) {
+  return value.split(",").map((token) => token.trim()).filter(Boolean);
+}
+
+export function ItemDetailPanel({ item, saving, deleting, processing, queueing, onUpdate, onDelete, onProcess, onProcessAsync, onAutoEnrich, onUpdateMemoryCard }: ItemDetailPanelProps) {
   if (!item) {
     return (
       <section className="section-card rounded-[32px] p-5">
@@ -216,6 +330,6 @@ export function ItemDetailPanel({ item, saving, deleting, processing, onUpdate, 
     );
   }
 
-  const editorKey = `${item.id}:${item.name}:${item.imageUrl ?? "none"}:${item.processedImageUrl ?? "none"}:${item.tags.join("|")}:${item.occasions.join("|")}:${item.note}`;
-  return <ItemDetailEditor key={editorKey} item={item} saving={saving} deleting={deleting} processing={processing} onUpdate={onUpdate} onDelete={onDelete} onProcess={onProcess} />;
+  const editorKey = `${item.id}:${item.name}:${item.imageUrl ?? "none"}:${item.processedImageUrl ?? "none"}:${item.tags.join("|")}:${item.occasions.join("|")}:${item.note}:${item.memoryCard?.updatedAt ?? "no-memory-card"}`;
+  return <ItemDetailEditor key={editorKey} item={item} saving={saving} deleting={deleting} processing={processing} queueing={queueing} onUpdate={onUpdate} onDelete={onDelete} onProcess={onProcess} onProcessAsync={onProcessAsync} onAutoEnrich={onAutoEnrich} onUpdateMemoryCard={onUpdateMemoryCard} />;
 }

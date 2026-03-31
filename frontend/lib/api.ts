@@ -1,5 +1,5 @@
 import { AuthSessionResponse, AuthUserSummary, clearStoredSession, getStoredAccessToken } from "@/lib/auth-session";
-import { categoryToSlot, colorToHex, FilterCategory, WardrobeCategory, WardrobeItem, WardrobeSlot } from "@/store/wardrobe-store";
+import { categoryToSlot, ClothingMemoryCard, colorToHex, FilterCategory, WardrobeCategory, WardrobeItem, WardrobeSlot } from "@/store/wardrobe-store";
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000").replace(/\/$/, "");
 
@@ -17,6 +17,20 @@ interface ApiWardrobeItem {
   occasions: string[];
   style_notes: string | null;
   created_at: string;
+  last_synced_at?: string | null;
+  memory_card?: ApiMemoryCard | null;
+}
+
+interface ApiMemoryCard {
+  id: number;
+  user_id: number;
+  item_id: number;
+  highlights: string[];
+  avoid_contexts: string[];
+  care_status: string;
+  care_note: string | null;
+  season_tags: string[];
+  updated_at: string;
 }
 
 interface DeleteWardrobeResponse {
@@ -28,6 +42,13 @@ interface ApiRecommendationOption {
   title: string;
   rationale: string;
   item_ids: number[];
+  confidence: number | null;
+  confidence_label: string | null;
+  key_item_id: number | null;
+  substitute_item_ids: number[];
+  reason_badges: string[];
+  charm_copy: string | null;
+  mood_emoji: string | null;
 }
 
 interface ApiAgentTraceStep {
@@ -39,6 +60,30 @@ interface ApiRecommendationResponse {
   source: string;
   outfits: ApiRecommendationOption[];
   agent_trace: ApiAgentTraceStep[];
+  profile_summary: string | null;
+  closet_gaps: string[];
+  reminder_flags: string[];
+}
+
+interface ApiTomorrowPlanBlock {
+  period: string;
+  summary: string;
+  recommendation: ApiRecommendationResponse;
+}
+
+interface ApiTomorrowAssistantResponse {
+  weather: WeatherSummary;
+  morning: ApiTomorrowPlanBlock;
+  evening: ApiTomorrowPlanBlock;
+  commute_tip: string;
+}
+
+interface ApiAssistantOverview {
+  tomorrow: ApiTomorrowAssistantResponse;
+  gaps: ClosetGapResult;
+  reminders: ReminderResult;
+  style_profile: StyleProfile;
+  recent_saved_outfits: SavedOutfit[];
 }
 
 interface ApiStatusMessageResponse {
@@ -83,12 +128,157 @@ export interface RecommendationCard {
   title: string;
   rationale: string;
   itemIds: number[];
+  confidence: number | null;
+  confidenceLabel: string | null;
+  keyItemId: number | null;
+  substituteItemIds: number[];
+  reasonBadges: string[];
+  charmCopy: string | null;
+  moodEmoji: string | null;
 }
 
 export interface RecommendationResult {
   source: string;
   outfits: RecommendationCard[];
   agentTrace: AgentTraceStep[];
+  profileSummary: string | null;
+  closetGaps: string[];
+  reminderFlags: string[];
+}
+
+export interface GeoLocationOption {
+  name: string;
+  country: string | null;
+  admin1: string | null;
+  latitude: number;
+  longitude: number;
+  timezone: string | null;
+}
+
+export interface WeatherSummary {
+  location_name: string;
+  timezone: string;
+  date: string;
+  weather_code: number;
+  condition_label: string;
+  temperature_max: number;
+  temperature_min: number;
+  precipitation_probability_max: number | null;
+}
+
+export interface TomorrowPlanBlock {
+  period: string;
+  summary: string;
+  recommendation: RecommendationResult;
+}
+
+export interface TomorrowAssistantResult {
+  weather: WeatherSummary;
+  morning: TomorrowPlanBlock;
+  evening: TomorrowPlanBlock;
+  commute_tip: string;
+}
+
+export interface GapInsight {
+  title: string;
+  description: string;
+  urgency: string;
+}
+
+export interface ClosetGapResult {
+  summary: string;
+  insights: GapInsight[];
+}
+
+export interface ReminderCard {
+  title: string;
+  description: string;
+  tone: string;
+  item_ids: number[];
+}
+
+export interface ReminderResult {
+  repeat_warning: ReminderCard[];
+  laundry_and_care: ReminderCard[];
+  idle_and_seasonal: ReminderCard[];
+}
+
+export interface PackingSuggestion {
+  item_id: number;
+  reason: string;
+}
+
+export interface PackingResponse {
+  city: string;
+  weather: WeatherSummary;
+  capsule_summary: string;
+  suggestions: PackingSuggestion[];
+}
+
+export interface StyleProfile {
+  user_id: number;
+  favorite_colors: string[];
+  avoid_colors: string[];
+  favorite_silhouettes: string[];
+  avoid_silhouettes: string[];
+  style_keywords: string[];
+  dislike_keywords: string[];
+  commute_profile: string | null;
+  comfort_priorities: string[];
+  wardrobe_rules: string[];
+  personal_note: string | null;
+  updated_at: string | null;
+}
+
+export interface SavedOutfit {
+  id: number;
+  user_id: number | null;
+  name: string;
+  occasion: string | null;
+  style: string | null;
+  item_ids: number[];
+  reasoning: string | null;
+  ai_generated: boolean;
+  created_at: string;
+}
+
+export interface WearLog {
+  id: number;
+  user_id: number;
+  outfit_id: number | null;
+  outfit_name: string | null;
+  item_ids: number[];
+  occasion: string | null;
+  period: string;
+  location_label: string | null;
+  feedback_note: string | null;
+  worn_on: string;
+}
+
+export interface AssistantOverview {
+  tomorrow: TomorrowAssistantResult;
+  gaps: ClosetGapResult;
+  reminders: ReminderResult;
+  style_profile: StyleProfile;
+  recent_saved_outfits: SavedOutfit[];
+}
+
+export interface AssistantTask {
+  id: number;
+  task_type: string;
+  status: string;
+  input_payload: Record<string, unknown>;
+  result_payload: Record<string, unknown> | null;
+  error_message: string | null;
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
+}
+
+export interface MiniProgramAssistantOverview {
+  tomorrow: TomorrowAssistantResult;
+  gaps: ClosetGapResult;
+  reminders: ReminderResult;
 }
 
 export interface SyncStatus {
@@ -223,6 +413,73 @@ function parseList(value: string) {
   return value.split(",").map((token) => token.trim()).filter(Boolean);
 }
 
+function mapMemoryCard(card: ApiMemoryCard | null | undefined): ClothingMemoryCard | null {
+  if (!card) {
+    return null;
+  }
+
+  return {
+    id: card.id,
+    userId: card.user_id,
+    itemId: card.item_id,
+    highlights: card.highlights ?? [],
+    avoidContexts: card.avoid_contexts ?? [],
+    careStatus: card.care_status,
+    careNote: card.care_note,
+    seasonTags: card.season_tags ?? [],
+    updatedAt: card.updated_at
+  };
+}
+
+function mapRecommendationResult(payload: ApiRecommendationResponse): RecommendationResult {
+  return {
+    source: payload.source,
+    outfits: payload.outfits.map((item) => ({
+      title: item.title,
+      rationale: item.rationale,
+      itemIds: item.item_ids,
+      confidence: item.confidence,
+      confidenceLabel: item.confidence_label,
+      keyItemId: item.key_item_id,
+      substituteItemIds: item.substitute_item_ids ?? [],
+      reasonBadges: item.reason_badges ?? [],
+      charmCopy: item.charm_copy,
+      moodEmoji: item.mood_emoji
+    })),
+    agentTrace: payload.agent_trace,
+    profileSummary: payload.profile_summary,
+    closetGaps: payload.closet_gaps ?? [],
+    reminderFlags: payload.reminder_flags ?? []
+  };
+}
+
+function mapTomorrowAssistantResult(payload: ApiTomorrowAssistantResponse): TomorrowAssistantResult {
+  return {
+    weather: payload.weather,
+    morning: {
+      period: payload.morning.period,
+      summary: payload.morning.summary,
+      recommendation: mapRecommendationResult(payload.morning.recommendation)
+    },
+    evening: {
+      period: payload.evening.period,
+      summary: payload.evening.summary,
+      recommendation: mapRecommendationResult(payload.evening.recommendation)
+    },
+    commute_tip: payload.commute_tip
+  };
+}
+
+function mapAssistantOverview(payload: ApiAssistantOverview): AssistantOverview {
+  return {
+    tomorrow: mapTomorrowAssistantResult(payload.tomorrow),
+    gaps: payload.gaps,
+    reminders: payload.reminders,
+    style_profile: payload.style_profile,
+    recent_saved_outfits: payload.recent_saved_outfits
+  };
+}
+
 function extractErrorMessage(payload: unknown, status: number) {
   if (typeof payload === "string" && payload.trim().length > 0) {
     return payload;
@@ -312,7 +569,8 @@ export function mapApiWardrobeItem(item: ApiWardrobeItem): WardrobeItem {
     note: item.style_notes ?? "Ready for recommendation and try-on.",
     imageLabel: item.name,
     imageUrl: item.image_url,
-    processedImageUrl: item.processed_image_url
+    processedImageUrl: item.processed_image_url,
+    memoryCard: mapMemoryCard(item.memory_card)
   };
 }
 
@@ -440,15 +698,7 @@ export async function fetchRecommendations(prompt: string) {
     body: JSON.stringify({ prompt })
   });
 
-  return {
-    source: payload.source,
-    outfits: payload.outfits.map((item) => ({
-      title: item.title,
-      rationale: item.rationale,
-      itemIds: item.item_ids
-    })),
-    agentTrace: payload.agent_trace
-  } satisfies RecommendationResult;
+  return mapRecommendationResult(payload);
 }
 
 export async function fetchSyncStatus() {
@@ -497,4 +747,186 @@ export async function runAiDemoWorkflow(payload: {
 
 export async function fetchMiniProgramHome() {
   return apiRequest<MiniProgramHomeResponse>("/api/v1/mini-program/home");
+}
+
+export async function runWardrobeAutoEnrich(itemId: number) {
+  const item = await apiRequest<ApiWardrobeItem>(`/api/v1/wardrobe/items/${itemId}/auto-enrich`, {
+    method: "POST"
+  });
+
+  return mapApiWardrobeItem(item);
+}
+
+export async function processWardrobeImageAsync(itemId: number) {
+  return apiRequest<AssistantTask>(`/api/v1/wardrobe/items/${itemId}/process-image-async`, {
+    method: "POST"
+  });
+}
+
+export async function fetchAssistantTask(taskId: number) {
+  return apiRequest<AssistantTask>(`/api/v1/assistant/tasks/${taskId}`);
+}
+
+export async function fetchAssistantOverview() {
+  const payload = await apiRequest<ApiAssistantOverview>("/api/v1/assistant/overview");
+  return mapAssistantOverview(payload);
+}
+
+export async function searchAssistantLocations(query: string) {
+  const encodedQuery = encodeURIComponent(query.trim());
+  return apiRequest<GeoLocationOption[]>(`/api/v1/assistant/location-search?q=${encodedQuery}`);
+}
+
+export async function fetchTomorrowAssistant(payload: {
+  location_query?: string;
+  latitude?: number;
+  longitude?: number;
+  timezone?: string | null;
+  schedule: string;
+  has_commute: boolean;
+  date?: string;
+}) {
+  const result = await apiRequest<ApiTomorrowAssistantResponse>("/api/v1/assistant/tomorrow", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+
+  return mapTomorrowAssistantResult(result);
+}
+
+export async function runAssistantQuickMode(mode: string) {
+  const result = await apiRequest<ApiRecommendationResponse>("/api/v1/assistant/quick-mode", {
+    method: "POST",
+    body: JSON.stringify({ mode })
+  });
+
+  return mapRecommendationResult(result);
+}
+
+export async function fetchClosetGaps() {
+  return apiRequest<ClosetGapResult>("/api/v1/assistant/gaps");
+}
+
+export async function fetchAssistantReminders() {
+  return apiRequest<ReminderResult>("/api/v1/assistant/reminders");
+}
+
+export async function fetchStyleProfile() {
+  return apiRequest<StyleProfile>("/api/v1/assistant/style-profile");
+}
+
+export async function updateStyleProfile(payload: Omit<StyleProfile, "user_id" | "updated_at">) {
+  return apiRequest<StyleProfile>("/api/v1/assistant/style-profile", {
+    method: "PUT",
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function fetchMemoryCard(itemId: number) {
+  const envelope = await apiRequest<{ item_id: number; card: ApiMemoryCard }>(`/api/v1/assistant/items/${itemId}/memory-card`);
+  return {
+    itemId: envelope.item_id,
+    card: mapMemoryCard(envelope.card)
+  };
+}
+
+export async function updateMemoryCard(
+  itemId: number,
+  payload: {
+    highlights: string[];
+    avoid_contexts: string[];
+    care_status: string;
+    care_note: string | null;
+    season_tags: string[];
+  }
+) {
+  const envelope = await apiRequest<{ item_id: number; card: ApiMemoryCard }>(`/api/v1/assistant/items/${itemId}/memory-card`, {
+    method: "PUT",
+    body: JSON.stringify(payload)
+  });
+
+  return {
+    itemId: envelope.item_id,
+    card: mapMemoryCard(envelope.card)
+  };
+}
+
+export async function recordRecommendationFeedback(payload: {
+  prompt?: string | null;
+  scene?: string | null;
+  action: string;
+  item_ids: number[];
+  feedback_note?: string | null;
+  metadata_json?: Record<string, unknown>;
+}) {
+  return apiRequest<ApiStatusMessageResponse>("/api/v1/assistant/feedback", {
+    method: "POST",
+    body: JSON.stringify({
+      prompt: payload.prompt ?? null,
+      scene: payload.scene ?? null,
+      action: payload.action,
+      item_ids: payload.item_ids,
+      feedback_note: payload.feedback_note ?? null,
+      metadata_json: payload.metadata_json ?? {}
+    })
+  });
+}
+
+export async function fetchSavedOutfits() {
+  return apiRequest<SavedOutfit[]>("/api/v1/assistant/outfits");
+}
+
+export async function saveAssistantOutfit(payload: {
+  name: string;
+  occasion?: string | null;
+  style?: string | null;
+  item_ids: number[];
+  reasoning?: string | null;
+}) {
+  return apiRequest<SavedOutfit>("/api/v1/assistant/outfits", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function fetchWearLogs() {
+  return apiRequest<WearLog[]>("/api/v1/assistant/wear-log");
+}
+
+export async function createWearLog(payload: {
+  outfit_id?: number | null;
+  outfit_name?: string | null;
+  item_ids: number[];
+  occasion?: string | null;
+  period?: string;
+  location_label?: string | null;
+  feedback_note?: string | null;
+  worn_on?: string;
+}) {
+  return apiRequest<WearLog>("/api/v1/assistant/wear-log", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function fetchPackingPlan(payload: {
+  city: string;
+  days: number;
+  trip_kind: string;
+  include_commute: boolean;
+}) {
+  return apiRequest<PackingResponse>("/api/v1/assistant/packing", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function fetchClientAssistantOverview() {
+  const payload = await apiRequest<ApiAssistantOverview>("/api/v1/client/assistant/overview");
+  const overview = mapAssistantOverview(payload);
+  return {
+    tomorrow: overview.tomorrow,
+    gaps: overview.gaps,
+    reminders: overview.reminders
+  } satisfies MiniProgramAssistantOverview;
 }

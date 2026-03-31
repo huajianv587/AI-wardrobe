@@ -12,9 +12,13 @@ import {
   ApiError,
   createWardrobeItem,
   deleteWardrobeItem,
+  fetchAssistantTask,
   fetchWardrobeItems,
   processWardrobeImage,
+  processWardrobeImageAsync,
+  runWardrobeAutoEnrich,
   updateWardrobeItem,
+  updateMemoryCard as saveMemoryCard,
   uploadWardrobeItemImage,
   WardrobeFormValues
 } from "@/lib/api";
@@ -44,6 +48,7 @@ export function WardrobeWorkspace() {
   const [savingItemId, setSavingItemId] = useState<number | null>(null);
   const [deletingItemId, setDeletingItemId] = useState<number | null>(null);
   const [processingItemId, setProcessingItemId] = useState<number | null>(null);
+  const [queuedTaskItemId, setQueuedTaskItemId] = useState<number | null>(null);
 
   const selectedItem = items.find((item) => item.id === selectedItemId) ?? null;
 
@@ -174,6 +179,86 @@ export function WardrobeWorkspace() {
     }
   }
 
+  async function handleQueueProcessItem(itemId: number) {
+    setQueuedTaskItemId(itemId);
+
+    try {
+      const task = await processWardrobeImageAsync(itemId);
+      setSyncState("connected");
+      setStatusText(`Queued image cleanup task #${task.id}. Polling until the processed asset is ready...`);
+
+      let currentStatus = task.status;
+      while (currentStatus === "queued" || currentStatus === "running") {
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+        const nextTask = await fetchAssistantTask(task.id);
+        currentStatus = nextTask.status;
+
+        if (currentStatus === "completed") {
+          await loadWardrobe();
+          setStatusText("Async cleanup completed. Your wardrobe card now shows the refreshed processed image.");
+          break;
+        }
+
+        if (currentStatus === "failed") {
+          setSyncState("error");
+          setStatusText(nextTask.error_message ?? "The async cleanup task failed.");
+          break;
+        }
+      }
+    } catch (error) {
+      setSyncState("error");
+      setStatusText(error instanceof Error ? error.message : "Could not queue the async image task.");
+      throw error;
+    } finally {
+      setQueuedTaskItemId(null);
+    }
+  }
+
+  async function handleAutoEnrich(itemId: number) {
+    setSavingItemId(itemId);
+
+    try {
+      const enriched = await runWardrobeAutoEnrich(itemId);
+      startTransition(() => upsertItem(enriched));
+      setSyncState("connected");
+      setStatusText(`AI metadata enrichment refreshed ${enriched.name}, including memory-card friendly clues.`);
+    } catch (error) {
+      setSyncState("error");
+      setStatusText(error instanceof Error ? error.message : "Could not auto-enrich the item.");
+      throw error;
+    } finally {
+      setSavingItemId(null);
+    }
+  }
+
+  async function handleUpdateMemoryCard(
+    itemId: number,
+    payload: {
+      highlights: string[];
+      avoid_contexts: string[];
+      care_status: string;
+      care_note: string | null;
+      season_tags: string[];
+    }
+  ) {
+    setSavingItemId(itemId);
+
+    try {
+      const envelope = await saveMemoryCard(itemId, payload);
+      const target = items.find((item) => item.id === itemId);
+      if (target && envelope.card) {
+        startTransition(() => upsertItem({ ...target, memoryCard: envelope.card }));
+      }
+      setStatusText("衣物记忆卡已经更新，后续推荐会更懂这件单品的脾气。");
+    } catch (error) {
+      setSyncState("error");
+      setStatusText(error instanceof Error ? error.message : "Could not save the memory card.");
+      throw error;
+    } finally {
+      setSavingItemId(null);
+    }
+  }
+
   if (!authReady) {
     return (
       <section className="section-card rounded-[32px] p-6">
@@ -258,9 +343,13 @@ export function WardrobeWorkspace() {
           saving={savingItemId === selectedItem?.id}
           deleting={deletingItemId === selectedItem?.id}
           processing={processingItemId === selectedItem?.id}
+          queueing={queuedTaskItemId === selectedItem?.id}
           onUpdate={handleUpdateItem}
           onDelete={handleDeleteItem}
           onProcess={handleProcessItem}
+          onProcessAsync={handleQueueProcessItem}
+          onAutoEnrich={handleAutoEnrich}
+          onUpdateMemoryCard={handleUpdateMemoryCard}
         />
       </div>
     </div>

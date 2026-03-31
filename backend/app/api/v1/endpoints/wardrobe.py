@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, File, Query, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Query, UploadFile
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
 from app.models.user import User
+from app.schemas.assistant import AssistantTaskResponse
 from app.schemas.wardrobe import ClothingItemCreate, ClothingItemRead, ClothingItemUpdate, DeleteResponse
 from services import wardrobe_service
 
@@ -42,6 +43,23 @@ def upload_item_image(item_id: int, image: UploadFile = File(...), db: Session =
 @router.post("/items/{item_id}/process-image", response_model=ClothingItemRead)
 def process_item_image(item_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> ClothingItemRead:
     return wardrobe_service.process_item_image(db, item_id, current_user)
+
+
+@router.post("/items/{item_id}/process-image-async", response_model=AssistantTaskResponse)
+def process_item_image_async(
+    item_id: int,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> AssistantTaskResponse:
+    task = wardrobe_service.queue_image_processing_task(db, item_id, current_user)
+    background_tasks.add_task(wardrobe_service.run_image_processing_task, task.id, item_id, current_user.id, str(db.get_bind().url))
+    return task
+
+
+@router.post("/items/{item_id}/auto-enrich", response_model=ClothingItemRead)
+def auto_enrich_item(item_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> ClothingItemRead:
+    return wardrobe_service.enrich_item_metadata(db, item_id, current_user)
 
 
 @router.delete("/items/{item_id}", response_model=DeleteResponse)

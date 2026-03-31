@@ -1,6 +1,7 @@
 export default defineAppConfig({
   pages: [
     "pages/index/index",
+    "pages/assistant/index",
     "pages/wardrobe/index",
     "pages/recommend/index",
     "pages/try-on/index",

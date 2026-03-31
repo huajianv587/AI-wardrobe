@@ -13,6 +13,7 @@ const navItems = [
   { href: "/wardrobe", label: "Wardrobe", shortLabel: "Closet", icon: Shirt },
   { href: "/try-on", label: "Try-On Studio", shortLabel: "Try-On", icon: ScanFace },
   { href: "/recommend", label: "AI Styling", shortLabel: "AI", icon: Wand2 },
+  { href: "/assistant", label: "Assistant", shortLabel: "Assist", icon: Sparkles },
   { href: "/ai-demo", label: "AI Demo Lab", shortLabel: "Lab", icon: Bot },
   { href: "/login", label: "Account", shortLabel: "Login", icon: LogIn }
 ];

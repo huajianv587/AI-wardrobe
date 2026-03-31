@@ -2,7 +2,20 @@ from pathlib import Path
 from sqlalchemy import inspect, text
 from db.base import Base
 from db.session import SessionLocal, engine
-from app.models import Avatar3D, Category, ClothingItem, Outfit, OutfitRecommendation, Tag, User
+from app.models import (
+    AssistantTask,
+    Avatar3D,
+    Category,
+    ClothingItem,
+    ClothingMemoryCard,
+    Outfit,
+    OutfitRecommendation,
+    RecommendationSignal,
+    StyleProfile,
+    Tag,
+    User,
+    WearLog,
+)
 from services.wardrobe_service import seed_demo_data
 
 

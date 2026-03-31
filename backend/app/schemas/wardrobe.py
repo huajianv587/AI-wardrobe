@@ -2,6 +2,27 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 
 
+class ClothingMemoryCardBase(BaseModel):
+    highlights: list[str] = Field(default_factory=list)
+    avoid_contexts: list[str] = Field(default_factory=list)
+    care_status: str = "fresh"
+    care_note: str | None = None
+    season_tags: list[str] = Field(default_factory=list)
+
+
+class ClothingMemoryCardCreate(ClothingMemoryCardBase):
+    pass
+
+
+class ClothingMemoryCardRead(ClothingMemoryCardBase):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    user_id: int
+    item_id: int
+    updated_at: datetime
+
+
 class ClothingItemBase(BaseModel):
     name: str = Field(min_length=2, max_length=255)
     category: str
@@ -39,6 +60,7 @@ class ClothingItemRead(ClothingItemBase):
     user_id: int | None = None
     created_at: datetime
     last_synced_at: datetime | None = None
+    memory_card: ClothingMemoryCardRead | None = None
 
 
 class DeleteResponse(BaseModel):

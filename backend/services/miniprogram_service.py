@@ -26,6 +26,7 @@ def build_home_payload(db: Session, user: User) -> MiniProgramHomeResponse:
         recommended_prompt="Weekend coffee, soft but polished, and easy to repeat next month.",
         shortcuts=[
             MiniProgramShortcut(id="wardrobe", title="Wardrobe", subtitle="Browse and search personal items", route="/pages/wardrobe/index", badge=f"{sync_status.items_total} items"),
+            MiniProgramShortcut(id="assistant", title="Assistant", subtitle="Tomorrow planner and low-thought modes", route="/pages/assistant/index", badge="Smart"),
             MiniProgramShortcut(id="recommend", title="AI Looks", subtitle="Call the API-first recommendation flow", route="/pages/recommend/index", badge="API"),
             MiniProgramShortcut(id="tryon", title="Try-On", subtitle="2.5D preview and future generated try-on", route="/pages/try-on/index", badge="2.5D"),
             MiniProgramShortcut(id="account", title="Sync", subtitle="Check cloud status and account session", route="/pages/account/index", badge="Supabase"),

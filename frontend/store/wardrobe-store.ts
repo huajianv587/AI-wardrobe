@@ -4,6 +4,18 @@ export type WardrobeCategory = "tops" | "bottoms" | "outerwear" | "shoes" | "acc
 export type FilterCategory = "all" | WardrobeCategory;
 export type WardrobeSlot = "top" | "bottom" | "outerwear" | "shoes" | "accessory";
 
+export interface ClothingMemoryCard {
+  id: number;
+  userId: number;
+  itemId: number;
+  highlights: string[];
+  avoidContexts: string[];
+  careStatus: string;
+  careNote: string | null;
+  seasonTags: string[];
+  updatedAt: string;
+}
+
 export interface WardrobeItem {
   id: number;
   name: string;
@@ -18,6 +30,7 @@ export interface WardrobeItem {
   imageLabel: string;
   imageUrl?: string | null;
   processedImageUrl?: string | null;
+  memoryCard?: ClothingMemoryCard | null;
 }
 
 const COLOR_HEX_MAP: Record<string, string> = {

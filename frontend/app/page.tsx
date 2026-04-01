@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Camera, Shirt, Sparkles, Stars, Wand2 } from "lucide-react";
 import { AppShell } from "@/components/ui/app-shell";
+import { HomeStoryScene } from "@/components/ui/home-story-scene";
 
 const quickActions = [
   {
@@ -63,59 +64,39 @@ export default function HomePage() {
   return (
     <AppShell title="AI 衣橱" subtitle="先把衣服收进来，再慢慢让这个产品真的懂你。首页负责欢迎、引导和氛围，具体功能都放到独立页面里。">
       <section className="home-stage">
+        <div className="home-stage-visual">
+          <HomeStoryScene />
+        </div>
+
         <div className="home-stage-copy">
-          <span className="home-stage-pill">像你喜欢的产品首页，不像后台系统</span>
-          <h2 className="home-stage-title">早上打开时，先看见一个温柔又有点会发光的衣橱场景。</h2>
+          <span className="home-stage-pill">首页先像一幕动画，再慢慢带你开始</span>
+          <h2 className="home-stage-title">像推开粉粉的小屋门，先看看今天想穿哪一件。</h2>
           <p className="home-stage-lead">
-            这一版首页不再堆功能说明，而是先把情绪和入口做好。你会先看到一个轻柔的动态场景，选一个动作开始，然后下面的功能区再慢慢浮现出来。
+            我把第一屏改成了更轻一点的插画场景：衣柜、镜子、地毯、正在挑衣服的小女孩都放进来了。先感受到温柔和可爱，再点一个按钮开始，下面功能区会慢慢浮现出来。
           </p>
 
           <div className="home-stage-actions">
             <Link href="/wardrobe" className="hero-cta hero-cta-primary">
               <Camera className="size-4" />
-              开始整理衣橱
+              <span>
+                <strong>开始整理衣橱</strong>
+                <small>先把真实衣服收进来</small>
+              </span>
             </Link>
             <Link href="/assistant" className="hero-cta hero-cta-soft">
               <Stars className="size-4" />
-              看看穿搭助手
+              <span>
+                <strong>查看穿搭助手</strong>
+                <small>看看明天穿什么</small>
+              </span>
             </Link>
             <Link href="/recommend" className="hero-cta hero-cta-soft">
               <Wand2 className="size-4" />
-              进入搭配页
+              <span>
+                <strong>进入搭配页</strong>
+                <small>等衣橱完整后更好用</small>
+              </span>
             </Link>
-          </div>
-        </div>
-
-        <div className="home-stage-visual" aria-hidden="true">
-          <div className="scene-orb-large scene-orb-large-peach" />
-          <div className="scene-orb-large scene-orb-large-mint" />
-          <div className="scene-orb-large scene-orb-large-sky" />
-
-          <div className="home-closet-card home-closet-card-main">
-            <div className="home-closet-header">
-              <span className="home-closet-dot" />
-              <span>今日衣橱氛围</span>
-            </div>
-            <div className="home-closet-grid">
-              <span className="home-garment home-garment-dress" />
-              <span className="home-garment home-garment-coat" />
-              <span className="home-garment home-garment-skirt" />
-              <span className="home-garment home-garment-shoe" />
-            </div>
-            <p className="home-closet-note">像翻开一本柔和的小小 lookbook。</p>
-          </div>
-
-          <div className="home-closet-card home-closet-card-float home-closet-card-left">
-            <span className="home-float-emoji">🧥</span>
-            <span>外套区</span>
-          </div>
-          <div className="home-closet-card home-closet-card-float home-closet-card-right">
-            <span className="home-float-emoji">🥿</span>
-            <span>鞋履区</span>
-          </div>
-          <div className="home-closet-card home-closet-card-float home-closet-card-bottom">
-            <span className="home-float-emoji">✨</span>
-            <span>先收集，再变智能</span>
           </div>
         </div>
       </section>

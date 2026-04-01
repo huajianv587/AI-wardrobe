@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-from datasets import DatasetDict, load_dataset
+from datasets import Dataset, DatasetDict
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from transformers import (
     AutoModelForCausalLM,
@@ -60,9 +60,38 @@ def build_prompt(example: dict) -> str:
     )
 
 
+def load_records(path: str) -> list[dict]:
+    file_path = Path(path)
+    raw_text = file_path.read_text(encoding="utf-8").strip()
+    if not raw_text:
+        return []
+
+    try:
+        payload = json.loads(raw_text)
+        if isinstance(payload, list):
+            return payload
+    except json.JSONDecodeError:
+        pass
+
+    records: list[dict] = []
+    with file_path.open("r", encoding="utf-8") as handle:
+        for raw_line in handle:
+            line = raw_line.strip()
+            if not line:
+                continue
+            records.append(json.loads(line))
+    return records
+
+
 def load_jsonl_datasets(train_file: str, eval_file: str) -> DatasetDict:
-    data_files = {"train": train_file, "eval": eval_file}
-    return load_dataset("json", data_files=data_files)
+    train_records = load_records(train_file)
+    eval_records = load_records(eval_file)
+    return DatasetDict(
+        {
+            "train": Dataset.from_list(train_records),
+            "eval": Dataset.from_list(eval_records),
+        }
+    )
 
 
 def main() -> None:

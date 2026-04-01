@@ -1,31 +1,68 @@
 # AI Services
 
-These folders now contain microservice stubs for the future self-hosted model workers.
+This directory is the worker layer of the project:
 
-Recommended flow:
+1. `backend/` keeps the product API stable
+2. `ai-services/` hosts model-facing FastAPI workers
+3. `training/` stores training and data-prep plans
+4. `model_training/` stores local datasets, checkpoints, and exported outputs
 
-1. Keep the web app and backend talking to stable API contracts
-2. Swap each demo adapter to a dedicated worker here
-3. Load your own checkpoints from `model_training/` or mounted volumes
-4. Expose a lightweight `/health` and `/infer` route per service
+## Stage Plan
 
-Planned workers:
+### Stage 1: Web Closure
 
-- `image-processor`: cutout / white-background / product cleanup
-- `llm-recommender`: Qwen-based outfit generation
-- `avatar-builder`: 2.5D or lightweight 3D prep
-- `virtual-tryon`: OOTDiffusion / VITON style generation
-- `classifier`: CLIP or multimodal garment understanding
-- `multimodal-reader`: Qwen-VL style attribute reading
-- `product-renderer`: ControlNet / SD style product hero renders
+Build only these two workers first:
 
-Suggested API-to-worker mapping:
+- `llm-recommender`
+- `image-processor`
 
-- `qwen-outfit-recommendation` -> `llm-recommender`
-- `birefnet-background-removal` -> `image-processor`
-- `clip-wardrobe-classifier` -> `classifier`
-- `qwen-vl-attribute-understanding` -> `multimodal-reader`
-- `ootdiffusion-virtual-tryon` -> `virtual-tryon`
-- `realesrgan-upscale` -> `image-processor`
-- `controlnet-product-shot` -> `product-renderer`
-- `triposr-avatar-rebuild` -> `avatar-builder`
+These two are enough to close the most important web loop:
+
+- upload garment
+- clean image / white background
+- store wardrobe item
+- generate outfit recommendation
+
+### Stage 2: Mini Program Closure
+
+Reuse the same backend and the same workers from Stage 1.
+
+### Stage 3: App
+
+Not the focus yet. Reuse the same service stack later.
+
+## Worker Contract
+
+Every worker should expose:
+
+- `GET /health`
+- `POST /infer`
+
+The main backend already speaks this contract.
+
+## Current Stage-1 Workers
+
+### `llm-recommender`
+
+- role: outfit recommendation and rationale
+- default base model: `Qwen/Qwen2.5-7B-Instruct`
+- training strategy: LoRA / QLoRA
+- priority: highest
+
+### `image-processor`
+
+- role: cutout / white background / optional upscale
+- default pretrained stack:
+  - `briaai/RMBG-2.0`
+  - `xinntao/Real-ESRGAN`
+- training priority: low for Stage 1
+- recommendation: start with pretrained inference, do not block the web closure on fine-tuning
+
+## Launch Recommendation
+
+For the first useful local stack:
+
+1. fill `.env`
+2. put datasets and checkpoints under `model_training/`
+3. run `docker compose up --build`
+4. let `backend` call the worker service names inside the compose network

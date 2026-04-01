@@ -1,0 +1,20 @@
+param(
+  [string]$ConfigPath = "training/configs/llm-recommender.stage1.yaml"
+)
+
+Write-Host "AI Wardrobe Stage-1 LLM training launcher"
+Write-Host "Config: $ConfigPath"
+Write-Host ""
+Write-Host "Recommended trainer options:"
+Write-Host "1. LLaMA-Factory"
+Write-Host "2. Transformers + PEFT"
+Write-Host ""
+Write-Host "Expected dataset:"
+Write-Host "  model_training/datasets/llm-recommender/train.jsonl"
+Write-Host "Expected output:"
+Write-Host "  model_training/checkpoints/llm-recommender/"
+Write-Host ""
+Write-Host "Example LLaMA-Factory command:"
+Write-Host "  llamafactory-cli train $ConfigPath"
+Write-Host ""
+Write-Host "This script is a checked-in launcher note, not a bundled trainer."

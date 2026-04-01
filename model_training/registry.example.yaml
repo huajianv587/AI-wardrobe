@@ -1,0 +1,23 @@
+workers:
+  llm-recommender:
+    base_model: Qwen/Qwen2.5-7B-Instruct
+    dataset_dir: model_training/datasets/llm-recommender
+    checkpoint_dir: model_training/checkpoints/llm-recommender
+    output_contract: recommendation-response
+
+  image-processor:
+    primary_model: briaai/RMBG-2.0
+    optional_upscaler: xinntao/Real-ESRGAN
+    dataset_dir: model_training/datasets/image-processor
+    checkpoint_dir: model_training/checkpoints/image-processor
+    output_contract: image-cleanup-response
+
+  classifier:
+    base_model: openai/clip-vit-large-patch14
+    dataset_dir: model_training/datasets/classifier
+    checkpoint_dir: model_training/checkpoints/classifier
+
+  multimodal-reader:
+    base_model: Qwen/Qwen2.5-VL-7B-Instruct
+    dataset_dir: model_training/datasets/multimodal-reader
+    checkpoint_dir: model_training/checkpoints/multimodal-reader

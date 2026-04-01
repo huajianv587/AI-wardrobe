@@ -1,0 +1,38 @@
+stage: stage-1-web-closure
+worker: llm-recommender
+
+model:
+  name: Qwen/Qwen2.5-7B-Instruct
+  revision: main
+  trust_remote_code: true
+
+training:
+  method: qlora
+  framework: llamafactory-or-transformers-peft
+  target_modules:
+    - q_proj
+    - v_proj
+  lora_rank: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  batch_size: 4
+  gradient_accumulation_steps: 8
+  learning_rate: 2e-4
+  epochs: 3
+  max_seq_length: 2048
+
+paths:
+  dataset_dir: model_training/datasets/llm-recommender
+  train_jsonl: model_training/datasets/llm-recommender/train.jsonl
+  eval_jsonl: model_training/datasets/llm-recommender/eval.jsonl
+  output_dir: model_training/checkpoints/llm-recommender
+
+service:
+  env_url: LLM_RECOMMENDER_API_URL
+  local_url_for_host_backend: http://127.0.0.1:9001
+  local_url_for_compose_backend: http://llm-recommender:9001
+
+notes:
+  - Start with instruction-style JSONL pairs, not raw fashion dumps.
+  - Match the output shape used by backend/services/recommendation_service.py.
+  - Do not block stage 1 on perfect model quality; a stable first local worker is more important.

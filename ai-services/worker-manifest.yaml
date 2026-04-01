@@ -1,0 +1,77 @@
+version: 1
+stage_focus:
+  stage_1:
+    - llm-recommender
+    - image-processor
+  stage_2:
+    - llm-recommender
+    - image-processor
+    - classifier
+    - multimodal-reader
+    - virtual-tryon
+  stage_3:
+    - avatar-builder
+    - product-renderer
+
+workers:
+  llm-recommender:
+    enabled_now: true
+    service_port: 9001
+    env_url: LLM_RECOMMENDER_API_URL
+    model_name: Qwen/Qwen2.5-7B-Instruct
+    checkpoint_dir: model_training/checkpoints/llm-recommender
+    dataset_dir: model_training/datasets/llm-recommender
+    training_plan: training/configs/llm-recommender.stage1.yaml
+    notes: First worker to productionize for the web recommendation loop.
+
+  image-processor:
+    enabled_now: true
+    service_port: 9002
+    env_url: AI_CLEANUP_API_URL
+    model_name:
+      primary: briaai/RMBG-2.0
+      optional_upscaler: xinntao/Real-ESRGAN
+    checkpoint_dir: model_training/checkpoints/image-processor
+    dataset_dir: model_training/datasets/image-processor
+    training_plan: training/configs/image-processor.stage1.yaml
+    notes: Stage 1 can ship with pretrained inference only.
+
+  classifier:
+    enabled_now: false
+    service_port: 9003
+    env_url: CLASSIFIER_API_URL
+    model_name: openai/clip-vit-large-patch14
+    checkpoint_dir: model_training/checkpoints/classifier
+    dataset_dir: model_training/datasets/classifier
+
+  multimodal-reader:
+    enabled_now: false
+    service_port: 9004
+    env_url: MULTIMODAL_READER_API_URL
+    model_name: Qwen/Qwen2.5-VL-7B-Instruct
+    checkpoint_dir: model_training/checkpoints/multimodal-reader
+    dataset_dir: model_training/datasets/multimodal-reader
+
+  virtual-tryon:
+    enabled_now: false
+    service_port: 9005
+    env_url: VIRTUAL_TRYON_API_URL
+    model_name: OOTDiffusion / VITON-HD
+    checkpoint_dir: model_training/checkpoints/virtual-tryon
+    dataset_dir: model_training/datasets/virtual-tryon
+
+  product-renderer:
+    enabled_now: false
+    service_port: 9006
+    env_url: PRODUCT_RENDERER_API_URL
+    model_name: ControlNet + Stable Diffusion XL
+    checkpoint_dir: model_training/checkpoints/product-renderer
+    dataset_dir: model_training/datasets/product-renderer
+
+  avatar-builder:
+    enabled_now: false
+    service_port: 9007
+    env_url: AVATAR_BUILDER_API_URL
+    model_name: TripoSR / InstantMesh
+    checkpoint_dir: model_training/checkpoints/avatar-builder
+    dataset_dir: model_training/datasets/avatar-builder

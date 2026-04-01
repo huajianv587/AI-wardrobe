@@ -20,6 +20,11 @@ env_mini.*
 
 # Data / models
 backend/data/
+model_training/datasets/**
+!model_training/datasets/
+!model_training/datasets/**/
+!model_training/datasets/**/*.template.jsonl
+!model_training/datasets/**/.gitkeep
 model_training/checkpoints/
 model_training/outputs/
 

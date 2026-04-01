@@ -24,6 +24,7 @@ This file records practical source targets for Stage 1 and future stages.
    - why: useful for clothing understanding and image-side metadata prep
    - source:
      - https://github.com/switchablenorms/DeepFashion2
+   - note: the GitHub repository is mainly the project page and tooling notes. Use the official dataset download instructions from its README / linked project resources, not just the repo ZIP itself.
 
 4. Your own private wardrobe labeling
    - type: product-aligned instruction pairs
@@ -71,3 +72,11 @@ If you use scraped fashion inspiration data:
 - keep only samples you are legally allowed to use
 - store source provenance
 - avoid pushing raw copyrighted image dumps into git or public repos
+
+## Important Download Note
+
+Do not assume that every GitHub repository page contains the actual dataset files.
+
+- Some links are project repositories only
+- Some datasets require registration or separate download links
+- In Stage 1, you can still move forward by first creating your own high-quality JSONL training pairs from a smaller internal wardrobe set

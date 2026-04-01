@@ -9,21 +9,21 @@ import { useAuthSession } from "@/hooks/use-auth-session";
 import { useMobile } from "@/hooks/use-mobile";
 
 const navItems = [
-  { href: "/", label: "Dashboard", shortLabel: "Home", icon: Sparkles },
-  { href: "/wardrobe", label: "Wardrobe", shortLabel: "Closet", icon: Shirt },
-  { href: "/try-on", label: "Try-On Studio", shortLabel: "Try-On", icon: ScanFace },
-  { href: "/recommend", label: "AI Styling", shortLabel: "AI", icon: Wand2 },
-  { href: "/assistant", label: "Assistant", shortLabel: "Assist", icon: Sparkles },
-  { href: "/ai-demo", label: "AI Demo Lab", shortLabel: "Lab", icon: Bot },
-  { href: "/login", label: "Account", shortLabel: "Login", icon: LogIn }
+  { href: "/", label: "首页", shortLabel: "首页", icon: Sparkles },
+  { href: "/wardrobe", label: "衣橱", shortLabel: "衣橱", icon: Shirt },
+  { href: "/try-on", label: "试衣", shortLabel: "试衣", icon: ScanFace },
+  { href: "/recommend", label: "搭配", shortLabel: "搭配", icon: Wand2 },
+  { href: "/assistant", label: "助手", shortLabel: "助手", icon: Sparkles },
+  { href: "/ai-demo", label: "AI 实验室", shortLabel: "实验室", icon: Bot },
+  { href: "/login", label: "账户", shortLabel: "账户", icon: LogIn }
 ];
 
 const mobileDockItems = [
-  { href: "/", label: "Home", icon: Sparkles },
-  { href: "/wardrobe", label: "Closet", icon: Shirt },
-  { href: "/try-on", label: "Try-On", icon: ScanFace },
-  { href: "/recommend", label: "Looks", icon: Wand2 },
-  { href: "/assistant", label: "Assist", icon: Bot }
+  { href: "/", label: "首页", icon: Sparkles },
+  { href: "/wardrobe", label: "衣橱", icon: Shirt },
+  { href: "/try-on", label: "试衣", icon: ScanFace },
+  { href: "/recommend", label: "搭配", icon: Wand2 },
+  { href: "/assistant", label: "助手", icon: Bot }
 ];
 
 interface AppShellProps {
@@ -63,7 +63,7 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
       >
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <div className="pill mb-3">Warm wardrobe intelligence</div>
+            <div className="pill mb-3">温柔一点的衣橱产品</div>
             <h1 className="display-title text-3xl font-semibold tracking-[-0.04em] text-[var(--ink-strong)] md:text-5xl">
               {title}
             </h1>
@@ -75,7 +75,7 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
             ) : null}
             {isMobile ? (
               <Link href="/login" className="mt-3 inline-flex items-center rounded-full border border-[var(--line)] bg-white/88 px-4 py-2 text-xs text-[var(--ink)] shadow-[var(--shadow-soft)]">
-                Account
+                账户
               </Link>
             ) : null}
           </div>
@@ -111,20 +111,20 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
                     href={href}
                     className={`relative inline-flex items-center gap-2 overflow-hidden rounded-full border px-4 py-2 text-sm transition ${
                       active
-                        ? "border-transparent text-white shadow-[var(--shadow-float)]"
+                        ? "border-transparent text-[var(--ink-strong)] shadow-[var(--shadow-float)]"
                         : "border-[var(--line)] bg-white/90 text-[var(--ink)] hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
                     }`}
                   >
                     {active ? (
                       <motion.span
                         layoutId="desktop-nav-active"
-                        className="absolute inset-0 rounded-full bg-[var(--ink-strong)]"
+                        className="absolute inset-0 rounded-full bg-[linear-gradient(135deg,#ffd8c8_0%,#fff4ec_48%,#dff6eb_100%)]"
                         transition={{ type: "spring", stiffness: 320, damping: 26 }}
                       />
                     ) : null}
                     <Icon className="relative z-10 size-4" />
                     <span className="relative z-10">{isMobile ? shortLabel : label}</span>
-                    {active ? <span className="relative z-10 size-1.5 rounded-full bg-white/85" /> : null}
+                    {active ? <span className="relative z-10 size-1.5 rounded-full bg-[var(--accent)]" /> : null}
                   </Link>
                 </motion.div>
               );
@@ -169,7 +169,7 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
                 {active ? (
                   <motion.span
                     layoutId="mobile-dock-active"
-                    className="absolute inset-0 rounded-[18px] bg-[var(--ink-strong)]"
+                    className="absolute inset-0 rounded-[18px] bg-[linear-gradient(135deg,#ffd8c8_0%,#fff4ec_48%,#dff6eb_100%)]"
                     transition={{ type: "spring", stiffness: 320, damping: 28 }}
                   />
                 ) : null}

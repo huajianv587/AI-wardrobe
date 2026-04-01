@@ -1,166 +1,174 @@
 import Link from "next/link";
-import { ArrowRight, Bot, Cloud, Database, ScanFace, Sparkles, Wand2 } from "lucide-react";
+import { ArrowRight, Camera, Shirt, Sparkles, Stars, Wand2 } from "lucide-react";
 import { AppShell } from "@/components/ui/app-shell";
-import { SceneSection } from "@/components/ui/scene-section";
-import { SectionHeading } from "@/components/ui/section-heading";
-import { StoryCluster } from "@/components/ui/story-cluster";
-import { StoryPostcard } from "@/components/ui/story-postcard";
 
-const capabilityCards = [
-  { title: "Digital Wardrobe", description: "Categorize clothing, keep metadata searchable, and make each item ready for sync, styling, and future model calls.", accent: "var(--accent-soft)" },
-  { title: "2.5D Try-On", description: "Use a lower-cost, emotionally warm avatar stage now, then evolve the same flow toward generated try-on imagery later.", accent: "var(--accent-lilac)" },
-  { title: "API-First Model Lab", description: "Every model slot now has an API contract, so the UI survives while you gradually replace demos with self-hosted workers.", accent: "var(--accent-mint)" }
+const quickActions = [
+  {
+    href: "/wardrobe",
+    title: "打开衣橱",
+    description: "先把真实衣物收进来，分类、搜索、慢慢补标签。",
+    icon: Shirt,
+    tone: "peach"
+  },
+  {
+    href: "/recommend",
+    title: "今日搭配",
+    description: "等衣橱数据更完整后，再让推荐页开始真正懂你。",
+    icon: Wand2,
+    tone: "mint"
+  },
+  {
+    href: "/assistant",
+    title: "穿搭助手",
+    description: "明天穿什么、少思考模式、贴心提醒都放在这里。",
+    icon: Sparkles,
+    tone: "sky"
+  }
 ];
 
-const quickLinks = [
-  { href: "/wardrobe", label: "Open wardrobe", icon: Sparkles },
-  { href: "/recommend", label: "Generate outfit", icon: Wand2 },
-  { href: "/assistant", label: "Open assistant", icon: Bot },
-  { href: "/try-on", label: "Enter try-on studio", icon: ScanFace },
-  { href: "/ai-demo", label: "Open AI demo lab", icon: Bot }
+const featurePages = [
+  {
+    href: "/wardrobe",
+    eyebrow: "衣橱管理",
+    title: "先把照片变成你的电子橱窗",
+    description: "上衣、裤子、裙子、鞋子、配饰分开看，不再把所有功能挤在一页里。",
+    badge: "真实数据优先"
+  },
+  {
+    href: "/try-on",
+    eyebrow: "试衣空间",
+    title: "把拖拽试衣留给独立空间",
+    description: "试衣需要更安静、更沉浸的舞台，不该和首页信息挤在一起。",
+    badge: "单独页面"
+  },
+  {
+    href: "/recommend",
+    eyebrow: "搭配推荐",
+    title: "等衣橱标签变丰富，再让 AI 发挥",
+    description: "你先积累真实单品、场景、颜色、风格，后面推荐会更可信。",
+    badge: "后续增强"
+  },
+  {
+    href: "/login",
+    eyebrow: "账户与同步",
+    title: "登录、同步和个人数据也分开",
+    description: "把复杂设置留在独立页面，首页只负责欢迎你回来和带你开始。",
+    badge: "轻入口"
+  }
 ];
 
-const modelRoadmap = [
-  { model: "Qwen2.5-7B LoRA", task: "Outfit recommendation", priority: "P1", lane: "llm-recommender" },
-  { model: "BiRefNet / RMBG-2.0", task: "Garment cutout", priority: "P1", lane: "image-processor" },
-  { model: "CLIP ViT-L/14", task: "Classification + tags", priority: "P2", lane: "classifier" },
-  { model: "Qwen-VL-7B LoRA", task: "Attribute understanding", priority: "P2", lane: "multimodal-reader" },
-  { model: "OOTDiffusion / VITON", task: "Virtual try-on", priority: "P3", lane: "virtual-tryon" },
-  { model: "Real-ESRGAN", task: "Upscaling", priority: "P3", lane: "image-processor" },
-  { model: "ControlNet + SD", task: "Product hero render", priority: "P4", lane: "product-renderer" },
-  { model: "TripoSR / InstantMesh", task: "2.5D / 3D prep", priority: "P4", lane: "avatar-builder" }
-];
+const floatingTags = ["温柔", "通勤", "约会", "少思考", "下雨天", "空调房", "拍照好看", "可重复穿搭"];
 
 export default function HomePage() {
   return (
-    <AppShell title="AI Wardrobe" subtitle="A warm, API-first styling assistant for wardrobe memory, 2.5D try-on, and future self-hosted model workflows.">
-      <SceneSection index={0} accent="peach" sticker="A gentle start">
-        <section className="grid gap-6 xl:grid-cols-[1.12fr_0.88fr]">
-          <div className="section-card hero-panel relative rounded-[40px] p-6 md:p-8">
-          <div className="hero-glow absolute inset-0 opacity-80" />
-          <div className="relative">
-            <div className="pill mb-4">Inspired by calm product storytelling from Apple and polished software density from Linear</div>
-            <h2 className="display-title max-w-4xl text-5xl font-semibold tracking-[-0.06em] text-[var(--ink-strong)] md:text-7xl">Make getting dressed feel gentle, personal, and delightfully organized.</h2>
-            <p className="mt-6 max-w-2xl text-base leading-8 text-[var(--muted)]">This build now treats every model lane as an API contract, keeps the wardrobe local-first, and wraps it all in a softer interface designed to feel closer to a loved product than an internal dashboard.</p>
+    <AppShell title="AI 衣橱" subtitle="先把衣服收进来，再慢慢让这个产品真的懂你。首页负责欢迎、引导和氛围，具体功能都放到独立页面里。">
+      <section className="home-stage">
+        <div className="home-stage-copy">
+          <span className="home-stage-pill">像你喜欢的产品首页，不像后台系统</span>
+          <h2 className="home-stage-title">早上打开时，先看见一个温柔又有点会发光的衣橱场景。</h2>
+          <p className="home-stage-lead">
+            这一版首页不再堆功能说明，而是先把情绪和入口做好。你会先看到一个轻柔的动态场景，选一个动作开始，然后下面的功能区再慢慢浮现出来。
+          </p>
 
-            <div className="mt-6 flex flex-wrap gap-2">
-              {["Warm editorial surface", "Local-first memory", "API demo for every model", "2.5D try-on before full 3D"].map((token) => (
-                <span key={token} className="mood-chip">{token}</span>
-              ))}
+          <div className="home-stage-actions">
+            <Link href="/wardrobe" className="hero-cta hero-cta-primary">
+              <Camera className="size-4" />
+              开始整理衣橱
+            </Link>
+            <Link href="/assistant" className="hero-cta hero-cta-soft">
+              <Stars className="size-4" />
+              看看穿搭助手
+            </Link>
+            <Link href="/recommend" className="hero-cta hero-cta-soft">
+              <Wand2 className="size-4" />
+              进入搭配页
+            </Link>
+          </div>
+        </div>
+
+        <div className="home-stage-visual" aria-hidden="true">
+          <div className="scene-orb-large scene-orb-large-peach" />
+          <div className="scene-orb-large scene-orb-large-mint" />
+          <div className="scene-orb-large scene-orb-large-sky" />
+
+          <div className="home-closet-card home-closet-card-main">
+            <div className="home-closet-header">
+              <span className="home-closet-dot" />
+              <span>今日衣橱氛围</span>
             </div>
+            <div className="home-closet-grid">
+              <span className="home-garment home-garment-dress" />
+              <span className="home-garment home-garment-coat" />
+              <span className="home-garment home-garment-skirt" />
+              <span className="home-garment home-garment-shoe" />
+            </div>
+            <p className="home-closet-note">像翻开一本柔和的小小 lookbook。</p>
+          </div>
 
-            <div className="mt-8 grid gap-5 xl:grid-cols-[1fr_auto] xl:items-end">
-              <div className="flex flex-wrap gap-3">
-                {quickLinks.map(({ href, label, icon: Icon }) => (
-                  <Link key={href} href={href} className="inline-flex items-center gap-2 rounded-full bg-[var(--ink-strong)] px-5 py-3 text-sm text-white shadow-[var(--shadow-float)] transition hover:translate-y-[-1px]">
-                    <Icon className="size-4" />
-                    {label}
-                  </Link>
-                ))}
+          <div className="home-closet-card home-closet-card-float home-closet-card-left">
+            <span className="home-float-emoji">🧥</span>
+            <span>外套区</span>
+          </div>
+          <div className="home-closet-card home-closet-card-float home-closet-card-right">
+            <span className="home-float-emoji">🥿</span>
+            <span>鞋履区</span>
+          </div>
+          <div className="home-closet-card home-closet-card-float home-closet-card-bottom">
+            <span className="home-float-emoji">✨</span>
+            <span>先收集，再变智能</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="home-tag-ribbon">
+        {floatingTags.map((tag) => (
+          <span key={tag} className="home-tag">
+            {tag}
+          </span>
+        ))}
+      </section>
+
+      <section className="home-quick-panel">
+        <div className="home-section-head">
+          <span className="home-section-eyebrow">现在先做什么</span>
+          <h3>先从 2 到 3 个动作开始，不要把所有功能挤在首页。</h3>
+          <p>首页只做欢迎和引导。真正的衣橱、试衣、搭配、助手，都去各自独立页面里完成。</p>
+        </div>
+
+        <div className="home-quick-grid">
+          {quickActions.map(({ href, title, description, icon: Icon, tone }) => (
+            <Link key={href} href={href} className={`home-quick-card home-quick-card-${tone}`}>
+              <span className="home-quick-icon">
+                <Icon className="size-5" />
+              </span>
+              <div>
+                <h4>{title}</h4>
+                <p>{description}</p>
               </div>
+              <ArrowRight className="home-quick-arrow size-4" />
+            </Link>
+          ))}
+        </div>
+      </section>
 
-              <div className="justify-self-start xl:justify-self-end">
-                <div className="flex flex-col items-start gap-3">
-                  <StoryCluster
-                    emoji="🧸"
-                    title="closet calm"
-                    chips={["soft planning", "gentle memory", "thoughtful looks"]}
-                    tone="mint"
-                  />
-                  <StoryPostcard
-                    emoji="🪞"
-                    eyebrow="editor's note"
-                    title="Dress like the product remembers your mornings."
-                    description="The last layer of polish is about making every route feel staged, every drag feel responsive, and every empty corner feel emotionally intentional."
-                    chips={["cinematic entry", "magnetic try-on", "gentle delight"]}
-                    tone="peach"
-                    compact
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-          </div>
+      <section className="home-feature-panel">
+        <div className="home-section-head">
+          <span className="home-section-eyebrow">分页面使用</span>
+          <h3>功能都拆开，用的时候再进去，首页只保留舒服和清晰。</h3>
+          <p>这样既不会一眼看过去很挤，也能让每个功能页拥有自己更合适的节奏和动画。</p>
+        </div>
 
-          <div className="grid gap-4">
-            <article className="section-card subtle-card rounded-[30px] p-5">
-              <div className="pill mb-4"><Database className="size-4" />Storage strategy</div>
-              <h3 className="display-title text-2xl font-semibold text-[var(--ink-strong)]">Local first, cloud only when it helps</h3>
-              <p className="mt-3 text-sm leading-7 text-[var(--muted)]">SQLite keeps the experience fast and private by default. Supabase is layered in for auth, backup, and sync visibility without forcing every interaction to wait on the network.</p>
-            </article>
-
-            <article className="section-card subtle-card rounded-[30px] p-5">
-              <div className="pill mb-4"><Cloud className="size-4" />Model handoff</div>
-              <h3 className="display-title text-2xl font-semibold text-[var(--ink-strong)]">Swap demos for your own workers later</h3>
-              <p className="mt-3 text-sm leading-7 text-[var(--muted)]">Qwen, BiRefNet, CLIP, Qwen-VL, OOTDiffusion, Real-ESRGAN, ControlNet, and 3D workers can now slot behind stable API routes instead of forcing product rewrites.</p>
-            </article>
-
-            <article className="section-card rounded-[30px] p-5">
-              <div className="pill mb-4"><Bot className="size-4" />API demo map</div>
-              <p className="text-sm leading-7 text-[var(--muted)]">Recommendation, cutout, classification, attribute reading, try-on, super-resolution, product rendering, and 3D prep all have a demo API lane ready now.</p>
-            </article>
-          </div>
-        </section>
-      </SceneSection>
-
-      <SceneSection index={1} accent="mint" sticker="Product shape">
-        <section className="mt-8">
-          <SectionHeading eyebrow="Core modules" title="The product shape already feels coherent" description="The web app now reads less like a loose prototype and more like a gentle wardrobe companion: curated modules, warm spacing, and clearer handoff points to future models." />
-
-          <div className="grid gap-4 lg:grid-cols-3">
-            {capabilityCards.map((card) => (
-              <article key={card.title} className="section-card subtle-card glow-card rounded-[32px] p-5">
-                <div className="mb-5 h-32 rounded-[24px]" style={{ background: `linear-gradient(140deg, ${card.accent} 0%, rgba(255,255,255,0.96) 100%)` }} />
-                <h3 className="display-title text-2xl font-semibold text-[var(--ink-strong)]">{card.title}</h3>
-                <p className="mt-3 text-sm leading-7 text-[var(--muted)]">{card.description}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-      </SceneSection>
-
-      <SceneSection index={2} accent="sky" sticker="Readable architecture">
-        <section className="mt-8 grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-          <article className="section-card subtle-card rounded-[34px] p-6">
-            <SectionHeading eyebrow="Architecture" title="Five-layer system design" description="Frontend, API gateway, business services, AI services, and data storage still stay clearly separated, but the product now exposes that architecture in a much more understandable way." />
-            <div className="space-y-3">
-              {["Frontend: Next.js web and future Taro mini program", "Gateway: FastAPI APIs and nginx routing", "Business: user, wardrobe, outfit, and sync logic", "AI: cleanup, classifier, recommendation, try-on, and avatar services", "Data: SQLite local-first + Supabase sync + S3-compatible assets"].map((item) => (
-                <div key={item} className="rounded-[22px] border border-[var(--line)] bg-white/85 px-4 py-4 text-sm text-[var(--ink)]">{item}</div>
-              ))}
-            </div>
-          </article>
-
-          <article className="section-card subtle-card rounded-[34px] p-6">
-            <SectionHeading eyebrow="Now runnable" title="The current demo lanes are already useful" description="The app can authenticate, manage wardrobe data, call unified AI demo APIs, check sync health, and prepare both the web UI and mini-program contracts for later self-hosted models." />
-            <div className="space-y-3">
-              {["Run every planned model lane through one demo API", "Use the AI lab as the stable contract for later workers", "Drag garments into the 2.5D try-on stage", "Mirror wardrobe state to Supabase when configured", "Surface account sync status in one place", "Scaffold mini-program API wrappers and page contracts"].map((step) => (
-                <div key={step} className="flex items-center justify-between rounded-[22px] border border-[var(--line)] bg-white/80 px-4 py-4">
-                  <span className="text-sm text-[var(--ink)]">{step}</span>
-                  <ArrowRight className="size-4 text-[var(--accent)]" />
-                </div>
-              ))}
-            </div>
-          </article>
-        </section>
-      </SceneSection>
-
-      <SceneSection index={3} accent="lilac" sticker="Training-ready lanes">
-        <section className="mt-8">
-          <SectionHeading eyebrow="Model lanes" title="Each training priority already has an API home" description="You can keep moving product work now, then slot each trained checkpoint into the adapter lane that already exists in the system." />
-          <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
-            {modelRoadmap.map((item) => (
-              <article key={item.model} className="section-card interactive-card rounded-[30px] p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <span className="pill">{item.priority}</span>
-                  <span className="rounded-full bg-[var(--background-soft)] px-3 py-1 text-xs text-[var(--ink)]">{item.lane}</span>
-                </div>
-                <h3 className="mt-4 text-xl font-semibold tracking-[-0.04em] text-[var(--ink-strong)]">{item.model}</h3>
-                <p className="mt-3 text-sm leading-7 text-[var(--muted)]">{item.task}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-      </SceneSection>
+        <div className="home-feature-grid">
+          {featurePages.map((item) => (
+            <Link key={item.href} href={item.href} className="home-feature-card">
+              <span className="home-feature-badge">{item.badge}</span>
+              <p className="home-feature-eyebrow">{item.eyebrow}</p>
+              <h4>{item.title}</h4>
+              <p>{item.description}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
     </AppShell>
   );
 }

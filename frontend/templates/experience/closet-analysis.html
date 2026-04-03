@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>衣橱分析 · AI衣橱</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F4F1EC;
+  --card: #FFFFFF;
+  --text: #2B2623;
+  --text-mid: #6B5F56;
+  --text-light: #9E9189;
+  --accent: #B8704A;
+  --accent-light: #F2DFD0;
+  --accent-bg: #FBF5EF;
+  --warn: #D4845A;
+  --warn-bg: #FFF3EB;
+  --success: #6A9B7B;
+  --success-bg: #EEF6F0;
+  --info: #6B8DAF;
+  --info-bg: #EDF3F8;
+  --idle: #A8927B;
+  --idle-bg: #F5F0EA;
+  --border: #E8E0D6;
+  --shadow: rgba(160,140,120,0.1);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Noto Sans SC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
+
+.top-bar {
+  background: var(--card);
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top:0; z-index:100;
+}
+.top-bar h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  letter-spacing: 0.3px;
+}
+.top-bar .sub { font-size:11px; color:var(--text-light); margin-top:2px; }
+
+/* Tabs */
+.tab-bar {
+  display: flex;
+  padding: 12px 16px;
+  gap: 8px;
+  overflow-x: auto;
+  background: var(--bg);
+  position: sticky; top: 60px; z-index: 99;
+}
+.tab-btn {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 24px;
+  background: var(--card);
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-mid);
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+.tab-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 3px 12px rgba(184,112,74,0.25);
+}
+
+/* Section animations */
+.section { display:none; padding:16px; animation: sectionIn 0.4s ease; }
+.section.show { display:block; }
+@keyframes sectionIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+/* ===== Cards ===== */
+.analysis-card {
+  background: var(--card);
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 10px var(--shadow);
+  transition: transform 0.2s;
+}
+.analysis-card:active { transform: scale(0.98); }
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.card-header h3 { font-size: 15px; font-weight: 600; }
+.card-badge {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.badge-warn { background: var(--warn-bg); color: var(--warn); }
+.badge-success { background: var(--success-bg); color: var(--success); }
+.badge-info { background: var(--info-bg); color: var(--info); }
+.badge-idle { background: var(--idle-bg); color: var(--idle); }
+
+/* ===== Gap Analysis ===== */
+.gap-overview {
+  background: linear-gradient(135deg, #F9EFE5 0%, #F0E5D8 100%);
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.gap-score {
+  font-family: 'DM Serif Display', serif;
+  font-size: 56px;
+  color: var(--accent);
+  line-height: 1;
+}
+.gap-score-label { font-size: 12px; color: var(--text-mid); margin-top: 6px; }
+.gap-meter {
+  width: 100%;
+  height: 8px;
+  background: rgba(255,255,255,0.5);
+  border-radius: 4px;
+  margin-top: 14px;
+  overflow: hidden;
+}
+.gap-meter-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent), var(--warn));
+  transition: width 1s ease;
+}
+
+.category-gaps {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.cat-gap {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 1px 6px var(--shadow);
+}
+.cat-gap .cat-icon { font-size: 24px; margin-bottom: 6px; }
+.cat-gap .cat-name { font-size: 12px; color: var(--text-mid); margin-bottom: 4px; }
+.cat-gap .cat-status { font-size: 13px; font-weight: 600; }
+.cat-gap .cat-bar {
+  width: 100%; height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+.cat-gap .cat-bar-fill { height:100%; border-radius:2px; transition: width 0.8s ease; }
+
+.gap-suggest {
+  margin-top: 14px;
+  padding: 14px;
+  background: var(--accent-bg);
+  border-radius: 14px;
+  border-left: 3px solid var(--accent);
+}
+.gap-suggest h4 { font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--accent); }
+.gap-suggest li {
+  font-size: 12px;
+  color: var(--text-mid);
+  margin-bottom: 6px;
+  padding-left: 16px;
+  position: relative;
+  list-style: none;
+  line-height: 1.5;
+}
+.gap-suggest li::before {
+  content: '💡';
+  position: absolute;
+  left: 0;
+  font-size: 10px;
+}
+
+/* ===== Repeat Outfit ===== */
+.repeat-item {
+  display: flex;
+  gap: 14px;
+  padding: 14px;
+  background: var(--warn-bg);
+  border-radius: 14px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+.repeat-item .repeat-emoji { font-size: 36px; }
+.repeat-item .repeat-info { flex: 1; }
+.repeat-item .repeat-info h4 { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.repeat-item .repeat-info p { font-size: 11px; color: var(--text-light); }
+.repeat-count {
+  font-family: 'DM Serif Display', serif;
+  font-size: 28px;
+  color: var(--warn);
+  text-align: center;
+  line-height: 1;
+}
+.repeat-count small { font-size: 10px; font-family: 'Noto Sans SC'; display: block; color: var(--text-light); }
+
+.heatmap {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  margin: 14px 0;
+}
+.heatmap-cell {
+  aspect-ratio: 1;
+  border-radius: 4px;
+  background: var(--border);
+}
+
+/* ===== Care Reminders ===== */
+.care-item {
+  display: flex;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 14px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+.care-item.urgent { background: #FFF0E8; border: 1px solid #F5D5C0; }
+.care-item.normal { background: var(--info-bg); border: 1px solid #D5E3F0; }
+.care-item.done { background: var(--success-bg); border: 1px solid #C8E0D0; opacity: 0.7; }
+.care-emoji { font-size: 32px; }
+.care-info { flex: 1; }
+.care-info h4 { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.care-info p { font-size: 11px; color: var(--text-light); line-height: 1.4; }
+.care-action {
+  padding: 6px 14px;
+  border-radius: 10px;
+  border: none;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  font-weight: 500;
+}
+.care-action.mark-done { background: var(--success); color: #fff; }
+.care-action.remind { background: var(--info); color: #fff; }
+.care-action.remind.is-active { background: var(--accent); color: #fff; }
+
+/* ===== Seasonal ===== */
+.season-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.season-tab {
+  flex: 1;
+  padding: 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  text-align: center;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.season-tab.active {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.idle-item {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  background: var(--idle-bg);
+  border-radius: 14px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+.idle-thumb {
+  width: 52px; height: 52px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  background: rgba(255,255,255,0.6);
+}
+.idle-info { flex: 1; }
+.idle-info h4 { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+.idle-info p { font-size: 11px; color: var(--text-light); }
+.idle-days {
+  text-align: center;
+}
+.idle-days .num {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  color: var(--idle);
+}
+.idle-days .label { font-size: 9px; color: var(--text-light); }
+
+.action-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.action-pill {
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-mid);
+  background: #fff;
+  cursor: pointer;
+}
+.action-pill:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <h1>衣橱分析</h1>
+  <div class="sub">Wardrobe Analytics · 智能洞察你的穿衣习惯</div>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="showTab('gap',this)">🔍 缺口分析</button>
+  <button class="tab-btn" onclick="showTab('repeat',this)">🔄 重复穿搭</button>
+  <button class="tab-btn" onclick="showTab('care',this)">🧼 洗护提醒</button>
+  <button class="tab-btn" onclick="showTab('season',this)">🍂 换季/闲置</button>
+</div>
+
+<!-- 1: Gap Analysis -->
+<div class="section show" id="sec-gap">
+  <div class="gap-overview">
+    <div class="gap-score" id="gapScore">0</div>
+    <div class="gap-score-label">衣橱完整度</div>
+    <div class="gap-meter"><div class="gap-meter-fill" id="gapMeter" style="width:0%"></div></div>
+  </div>
+
+  <div class="category-gaps" id="catGaps"></div>
+
+  <div class="gap-suggest">
+    <h4>✨ AI 购置建议</h4>
+    <ul>
+      <li>缺少一件可搭配正式/休闲的 深蓝色西装外套，建议优先入手</li>
+      <li>基础白色T恤库存不足（仅1件），建议补充2-3件不同材质</li>
+      <li>缺少过渡季节轻薄外套，针织开衫或薄风衣是好选择</li>
+      <li>鞋类偏运动风，建议增加一双乐福鞋提升正式感</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 2: Repeat Outfit -->
+<div class="section" id="sec-repeat">
+  <div class="analysis-card">
+    <div class="card-header">
+      <h3>📊 本月穿搭频率热力图</h3>
+      <span class="card-badge badge-info">4月</span>
+    </div>
+    <div class="heatmap" id="heatmap"></div>
+    <p style="font-size:11px;color:var(--text-light);text-align:center;margin-top:4px;">颜色越深 = 穿搭越频繁</p>
+  </div>
+
+  <div class="analysis-card">
+    <div class="card-header">
+      <h3>⚠️ 高频重复提醒</h3>
+      <span class="card-badge badge-warn">3件超标</span>
+    </div>
+    <div class="repeat-item">
+      <div class="repeat-emoji">👖</div>
+      <div class="repeat-info">
+        <h4>深蓝直筒牛仔裤</h4>
+        <p>Levi's 501 · 本月已穿 12 次 · 建议清洗</p>
+      </div>
+      <div class="repeat-count">12<small>次/月</small></div>
+    </div>
+    <div class="repeat-item">
+      <div class="repeat-emoji">👕</div>
+      <div class="repeat-info">
+        <h4>白色基础T恤</h4>
+        <p>UNIQLO U · 本月已穿 9 次 · 领口微松</p>
+      </div>
+      <div class="repeat-count">9<small>次/月</small></div>
+    </div>
+    <div class="repeat-item">
+      <div class="repeat-emoji">👟</div>
+      <div class="repeat-info">
+        <h4>白色帆布鞋</h4>
+        <p>Converse · 本月已穿 15 次 · 鞋底磨损</p>
+      </div>
+      <div class="repeat-count">15<small>次/月</small></div>
+    </div>
+  </div>
+
+  <div class="analysis-card">
+    <div class="card-header">
+      <h3>💤 低穿率单品</h3>
+      <span class="card-badge badge-idle">5件闲置</span>
+    </div>
+    <div class="repeat-item" style="background:var(--idle-bg);">
+      <div class="repeat-emoji">🧥</div>
+      <div class="repeat-info">
+        <h4>薰衣草开衫</h4>
+        <p>手工编织 · 本月仅穿 1 次 · 可搭配更多场景</p>
+      </div>
+      <div class="repeat-count" style="color:var(--idle);">1<small>次/月</small></div>
+    </div>
+    <div class="repeat-item" style="background:var(--idle-bg);">
+      <div class="repeat-emoji">👞</div>
+      <div class="repeat-info">
+        <h4>棕色切尔西靴</h4>
+        <p>Clarks · 本月仅穿 2 次 · 适合增加通勤穿搭</p>
+      </div>
+      <div class="repeat-count" style="color:var(--idle);">2<small>次/月</small></div>
+    </div>
+  </div>
+</div>
+
+<!-- 3: Care Reminders -->
+<div class="section" id="sec-care">
+  <div class="analysis-card">
+    <div class="card-header">
+      <h3>🚨 紧急洗护</h3>
+      <span class="card-badge badge-warn">2件待洗</span>
+    </div>
+    <div class="care-item urgent">
+      <div class="care-emoji">👖</div>
+      <div class="care-info">
+        <h4>深蓝直筒牛仔裤</h4>
+        <p>已连续穿 5 天未清洗 · 建议冷水手洗 · 反面晾干</p>
+      </div>
+      <button class="care-action mark-done" onclick="markDone(this)">✓ 已洗</button>
+    </div>
+    <div class="care-item urgent">
+      <div class="care-emoji">👕</div>
+      <div class="care-info">
+        <h4>白色基础T恤</h4>
+        <p>已穿 3 次 · 领口有汗渍 · 建议漂白处理</p>
+      </div>
+      <button class="care-action mark-done" onclick="markDone(this)">✓ 已洗</button>
+    </div>
+  </div>
+
+  <div class="analysis-card">
+    <div class="card-header">
+      <h3>📋 定期保养</h3>
+      <span class="card-badge badge-info">计划中</span>
+    </div>
+    <div class="care-item normal">
+      <div class="care-emoji">🧥</div>
+      <div class="care-info">
+        <h4>驼色毛呢大衣</h4>
+        <p>建议每季干洗1次 · 上次清洗：2月15日 · 即将到期</p>
+      </div>
+      <button class="care-action remind">设提醒</button>
+    </div>
+    <div class="care-item normal">
+      <div class="care-emoji">👞</div>
+      <div class="care-info">
+        <h4>棕色切尔西靴</h4>
+        <p>皮质需要上油保养 · 上次保养：1月20日</p>
+      </div>
+      <button class="care-action remind">设提醒</button>
+    </div>
+    <div class="care-item normal">
+      <div class="care-emoji">🧥</div>
+      <div class="care-info">
+        <h4>卡其风衣</h4>
+        <p>建议季末干洗收纳 · 注意防潮防霉</p>
+      </div>
+      <button class="care-action remind">设提醒</button>
+    </div>
+  </div>
+
+  <div class="analysis-card">
+    <div class="card-header">
+      <h3>✅ 已完成</h3>
+      <span class="card-badge badge-success">本周3件</span>
+    </div>
+    <div class="care-item done">
+      <div class="care-emoji">👔</div>
+      <div class="care-info">
+        <h4>米色亚麻衬衫</h4>
+        <p>已清洗 · 3月30日 · 低温熨烫完成</p>
+      </div>
+      <span style="font-size:18px;">✅</span>
+    </div>
+    <div class="care-item done">
+      <div class="care-emoji">🧦</div>
+      <div class="care-info">
+        <h4>全部袜子（7双）</h4>
+        <p>已清洗 · 3月29日</p>
+      </div>
+      <span style="font-size:18px;">✅</span>
+    </div>
+  </div>
+</div>
+
+<!-- 4: Seasonal/Idle -->
+<div class="section" id="sec-season">
+  <div class="season-tabs">
+    <div class="season-tab active" onclick="selectSeason(this,'spring')">🌸 春</div>
+    <div class="season-tab" onclick="selectSeason(this,'summer')">☀️ 夏</div>
+    <div class="season-tab" onclick="selectSeason(this,'autumn')">🍂 秋</div>
+    <div class="season-tab" onclick="selectSeason(this,'winter')">❄️ 冬</div>
+  </div>
+
+  <div class="analysis-card">
+    <div class="card-header">
+      <h3>🔄 换季建议</h3>
+      <span class="card-badge badge-info">春 → 夏</span>
+    </div>
+    <p style="font-size:13px;color:var(--text-mid);line-height:1.6;margin-bottom:14px;">
+      新加坡即将进入更炎热的季节，建议将厚重冬装收纳，增加透气面料出场率。
+    </p>
+    <div class="care-item normal">
+      <div class="care-emoji">📦</div>
+      <div class="care-info">
+        <h4>建议收纳 · 3件</h4>
+        <p>驼色毛呢大衣、灰色羊绒衫、黑色高领毛衣 → 真空袋收纳</p>
+      </div>
+    </div>
+    <div class="care-item" style="background:var(--success-bg);border:1px solid #C8E0D0;">
+      <div class="care-emoji">☀️</div>
+      <div class="care-info">
+        <h4>建议取出 · 4件</h4>
+        <p>亚麻衬衫、橄榄绿T恤、卡其短裤、凉鞋 → 检查状态后上架</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="analysis-card">
+    <div class="card-header">
+      <h3>😴 闲置单品预警</h3>
+      <span class="card-badge badge-warn">6件超90天</span>
+    </div>
+
+    <div class="idle-item">
+      <div class="idle-thumb">🧥</div>
+      <div class="idle-info">
+        <h4>黑色皮夹克</h4>
+        <p>购入价 ¥2,800 · 总穿 3 次 · 单次成本 ¥933</p>
+        <div class="action-row">
+          <span class="action-pill">搭配推荐</span>
+          <span class="action-pill">二手转售</span>
+          <span class="action-pill">捐赠</span>
+        </div>
+      </div>
+      <div class="idle-days"><div class="num">187</div><div class="label">天未穿</div></div>
+    </div>
+
+    <div class="idle-item">
+      <div class="idle-thumb">👗</div>
+      <div class="idle-info">
+        <h4>红色连衣裙</h4>
+        <p>购入价 ¥1,200 · 总穿 1 次 · 单次成本 ¥1,200</p>
+        <div class="action-row">
+          <span class="action-pill">搭配推荐</span>
+          <span class="action-pill">二手转售</span>
+          <span class="action-pill">捐赠</span>
+        </div>
+      </div>
+      <div class="idle-days"><div class="num">243</div><div class="label">天未穿</div></div>
+    </div>
+
+    <div class="idle-item">
+      <div class="idle-thumb">👠</div>
+      <div class="idle-info">
+        <h4>银色高跟鞋</h4>
+        <p>购入价 ¥880 · 总穿 2 次 · 单次成本 ¥440</p>
+        <div class="action-row">
+          <span class="action-pill">搭配推荐</span>
+          <span class="action-pill">二手转售</span>
+          <span class="action-pill">捐赠</span>
+        </div>
+      </div>
+      <div class="idle-days"><div class="num">156</div><div class="label">天未穿</div></div>
+    </div>
+
+    <div class="idle-item">
+      <div class="idle-thumb">🧣</div>
+      <div class="idle-info">
+        <h4>格纹围巾</h4>
+        <p>购入价 ¥650 · 总穿 4 次 · 单次成本 ¥162</p>
+        <div class="action-row">
+          <span class="action-pill">搭配推荐</span>
+          <span class="action-pill">二手转售</span>
+        </div>
+      </div>
+      <div class="idle-days"><div class="num">122</div><div class="label">天未穿</div></div>
+    </div>
+  </div>
+
+  <div class="analysis-card" style="background:linear-gradient(135deg,#FBF5EF,#F5EDE3);border:1px solid var(--accent-light);">
+    <div style="text-align:center;">
+      <div style="font-size:36px;margin-bottom:8px;">💰</div>
+      <div style="font-family:'DM Serif Display';font-size:28px;color:var(--accent);">¥5,530</div>
+      <div style="font-size:12px;color:var(--text-light);margin-top:4px;">闲置单品总价值</div>
+      <p style="font-size:12px;color:var(--text-mid);margin-top:12px;line-height:1.5;">
+        建议通过二手平台回收部分价值，或尝试新搭配激活这些单品
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+// Tab switch
+function showTab(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('show'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('show');
+  btn.classList.add('active');
+}
+
+// Gap score animation
+function animateScore() {
+  const target = 72;
+  const el = document.getElementById('gapScore');
+  const meter = document.getElementById('gapMeter');
+  let current = 0;
+  const interval = setInterval(() => {
+    current += 2;
+    if (current >= target) { current = target; clearInterval(interval); }
+    el.textContent = current;
+    meter.style.width = current + '%';
+  }, 20);
+}
+setTimeout(animateScore, 300);
+
+// Category gaps
+const cats = [
+  { icon:'👔', name:'上装', count:8, max:12, color:'var(--accent)' },
+  { icon:'👖', name:'下装', count:5, max:8, color:'var(--info)' },
+  { icon:'🧥', name:'外套', count:3, max:6, color:'var(--warn)' },
+  { icon:'👟', name:'鞋类', count:4, max:7, color:'var(--success)' },
+  { icon:'👜', name:'配饰', count:2, max:5, color:'var(--idle)' },
+  { icon:'👗', name:'正装', count:2, max:4, color:'var(--accent)' },
+];
+const catGrid = document.getElementById('catGaps');
+catGrid.innerHTML = cats.map(c => {
+  const pct = Math.round(c.count / c.max * 100);
+  return `<div class="cat-gap">
+    <div class="cat-icon">${c.icon}</div>
+    <div class="cat-name">${c.name}</div>
+    <div class="cat-status">${c.count}/${c.max} 件</div>
+    <div class="cat-bar"><div class="cat-bar-fill" style="width:${pct}%;background:${c.color}"></div></div>
+  </div>`;
+}).join('');
+
+// Heatmap
+const heatmap = document.getElementById('heatmap');
+const heatColors = ['#F0E8DE','#E8D8C8','#D8C0A8','#C8A888','#B89068','#A87848'];
+let heatHtml = '';
+for (let i = 0; i < 28; i++) {
+  const level = Math.floor(Math.random() * 6);
+  heatHtml += `<div class="heatmap-cell" style="background:${heatColors[level]}"></div>`;
+}
+heatmap.innerHTML = heatHtml;
+
+// Care done
+function markDone(btn) {
+  const item = btn.closest('.care-item');
+  item.classList.remove('urgent');
+  item.classList.add('done');
+  btn.outerHTML = '<span style="font-size:18px;">✅</span>';
+}
+
+// Season tabs
+function selectSeason(el) {
+  document.querySelectorAll('.season-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+</script>
+</body>
+</html>

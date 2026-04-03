@@ -28,3 +28,28 @@ def get_current_user(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication is required.")
 
     return auth_service.get_current_user_from_token(db, credentials.credentials)
+
+
+def get_optional_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    db: Session = Depends(get_db),
+) -> User | None:
+    if credentials is None or credentials.scheme.lower() != "bearer":
+        return None
+
+    try:
+        return auth_service.get_current_user_from_token(db, credentials.credentials)
+    except Exception:
+        return None
+
+
+def get_current_or_demo_user(
+    current_user: User | None = Depends(get_optional_user),
+    db: Session = Depends(get_db),
+) -> User:
+    if current_user is not None:
+        return current_user
+
+    from services import experience_service
+
+    return experience_service.ensure_public_demo_user(db)

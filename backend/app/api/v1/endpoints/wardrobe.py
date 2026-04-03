@@ -1,7 +1,7 @@
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Query, UploadFile
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db
+from app.api.deps import get_current_or_demo_user, get_current_user, get_db
 from app.models.user import User
 from app.schemas.assistant import AssistantTaskResponse
 from app.schemas.wardrobe import ClothingItemCreate, ClothingItemRead, ClothingItemUpdate, DeleteResponse
@@ -15,13 +15,17 @@ def get_items(
     category: str | None = Query(default=None),
     query: str | None = Query(default=None),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_or_demo_user),
 ) -> list[ClothingItemRead]:
     return wardrobe_service.list_items(db, current_user.id, category=category, query=query)
 
 
 @router.get("/items/{item_id}", response_model=ClothingItemRead)
-def get_item(item_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> ClothingItemRead:
+def get_item(
+    item_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_or_demo_user),
+) -> ClothingItemRead:
     return wardrobe_service.get_item(db, item_id, current_user.id)
 
 

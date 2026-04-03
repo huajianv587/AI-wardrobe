@@ -9,6 +9,8 @@ from app.schemas.auth import (
     EmailPasswordAuthRequest,
     LogoutRequest,
     MiniProgramAuthOptionsResponse,
+    OAuthStartResponse,
+    PasswordResetRequest,
     RefreshSessionRequest,
     StatusMessageResponse,
     UserSummary,
@@ -28,6 +30,16 @@ def sign_up(payload: EmailPasswordAuthRequest, db: Session = Depends(get_db)) ->
 @router.post("/login", response_model=AuthSessionResponse)
 def login(payload: EmailPasswordAuthRequest, db: Session = Depends(get_db)) -> AuthSessionResponse:
     return auth_service.sign_in_with_password(db, payload.email, payload.password)
+
+
+@router.post("/password-reset", response_model=StatusMessageResponse)
+def password_reset(payload: PasswordResetRequest) -> StatusMessageResponse:
+    return auth_service.send_password_reset_email(payload.email, redirect_to=payload.redirect_to)
+
+
+@router.get("/oauth/{provider}/start", response_model=OAuthStartResponse)
+def oauth_start(provider: str, redirect_to: str | None = None) -> OAuthStartResponse:
+    return auth_service.build_oauth_start_url(provider, redirect_to=redirect_to)
 
 
 @router.post("/refresh", response_model=AuthSessionResponse)

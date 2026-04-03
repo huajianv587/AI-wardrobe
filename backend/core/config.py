@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ROOT_ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
@@ -17,7 +17,10 @@ class Settings(BaseSettings):
     app_env: str = "development"
     api_v1_prefix: str = "/api/v1"
     database_url: str = "sqlite:///./data/ai_wardrobe.db"
-    cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:3000", "http://127.0.0.1:3000"])
+    cors_origins: list[str] = Field(
+        default_factory=lambda: ["http://localhost:3000", "http://127.0.0.1:3000"],
+        validation_alias=AliasChoices("CORS_ORIGINS", "BACKEND_CORS_ORIGINS"),
+    )
     local_storage_root: str = "./data/assets"
     model_training_dir: str = "../model_training"
     supabase_url: str = ""
@@ -64,6 +67,18 @@ class Settings(BaseSettings):
     ios_bundle_id: str = ""
     android_package_name: str = ""
     app_store_display_name: str = "AI Wardrobe"
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, value: str | list[str]) -> list[str]:
+        if isinstance(value, str):
+            stripped = value.strip()
+            if not stripped:
+                return []
+            if stripped.startswith("["):
+                return [entry.strip() for entry in stripped.strip("[]").replace('"', "").split(",") if entry.strip()]
+            return [entry.strip() for entry in stripped.split(",") if entry.strip()]
+        return value
 
 
 settings = Settings()

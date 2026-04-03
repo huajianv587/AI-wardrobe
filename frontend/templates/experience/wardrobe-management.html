@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>衣橱管理 · 云衣橱</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;300;400;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf3ee;--panel:#fdf9f6;--rose:#c07a6e;--rose-dk:#a8645a;
+  --rose-lt:#edd5cb;--rose-pale:#f7ece7;--rose-faint:#faf4f1;
+  --ink:#1e1410;--ink2:#6b4f47;--ink3:#b89088;
+  --border:rgba(192,122,110,0.14);
+  --serif-jp:'Noto Serif SC',serif;
+  --serif-en:'Cormorant Garamond',serif;
+  --sans:'Lato',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);font-family:var(--sans);font-weight:300;color:var(--ink);overflow-x:hidden;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 90% 70% at 0% 20%,rgba(240,215,205,.55) 0%,transparent 60%),radial-gradient(ellipse 60% 60% at 100% 80%,rgba(220,165,148,.2) 0%,transparent 55%),radial-gradient(ellipse 50% 40% at 55% 5%,rgba(255,248,244,.7) 0%,transparent 55%)}
+nav{position:fixed;top:0;left:0;right:0;z-index:300;height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 52px;background:rgba(250,243,238,.8);backdrop-filter:blur(16px);border-bottom:.5px solid var(--border)}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.lm{width:30px;height:30px;border-radius:50%;background:var(--rose);display:flex;align-items:center;justify-content:center}
+.lm svg{width:15px;height:15px;fill:#fff}
+.lcn{font-family:var(--serif-jp);font-size:15px;font-weight:300;letter-spacing:.1em;color:var(--ink);line-height:1}
+.len{font-family:var(--serif-en);font-size:9px;font-style:italic;letter-spacing:.2em;color:var(--ink3);display:block;margin-top:2px}
+.nl{display:flex;gap:36px}
+.nl a{text-decoration:none;font-family:var(--serif-jp);font-size:13px;font-weight:300;letter-spacing:.06em;color:var(--ink2);transition:color .2s;position:relative;padding-bottom:3px}
+.nl a.active{color:var(--rose)}
+.nl a.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:var(--rose)}
+.nl a:hover{color:var(--rose)}
+.nr{display:flex;gap:10px;align-items:center}
+.nr a{text-decoration:none;font-family:var(--serif-jp);font-size:13px;font-weight:300;letter-spacing:.06em;color:var(--ink2);padding:6px 16px;border:.5px solid transparent;border-radius:2px;transition:all .2s}
+.nr a.reg{border-color:var(--rose);color:var(--rose)}
+.nr a:hover{color:var(--rose)}
+
+/* HERO */
+.hero{position:relative;z-index:1;min-height:100vh;padding-top:62px;display:grid;grid-template-columns:52% 48%}
+.hl{display:flex;flex-direction:column;justify-content:center;padding:60px 48px 60px 52px;position:relative;overflow:hidden}
+
+.ribbon{display:inline-flex;align-items:center;gap:8px;background:var(--panel);border:.5px solid rgba(192,122,110,.2);border-radius:20px;padding:6px 16px 6px 10px;width:fit-content;margin-bottom:40px;box-shadow:0 2px 12px rgba(192,122,110,.07);opacity:0;animation:up .45s .05s ease forwards}
+.rp{display:flex;gap:3px}
+.rp-dot{width:8px;height:8px;border-radius:50% 0 50% 50%;background:var(--rose)}
+.ribbon-text{font-family:var(--serif-en);font-style:italic;font-size:11px;color:var(--rose);letter-spacing:.14em}
+
+.htb{margin-bottom:32px;position:relative;opacity:0;animation:up .55s .13s ease forwards}
+.ht-r1{font-family:var(--serif-jp);font-weight:200;font-size:clamp(44px,5.2vw,70px);line-height:1.15;letter-spacing:.06em;color:var(--ink);display:flex;align-items:baseline;gap:12px;margin-bottom:4px;flex-wrap:wrap}
+.nb{font-family:var(--serif-en);font-style:italic;font-size:13px;color:var(--rose);letter-spacing:.14em;border:.5px solid rgba(192,122,110,.3);border-radius:12px;padding:3px 11px;white-space:nowrap;align-self:center}
+.ht-r2{font-family:var(--serif-jp);font-weight:200;font-size:clamp(44px,5.2vw,70px);line-height:1.15;letter-spacing:.06em;color:var(--ink);display:flex;align-items:center;gap:14px}
+.ht-r2 em{font-style:normal;color:var(--rose);font-weight:400;position:relative}
+.ht-r2 em::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:2px;background:var(--rose-lt);border-radius:1px;transform:scaleX(0);transform-origin:left;animation:li .5s 1s ease forwards}
+@keyframes li{to{transform:scaleX(1)}}
+
+.feat-rows{display:flex;flex-direction:column;gap:0;margin-bottom:44px;border:.5px solid var(--border);border-radius:3px;overflow:hidden;opacity:0;animation:up .5s .22s ease forwards}
+.feat-row{display:flex;align-items:center;gap:14px;padding:13px 18px;background:rgba(253,249,246,.6);transition:background .2s;border-bottom:.5px solid var(--border)}
+.feat-row:last-child{border-bottom:none}
+.feat-row:hover{background:var(--panel)}
+.fr-num{font-family:var(--serif-en);font-style:italic;font-size:10px;color:var(--rose);letter-spacing:.1em;width:18px;flex-shrink:0}
+.fr-icon{width:30px;height:30px;border-radius:50%;background:var(--rose-pale);flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.fr-icon svg{width:13px;height:13px;fill:none;stroke:var(--rose);stroke-width:1.5}
+.fr-label{font-family:var(--serif-jp);font-size:13px;font-weight:300;color:var(--ink);letter-spacing:.05em}
+.fr-arrow{margin-left:auto;color:var(--ink3);font-size:13px;opacity:.45}
+
+.hang-tags{display:flex;gap:10px;flex-wrap:wrap;opacity:0;animation:up .5s .30s ease forwards}
+.hang-tag{display:flex;align-items:center;gap:7px;padding:9px 18px;border-radius:24px;font-family:var(--serif-jp);font-size:12.5px;font-weight:300;letter-spacing:.06em;cursor:pointer;transition:all .22s;position:relative}
+.hang-tag::before{content:'';position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:1px;height:8px;background:rgba(192,122,110,.25)}
+.hang-tag svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.5;flex-shrink:0}
+.ht-fill{background:var(--rose);color:#fff;border:none;box-shadow:0 4px 14px rgba(192,122,110,.28)}
+.ht-fill:hover{background:var(--rose-dk);transform:translateY(-2px)}
+.ht-out{background:var(--panel);color:var(--ink2);border:.5px solid rgba(192,122,110,.22)}
+.ht-out:hover{border-color:var(--rose);color:var(--rose);transform:translateY(-2px)}
+
+/* RIGHT */
+.hr{position:relative;display:flex;align-items:center;justify-content:center;background:var(--rose-faint);overflow:hidden}
+.hr::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 85% 70% at 45% 40%,rgba(240,215,205,.65) 0%,transparent 65%),radial-gradient(ellipse 50% 50% at 5% 85%,rgba(220,165,148,.22) 0%,transparent 55%)}
+.cx{position:absolute;width:16px;height:16px;border-color:rgba(192,122,110,.2);border-style:solid}
+.cx.tl{top:18px;left:18px;border-width:1px 0 0 1px}.cx.tr{top:18px;right:18px;border-width:1px 1px 0 0}.cx.bl{bottom:18px;left:18px;border-width:0 0 1px 1px}.cx.br{bottom:18px;right:18px;border-width:0 1px 1px 0}
+.vt{position:absolute;left:22px;top:50%;transform:translateY(-50%);writing-mode:vertical-rl;font-family:var(--serif-en);font-style:italic;font-size:9px;color:var(--ink3);letter-spacing:.22em;opacity:.4}
+.stage{position:relative;z-index:2;width:min(290px,46%)}
+.phone{width:100%;aspect-ratio:9/16;background:var(--panel);border-radius:26px;border:.5px solid rgba(192,122,110,.22);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(30,20,16,.1),0 4px 16px rgba(192,122,110,.1);animation:pf 6s ease-in-out infinite}
+@keyframes pf{0%,100%{transform:translateY(0) rotate(.3deg)}50%{transform:translateY(-10px) rotate(-.2deg)}}
+.phone-notch{height:36px;display:flex;align-items:center;justify-content:center;border-bottom:.5px solid var(--border);flex-shrink:0;position:relative}
+.phone-notch::after{content:'';position:absolute;top:8px;left:50%;transform:translateX(-50%);width:48px;height:4px;background:rgba(192,122,110,.15);border-radius:2px}
+.ptb{display:flex;padding:8px 12px;gap:6px;flex-shrink:0;border-bottom:.5px solid var(--border)}
+.ptab{font-family:var(--serif-jp);font-size:9.5px;font-weight:300;color:var(--ink3);padding:4px 10px;border-radius:12px;letter-spacing:.05em;cursor:pointer}
+.ptab.on{background:var(--rose-pale);color:var(--rose)}
+.pbody{flex:1;padding:10px;display:flex;flex-direction:column;gap:8px;overflow:hidden;position:relative}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.pcard{aspect-ratio:.78;border-radius:10px;overflow:hidden;position:relative;border:.5px solid rgba(192,122,110,.1)}
+.pcimg{width:100%;height:75%;display:flex;align-items:center;justify-content:center}
+.pclbl{padding:5px 7px;background:var(--panel);font-family:var(--serif-jp);font-size:8.5px;color:var(--ink2);letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pcsub{font-size:7.5px;color:var(--ink3)}
+.pc1{background:linear-gradient(145deg,#f2dfd8,#eacfc5)}.pc2{background:linear-gradient(145deg,#d8eae6,#c4d8d3)}.pc3{background:linear-gradient(145deg,#eee8de,#e4dcd0)}.pc4{background:linear-gradient(145deg,#e8d8e8,#dcc8dc)}
+.shimmer{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.3) 50%,transparent 100%);animation:sh 2.8s ease-in-out infinite;background-size:200% 100%}
+@keyframes sh{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.pfooter{flex-shrink:0;padding:8px 12px;border-top:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.pfl{font-family:var(--serif-en);font-style:italic;font-size:8.5px;color:var(--ink3);letter-spacing:.1em}
+.pfr{background:var(--rose);color:#fff;border-radius:8px;font-size:8.5px;padding:3px 10px;letter-spacing:.06em}
+.chip{position:absolute;z-index:10;background:rgba(253,249,246,.94);border:.5px solid rgba(192,122,110,.18);border-radius:3px;backdrop-filter:blur(6px);padding:10px 14px}
+.ca{top:12%;right:-8%;width:140px;animation:cf1 4.5s ease-in-out infinite}
+.cb{bottom:18%;left:-10%;width:148px;animation:cf2 5.5s ease-in-out infinite}
+@keyframes cf1{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes cf2{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
+.chl{font-family:var(--serif-en);font-style:italic;font-size:8.5px;color:var(--ink3);letter-spacing:.12em;display:block;margin-bottom:5px}
+.chv{font-family:var(--serif-jp);font-size:13px;color:var(--ink);letter-spacing:.04em;margin-bottom:2px}
+.chs{font-size:10px;color:var(--rose)}
+.chdots{display:flex;gap:4px;margin-top:6px}
+.chdot{width:8px;height:8px;border-radius:50%}
+.scroll-h{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:5px;opacity:.38;z-index:2;animation:sb2 2s ease-in-out infinite}
+@keyframes sb2{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(6px)}}
+.shl{width:1px;height:26px;background:linear-gradient(to bottom,var(--rose),transparent)}
+.sht{font-family:var(--serif-en);font-size:8.5px;color:var(--ink3);letter-spacing:.16em}
+.cln{width:44%;height:44%;opacity:.5}
+@keyframes up{to{opacity:1;transform:translateY(0)}}
+.hl>*{transform:translateY(12px)}
+
+/* PANEL */
+.panel{position:relative;z-index:1;padding:80px 36px 60px;background:var(--bg)}
+.ph{display:grid;grid-template-columns:1fr auto;align-items:end;padding-bottom:20px;margin-bottom:22px;border-bottom:.5px solid var(--border)}
+.ph-eyebrow{font-family:var(--serif-en);font-style:italic;font-size:10px;color:var(--rose);letter-spacing:.18em;display:block;margin-bottom:6px}
+.ph-title{font-family:var(--serif-jp);font-weight:200;font-size:26px;letter-spacing:.06em;color:var(--ink)}
+.ph-acts{display:flex;gap:8px}
+.pa{display:flex;align-items:center;gap:6px;font-family:var(--serif-jp);font-weight:300;font-size:12px;letter-spacing:.06em;padding:8px 16px;border-radius:2px;cursor:pointer;transition:all .2s}
+.pa svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.5;flex-shrink:0}
+.pa-ink{background:var(--ink);color:var(--panel);border:none}.pa-ink:hover{background:var(--rose)}
+.pa-out{background:transparent;color:var(--ink2);border:.5px solid var(--border)}.pa-out:hover{border-color:var(--rose);color:var(--rose)}
+
+.tb{display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.tbs{position:relative;flex:1;min-width:180px;max-width:300px}
+.tbs input{width:100%;font-family:var(--serif-jp);font-weight:300;font-size:12.5px;letter-spacing:.04em;color:var(--ink);background:var(--panel);border:.5px solid var(--border);border-radius:2px;padding:9px 12px 9px 34px;outline:none;transition:all .2s}
+.tbs input:focus{border-color:var(--rose);box-shadow:0 0 0 3px rgba(192,122,110,.07)}
+.tbs input::placeholder{color:var(--ink3);font-size:12px}
+.tbs svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;fill:none;stroke:var(--ink3);stroke-width:1.5}
+.fp{display:flex;gap:5px;flex-wrap:wrap}
+.fpp{font-family:var(--serif-jp);font-weight:300;font-size:11px;letter-spacing:.05em;padding:6px 13px;border-radius:18px;border:.5px solid var(--border);background:var(--panel);color:var(--ink2);cursor:pointer;transition:all .2s;white-space:nowrap}
+.fpp:hover{border-color:var(--rose);color:var(--rose)}.fpp.on{background:var(--rose);border-color:var(--rose);color:#fff}
+.tbsort{font-family:var(--serif-jp);font-weight:300;font-size:11.5px;letter-spacing:.05em;color:var(--ink2);background:var(--panel);border:.5px solid var(--border);border-radius:2px;padding:7px 26px 7px 11px;outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='5'%3E%3Cpath d='M0 0l4.5 5 4.5-5z' fill='%23b89088'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center}
+.vtw{display:flex;border:.5px solid var(--border);border-radius:2px;overflow:hidden;margin-left:auto}
+.vtb{padding:7px 10px;background:var(--panel);border:none;cursor:pointer;transition:all .2s;display:flex;align-items:center}
+.vtb svg{width:13px;height:13px;fill:none;stroke:var(--ink3);stroke-width:1.5}
+.vtb.on{background:var(--rose)}.vtb.on svg{stroke:#fff}
+.vtb+.vtb{border-left:.5px solid var(--border)}
+
+.pb{display:grid;grid-template-columns:200px 1fr;gap:18px;align-items:start}
+
+/* sidebar */
+.sb{background:var(--panel);border:.5px solid var(--border);border-radius:3px;overflow:hidden;position:sticky;top:80px}
+.sb-sec{font-family:var(--serif-en);font-style:italic;font-size:9px;color:var(--ink3);letter-spacing:.18em;padding:10px 14px 6px;display:block;border-bottom:.5px solid var(--border);background:var(--rose-faint)}
+.sbi{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;cursor:pointer;transition:background .18s;border-bottom:.5px solid rgba(192,122,110,.06)}
+.sbi:last-of-type{border-bottom:none}
+.sbi:hover{background:var(--rose-pale)}.sbi.on{background:var(--rose-pale);border-left:2px solid var(--rose)}
+.sbil{display:flex;align-items:center;gap:8px}
+.sbil svg{width:13px;height:13px;fill:none;stroke:var(--ink3);stroke-width:1.5;flex-shrink:0}
+.sbi.on .sbil svg{stroke:var(--rose)}
+.sbin{font-family:var(--serif-jp);font-size:12px;font-weight:300;color:var(--ink2);letter-spacing:.04em}
+.sbi.on .sbin{color:var(--rose)}
+.sbict{font-size:10px;color:var(--ink3);background:var(--rose-faint);border-radius:8px;padding:1px 7px}
+.sbi.on .sbict{background:rgba(192,122,110,.18);color:var(--rose)}
+.sb-colors{padding:10px 14px;display:flex;flex-wrap:wrap;gap:6px}
+.sbc{width:20px;height:20px;border-radius:50%;border:.5px solid rgba(192,122,110,.18);cursor:pointer;transition:transform .2s}
+.sbc:hover{transform:scale(1.15)}.sbc.sel{box-shadow:0 0 0 2px var(--rose)}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.sc{background:var(--panel);border:.5px solid var(--border);border-radius:3px;padding:14px 16px;transition:border-color .2s}
+.sc:hover{border-color:rgba(192,122,110,.3)}
+.sclbl{font-family:var(--serif-en);font-style:italic;font-size:9px;color:var(--ink3);letter-spacing:.14em;display:block;margin-bottom:4px}
+.scval{font-family:var(--serif-jp);font-size:22px;font-weight:200;color:var(--ink);line-height:1.1}
+.scsub{font-size:10px;color:var(--ink3);letter-spacing:.03em;margin-top:3px}
+.scbar{height:2px;border-radius:1px;background:var(--rose-pale);margin-top:6px;overflow:hidden}
+.scfill{height:100%;background:var(--rose);border-radius:1px}
+
+/* bulk */
+.bulk{display:none;align-items:center;gap:10px;padding:9px 14px;background:var(--rose-pale);border:.5px solid rgba(192,122,110,.22);border-radius:2px;margin-bottom:12px}
+.bulk.show{display:flex}
+.bulkn{font-family:var(--serif-jp);font-size:12px;color:var(--rose-dk);letter-spacing:.05em}
+.bsep{width:.5px;height:14px;background:rgba(192,122,110,.3)}
+.bb{display:flex;align-items:center;gap:5px;font-family:var(--serif-jp);font-size:11.5px;color:var(--ink2);background:none;border:none;cursor:pointer;letter-spacing:.04em;transition:color .2s;padding:0}
+.bb svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.8}
+.bb:hover{color:var(--rose)}.bb.del:hover{color:#c04040}
+.bx{margin-left:auto;font-size:16px;color:var(--ink3);cursor:pointer;background:none;border:none;line-height:1;padding:0}
+
+/* url row */
+.urlrow{display:none;align-items:center;gap:8px;padding:10px 14px;background:var(--rose-pale);border:.5px solid rgba(192,122,110,.2);border-radius:2px;margin-bottom:12px}
+.urlrow.show{display:flex}
+.urli{flex:1;font-family:var(--serif-jp);font-weight:300;font-size:12px;color:var(--ink);background:var(--panel);border:.5px solid var(--border);border-radius:2px;padding:8px 10px;outline:none;transition:border-color .2s}
+.urli:focus{border-color:var(--rose)}.urli::placeholder{color:var(--ink3)}
+.urlgo{font-family:var(--serif-jp);font-size:12px;letter-spacing:.06em;background:var(--rose);color:#fff;border:none;border-radius:2px;padding:8px 16px;cursor:pointer;transition:background .2s;white-space:nowrap}
+.urlgo:hover{background:var(--rose-dk)}
+.urlx{background:none;border:none;cursor:pointer;font-size:16px;color:var(--ink3);padding:0}
+
+/* clothing grid */
+.cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:12px}
+.cg.lv{grid-template-columns:1fr}
+.cg.lv .ic{display:flex;align-items:center;gap:12px;padding:8px 14px}
+.cg.lv .ic-img{width:48px;flex-shrink:0;aspect-ratio:1;border-radius:2px}
+.cg.lv .icfoot{padding:0;flex:1}
+.cg.lv .ic-acts{position:static;opacity:1;gap:4px}
+.cg.lv .ic-chk{opacity:1}
+.cg.lv .uptile{aspect-ratio:auto;padding:14px;flex-direction:row;gap:12px;height:66px}
+
+.uptile{aspect-ratio:.78;border:1px dashed rgba(192,122,110,.28);border-radius:3px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:all .22s;background:rgba(253,249,246,.4)}
+.uptile:hover{border-color:var(--rose);background:var(--rose-pale)}
+.uptile svg{width:22px;height:22px;fill:none;stroke:var(--rose);stroke-width:1.2;opacity:.6}
+.utt{font-family:var(--serif-jp);font-size:11.5px;color:var(--ink2);letter-spacing:.05em;text-align:center;line-height:1.6}
+.uts{font-size:10px;color:var(--ink3);text-align:center}
+
+.ic{background:var(--panel);border:.5px solid var(--border);border-radius:3px;overflow:hidden;cursor:pointer;transition:all .22s;position:relative}
+.ic:hover{border-color:rgba(192,122,110,.32);transform:translateY(-2px);box-shadow:0 8px 28px rgba(30,20,16,.07)}
+.ic:hover .ic-acts,.ic:hover .ic-chk{opacity:1}
+.ic.sel .ic-chk{opacity:1;background:var(--rose);border-color:var(--rose)}
+
+.ic-chk{position:absolute;top:7px;left:7px;z-index:5;width:17px;height:17px;border-radius:2px;background:rgba(253,249,246,.9);border:.5px solid rgba(192,122,110,.3);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .18s;cursor:pointer}
+.ic-chk svg{width:9px;height:9px;fill:none;stroke:#fff;stroke-width:2.2}
+
+.icbadge{position:absolute;top:7px;right:7px;z-index:4;font-size:8.5px;letter-spacing:.06em;border-radius:2px;padding:2px 7px;font-family:var(--serif-jp)}
+.bai{background:rgba(192,122,110,.12);color:var(--rose)}
+.bnew{background:rgba(100,160,140,.15);color:#4a8a78}
+.bwarn{background:rgba(200,150,80,.12);color:#9a7030}
+
+.ic-img{aspect-ratio:.78;overflow:hidden;position:relative}
+.icii{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+
+.ic-acts{position:absolute;bottom:8px;right:8px;display:flex;gap:5px;opacity:0;transition:opacity .18s;z-index:5}
+.ia{width:26px;height:26px;border-radius:50%;background:rgba(253,249,246,.94);border:.5px solid rgba(192,122,110,.2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .18s;backdrop-filter:blur(4px)}
+.ia:hover{background:var(--rose);border-color:var(--rose)}.ia:hover svg{stroke:#fff}
+.ia svg{width:11px;height:11px;fill:none;stroke:var(--ink2);stroke-width:1.8}
+
+.icfoot{padding:9px 11px}
+.icname{font-family:var(--serif-jp);font-size:12px;font-weight:300;color:var(--ink);letter-spacing:.04em;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ictags{display:flex;gap:4px;flex-wrap:wrap}
+.ict{font-size:9.5px;color:var(--rose-dk);background:var(--rose-pale);border-radius:9px;padding:2px 8px;letter-spacing:.03em}
+.ict.w{background:#fff5e8;color:#9a7030}
+
+/* colors */
+.ci1{background:linear-gradient(150deg,#f3e0d8,#ebcfc5)}.ci2{background:linear-gradient(150deg,#d8eae6,#c4d8d3)}.ci3{background:linear-gradient(150deg,#eee8de,#e4dcd0)}.ci4{background:linear-gradient(150deg,#e8d8e8,#dcc8dc)}.ci5{background:linear-gradient(150deg,#dde8f2,#c8d8e6)}.ci6{background:linear-gradient(150deg,#f2ead8,#e8e0c4)}.ci7{background:linear-gradient(150deg,#e4f0d8,#d0e4c0)}.ci8{background:linear-gradient(150deg,#f2dde8,#e4c8d8)}.ci9{background:linear-gradient(150deg,#e8e4f2,#d8d4e8)}.ci10{background:linear-gradient(150deg,#f2eed8,#e8e4c8)}
+.cs{width:44%;height:44%;opacity:.5}
+
+/* tag editor */
+.te{position:fixed;z-index:400;background:var(--panel);border:.5px solid rgba(192,122,110,.22);border-radius:4px;padding:22px;width:272px;box-shadow:0 10px 44px rgba(30,20,16,.13);display:none}
+.te.show{display:block}
+.tehd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.tetitle{font-family:var(--serif-jp);font-size:13.5px;font-weight:300;color:var(--ink);letter-spacing:.06em}
+.tex{background:none;border:none;font-size:16px;color:var(--ink3);cursor:pointer;line-height:1;padding:0}
+.telbl{font-family:var(--serif-jp);font-size:10.5px;color:var(--ink3);letter-spacing:.07em;margin-bottom:5px;display:block;margin-top:10px}
+.telbl:first-of-type{margin-top:0}
+.tein{width:100%;font-family:var(--serif-jp);font-weight:300;font-size:12.5px;color:var(--ink);background:var(--bg);border:.5px solid var(--border);border-radius:2px;padding:8px 10px;outline:none;transition:border-color .2s}
+.tein:focus{border-color:var(--rose)}.tein::placeholder{color:var(--ink3)}
+.tetags{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;margin-bottom:14px}
+.tetag{display:flex;align-items:center;gap:4px;background:var(--rose-pale);border-radius:9px;padding:3px 9px;font-size:11px;color:var(--rose-dk)}
+.tedel{cursor:pointer;color:var(--rose);line-height:1;font-size:12px;background:none;border:none;padding:0}
+.teadd{background:transparent;border:.5px dashed rgba(192,122,110,.28);border-radius:9px;padding:3px 9px;font-size:11px;color:var(--ink3);cursor:pointer;font-family:var(--serif-jp);transition:all .2s}
+.teadd:hover{border-color:var(--rose);color:var(--rose)}
+.tebtns{display:flex;gap:8px;margin-top:2px}
+.tesave{flex:1;font-family:var(--serif-jp);font-size:12px;letter-spacing:.1em;background:var(--ink);color:var(--panel);border:none;border-radius:2px;padding:9px;cursor:pointer;transition:background .2s}
+.tesave:hover{background:var(--rose)}
+.tecancel{font-family:var(--serif-jp);font-size:12px;letter-spacing:.06em;background:transparent;color:var(--ink3);border:.5px solid var(--border);border-radius:2px;padding:9px 14px;cursor:pointer;transition:all .2s}
+.tecancel:hover{color:var(--rose);border-color:var(--rose)}
+
+/* pagination */
+.pagi{display:flex;align-items:center;justify-content:center;gap:5px;margin-top:26px}
+.pg{width:30px;height:30px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-family:var(--serif-en);font-size:13px;background:var(--panel);border:.5px solid var(--border);color:var(--ink2);cursor:pointer;transition:all .2s}
+.pg:hover{border-color:var(--rose);color:var(--rose)}.pg.on{background:var(--rose);border-color:var(--rose);color:#fff}
+.pg.arr svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2}
+.pgdots{font-size:12px;color:var(--ink3);padding:0 4px}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="#"><div class="lm"><svg viewBox="0 0 24 24"><path d="M12 2C9.24 2 7 4.02 7 6.5c0 1.4.65 2.64 1.65 3.5H5.5L6.5 21h11l1-11h-3.15A4.47 4.47 0 0 0 17 6.5C17 4.02 14.76 2 12 2zm0 2c1.38 0 2.5 1.01 2.5 2.5S13.38 9 12 9s-2.5-1.01-2.5-2.5S10.62 4 12 4z"/></svg></div><div><div class="lcn">云衣橱</div><span class="len">AI WARDROBE</span></div></a>
+  <div class="nl"><a href="#">首页</a><a href="#" class="active">衣橱管理</a><a href="#">智能衣物</a><a href="#">穿搭日志</a><a href="#">衣橱分析</a><a href="#">功能</a></div>
+  <div class="nr"><a href="#" class="reg">注册</a><a href="#">登录</a></div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="top">
+  <div class="hl">
+    <div class="ribbon">
+      <div class="rp"><div class="rp-dot" style="opacity:.9;transform:rotate(0)"></div><div class="rp-dot" style="opacity:.55;transform:rotate(45deg)"></div><div class="rp-dot" style="opacity:.3;transform:rotate(90deg)"></div></div>
+      <span class="ribbon-text">Wardrobe Control · Spring 2025</span>
+    </div>
+    <div class="htb">
+      <div class="ht-r1">上传、整理、筛选<span class="nb">128 件</span></div>
+      <div class="ht-r2">都在这间<em>衣橱控制室</em></div>
+    </div>
+    <div class="feat-rows">
+      <div class="feat-row"><span class="fr-num">01</span><div class="fr-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><span class="fr-label">本地上传 &amp; 图片 URL 保留</span><span class="fr-arrow">→</span></div>
+      <div class="feat-row"><span class="fr-num">02</span><div class="fr-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><span class="fr-label">分类筛选 &amp; 关键词搜索</span><span class="fr-arrow">→</span></div>
+      <div class="feat-row"><span class="fr-num">03</span><div class="fr-icon"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div><span class="fr-label">标签 &amp; 单品信息编辑</span><span class="fr-arrow">→</span></div>
+      <div class="feat-row"><span class="fr-num">04</span><div class="fr-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div><span class="fr-label">批量整理、替换图片 &amp; 删除</span><span class="fr-arrow">→</span></div>
+    </div>
+    <div class="hang-tags">
+      <button class="hang-tag ht-fill" onclick="document.getElementById('panel').scrollIntoView({behavior:'smooth'})"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>进入衣橱管理</button>
+      <button class="hang-tag ht-out"><svg viewBox="0 0 24 24"><path d="M12 2l2.09 6.26L21 10l-5.5 4.09L17.18 21 12 17.27 6.82 21l1.68-6.91L3 10l6.91-1.74L12 2z"/></svg>AI 智能识别</button>
+      <button class="hang-tag ht-out"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>穿搭历史</button>
+    </div>
+  </div>
+
+  <div class="hr">
+    <div class="cx tl"></div><div class="cx tr"></div><div class="cx bl"></div><div class="cx br"></div>
+    <div class="vt">AI WARDROBE · 2025</div>
+    <div class="chip ca"><span class="chl">Total Items</span><div class="chv">128 件单品</div><div class="chs">AI 已识别 93%</div><div class="chdots"><div class="chdot" style="background:#f3e0d8"></div><div class="chdot" style="background:#c07a6e"></div><div class="chdot" style="background:#d8eae6"></div><div class="chdot" style="background:#eee8de"></div></div></div>
+    <div class="chip cb"><span class="chl">Last Upload</span><div class="chv">今日 · 3 件</div><div class="chs">标签已自动补全</div></div>
+    <div class="stage">
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="ptb"><div class="ptab on">全部</div><div class="ptab">上衣</div><div class="ptab">下装</div><div class="ptab">外套</div></div>
+        <div class="pbody">
+          <div class="shimmer"></div>
+          <div class="pgrid">
+            <div class="pcard"><div class="pcimg pc1"><svg class="cs" viewBox="0 0 60 80" fill="none" stroke="rgba(192,100,88,.45)" stroke-width="1.5"><path d="M15 5L5 20l10-2v57h30V18l10 2L45 5c-5 5-10 7-15 7S20 10 15 5Z"/></svg></div><div class="pclbl">奶油衬衫<div class="pcsub">上衣·春夏</div></div></div>
+            <div class="pcard"><div class="pcimg pc2"><svg class="cs" viewBox="0 0 60 80" fill="none" stroke="rgba(80,150,140,.45)" stroke-width="1.5"><path d="M10 5v70h40V5c-5 3-10 5-20 5S15 8 10 5Z"/></svg></div><div class="pclbl">薄荷连衣裙<div class="pcsub">连衣裙</div></div></div>
+            <div class="pcard"><div class="pcimg pc3"><svg class="cs" viewBox="0 0 60 80" fill="none" stroke="rgba(155,130,90,.45)" stroke-width="1.5"><rect x="8" y="5" width="44" height="55" rx="3"/><path d="M8 28h44"/></svg></div><div class="pclbl">驼色外套<div class="pcsub">外套·秋冬</div></div></div>
+            <div class="pcard"><div class="pcimg pc4"><svg class="cs" viewBox="0 0 60 80" fill="none" stroke="rgba(170,110,175,.45)" stroke-width="1.5"><path d="M10 5v70h40V5L30 15Z"/></svg></div><div class="pclbl">紫调半裙<div class="pcsub">下装</div></div></div>
+          </div>
+        </div>
+        <div class="pfooter"><span class="pfl">Wardrobe sync</span><span class="pfr">128 件</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-h"><span class="sht">SCROLL</span><div class="shl"></div></div>
+</section>
+
+<!-- PANEL -->
+<section class="panel" id="panel">
+  <div class="ph">
+    <div><span class="ph-eyebrow">Wardrobe Management</span><div class="ph-title">衣橱管理</div></div>
+    <div class="ph-acts">
+      <button class="pa pa-out" onclick="document.getElementById('urlrow').classList.toggle('show')"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>粘贴 URL</button>
+      <button class="pa pa-out"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>本地上传</button>
+      <button class="pa pa-ink"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>添加单品</button>
+    </div>
+  </div>
+
+  <div class="urlrow" id="urlrow">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--rose)" stroke-width="1.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+    <input class="urli" type="text" placeholder="粘贴图片 URL，如 https://…/shirt.jpg">
+    <button class="urlgo">确认添加</button>
+    <button class="urlx" onclick="document.getElementById('urlrow').classList.remove('show')">×</button>
+  </div>
+
+  <div class="tb">
+    <div class="tbs"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="搜索单品名称、颜色、标签…" id="si" oninput="filt()"></div>
+    <div class="fp"><div class="fpp on" onclick="fpick(this)">全部</div><div class="fpp" onclick="fpick(this)">上衣</div><div class="fpp" onclick="fpick(this)">下装</div><div class="fpp" onclick="fpick(this)">外套</div><div class="fpp" onclick="fpick(this)">连衣裙</div><div class="fpp" onclick="fpick(this)">鞋子</div><div class="fpp" onclick="fpick(this)">配饰</div></div>
+    <select class="tbsort"><option>最近添加</option><option>名称排序</option><option>颜色排序</option><option>穿搭次数</option></select>
+    <div class="vtw"><button class="vtb on" id="vbg" onclick="sv('grid')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></button><button class="vtb" id="vbl" onclick="sv('list')"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button></div>
+  </div>
+
+  <div class="pb">
+    <div class="sb">
+      <span class="sb-sec">品类</span>
+      <div class="sbi on" onclick="sbp(this)"><div class="sbil"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg><span class="sbin">全部</span></div><span class="sbict">128</span></div>
+      <div class="sbi" onclick="sbp(this)"><div class="sbil"><svg viewBox="0 0 24 24"><path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.57a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.57a2 2 0 0 0-1.34-2.23z"/></svg><span class="sbin">上衣</span></div><span class="sbict">34</span></div>
+      <div class="sbi" onclick="sbp(this)"><div class="sbil"><svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg><span class="sbin">下装</span></div><span class="sbict">22</span></div>
+      <div class="sbi" onclick="sbp(this)"><div class="sbil"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="sbin">外套</span></div><span class="sbict">15</span></div>
+      <div class="sbi" onclick="sbp(this)"><div class="sbil"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><span class="sbin">连衣裙</span></div><span class="sbict">18</span></div>
+      <div class="sbi" onclick="sbp(this)"><div class="sbil"><svg viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><span class="sbin">鞋子</span></div><span class="sbict">20</span></div>
+      <div class="sbi" onclick="sbp(this)"><div class="sbil"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72"/></svg><span class="sbin">配饰</span></div><span class="sbict">19</span></div>
+      <span class="sb-sec">季节</span>
+      <div class="sbi" onclick="sbp(this)"><div class="sbil"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg><span class="sbin">春夏</span></div><span class="sbict">72</span></div>
+      <div class="sbi" onclick="sbp(this)"><div class="sbil"><svg viewBox="0 0 24 24"><path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"/></svg><span class="sbin">秋冬</span></div><span class="sbict">56</span></div>
+      <span class="sb-sec">颜色</span>
+      <div class="sb-colors">
+        <div class="sbc" style="background:#f3e0d8" onclick="this.classList.toggle('sel')"></div>
+        <div class="sbc" style="background:#f5f2ee;border-color:rgba(192,122,110,.3)" onclick="this.classList.toggle('sel')"></div>
+        <div class="sbc" style="background:#c4d8d3" onclick="this.classList.toggle('sel')"></div>
+        <div class="sbc" style="background:#c9a882" onclick="this.classList.toggle('sel')"></div>
+        <div class="sbc" style="background:#3a3028" onclick="this.classList.toggle('sel')"></div>
+        <div class="sbc" style="background:#aac0d8" onclick="this.classList.toggle('sel')"></div>
+        <div class="sbc" style="background:#d4c0d8" onclick="this.classList.toggle('sel')"></div>
+        <div class="sbc" style="background:#d4908a" onclick="this.classList.toggle('sel')"></div>
+        <div class="sbc" style="background:#c8d8a8" onclick="this.classList.toggle('sel')"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="stats">
+        <div class="sc"><span class="sclbl">Total Items</span><div class="scval">128</div><div class="scsub">较上月 +8 件</div><div class="scbar"><div class="scfill" style="width:100%"></div></div></div>
+        <div class="sc"><span class="sclbl">AI Processed</span><div class="scval">119</div><div class="scsub">93% 已识别</div><div class="scbar"><div class="scfill" style="width:93%"></div></div></div>
+        <div class="sc"><span class="sclbl">Untagged</span><div class="scval">9</div><div class="scsub">待补充标签</div><div class="scbar"><div class="scfill" style="width:7%;background:#c9a882"></div></div></div>
+        <div class="sc"><span class="sclbl">Last Sync</span><div class="scval" style="font-size:16px;margin-top:2px">14:32 今日</div><div class="scsub">云端已同步</div><div class="scbar"><div class="scfill" style="width:100%;background:#9abeb8"></div></div></div>
+      </div>
+
+      <div class="bulk" id="bulk">
+        <span class="bulkn" id="bn">已选 0 件</span><div class="bsep"></div>
+        <button class="bb"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>编辑标签</button>
+        <button class="bb"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>移动分类</button>
+        <button class="bb"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>替换图片</button>
+        <button class="bb del"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>删除</button>
+        <button class="bx" onclick="clrSel()">×</button>
+      </div>
+
+      <div class="cg" id="cg">
+        <div class="uptile"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><div><div class="utt">点击上传图片</div><div class="uts">或拖拽文件到此处</div></div></div>
+
+        <div class="ic" onclick="sel(this)"><div class="ic-chk"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div><span class="icbadge bai">AI 已识别</span><div class="ic-img"><div class="icii ci1"><svg class="cs" viewBox="0 0 60 80" fill="none" stroke="rgba(192,100,88,.45)" stroke-width="1.5"><path d="M15 5L5 20l10-2v57h30V18l10 2L45 5c-5 5-10 7-15 7S20 10 15 5Z"/></svg></div></div><div class="ic-acts"><div class="ia" onclick="ote(event)"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div><div class="ia"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="ia" onclick="del(event,this)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></div></div><div class="icfoot"><div class="icname">奶油白衬衫</div><div class="ictags"><span class="ict">上衣</span><span class="ict">白色</span><span class="ict">春夏</span></div></div></div>
+
+        <div class="ic" onclick="sel(this)"><div class="ic-chk"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div><span class="icbadge bnew">新增</span><div class="ic-img"><div class="icii ci2"><svg class="cs" viewBox="0 0 60 80" fill="none" stroke="rgba(80,150,140,.45)" stroke-width="1.5"><path d="M10 5v70h40V5c-5 3-10 5-20 5S15 8 10 5Z"/></svg></div></div><div class="ic-acts"><div class="ia" onclick="ote(event)"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div><div class="ia"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="ia" onclick="del(event,this)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></div></div><div class="icfoot"><div class="icname">薄荷连衣裙</div><div class="ictags"><span class="ict">连衣裙</span><span class="ict">绿色</span></div></div></div>
+
+        <div class="ic" onclick="sel(this)"><div class="ic-chk"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div><div class="ic-img"><div class="icii ci3"><svg class="cs" viewBox="0 0 60 80" fill="none" stroke="rgba(155,130,90,.45)" stroke-width="1.5"><rect x="8" y="5" width="44" height="55" rx="3"/><path d="M8 28h44"/></svg></div></div><div class="ic-acts"><div class="ia" onclick="ote(event)"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div><div class="ia"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="ia" onclick="del(event,this)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></div></div><div class="icfoot"><div class="icname">驼色大衣</div><div class="ictags"><span class="ict">外套</span><span class="ict">驼色</span><span class="ict">秋冬</span></div></div></div>
+
+        <div class="ic" onclick="sel(this)"><div class="ic-chk"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div><div class="ic-img"><div class="icii ci4"><svg class="cs" viewBox="0 0 60 80" fill="none" stroke="rgba(170,110,175,.45)" stroke-width="1.5"><path d="M10 5v70h40V5L30 15Z"/></svg></div></div><div class="ic-acts"><div class="ia" onclick="ote(event)"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div><div class="ia"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="ia" onclick="del(event,this)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></div></div><div class="icfoot"><div class="icname">紫调百褶裙</div><div class="ictags"><span class="ict">下装</span><span class="ict">紫色</span></div></div></div>
+
+        <div class="ic" onclick="sel(this)"><div class="ic-chk"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div><div class="ic-img"><div class="icii ci5"><svg class="cs" viewBox="0 0 60 80" fill="none" stroke="rgba(90,125,165,.45)" stroke-width="1.5"><path d="M15 5L5 20l10-2v57h30V18l10 2L45 5c-5 5-10 7-15 7S20 10 15 5Z"/></svg></div></div><div class="ic-acts"><div class="ia" onclick="ote(event)"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div><div class="ia"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="ia" onclick="del(event,this)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></div></div><div class="icfoot"><div class="icname">天蓝条纹衬衫</div><div class="ictags"><span class="ict">上衣</span><span class="ict">蓝色</span></div></div></div>
+
+        <div class="ic" onclick="sel(this)"><div class="ic-chk"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div><div class="ic-img"><div class="icii ci6"><svg class="cs" viewBox="0 0 60 80" fill="none" stroke="rgba(175,145,90,.45)" stroke-width="1.5"><rect x="8" y="5" width="44" height="70" rx="4"/></svg></div></div><div class="ic-acts"><div class="ia" onclick="ote(event)"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div><div class="ia"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="ia" onclick="del(event,this)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></div></div><div class="icfoot"><div class="icname">焦糖色风衣</div><div class="ictags"><span class="ict">外套</span><span class="ict">秋冬</span></div></div></div>
+
+        <div class="ic" onclick="sel(this)" style="opacity:.72"><div class="ic-chk"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div><span class="icbadge bwarn">待识别</span><div class="ic-img"><div class="icii ci7"><svg class="cs" viewBox="0 0 60 80" fill="none" stroke="rgba(90,145,85,.45)" stroke-width="1.5"><path d="M10 5v70h40V5c-5 3-10 5-20 5S15 8 10 5Z"/></svg></div></div><div class="ic-acts"><div class="ia" onclick="ote(event)"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div><div class="ia"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="ia" onclick="del(event,this)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></div></div><div class="icfoot"><div class="icname">草绿针织衫</div><div class="ictags"><span class="ict w">未标签</span></div></div></div>
+
+        <div class="ic" onclick="sel(this)"><div class="ic-chk"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div><div class="ic-img"><div class="icii ci8"><svg class="cs" viewBox="0 0 60 80" fill="none" stroke="rgba(175,105,140,.45)" stroke-width="1.5"><path d="M20 5C20 5 10 15 10 30L10 75h40V30C50 15 40 5 40 5L30 12Z"/></svg></div></div><div class="ic-acts"><div class="ia" onclick="ote(event)"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div><div class="ia"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="ia" onclick="del(event,this)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></div></div><div class="icfoot"><div class="icname">玫粉吊带裙</div><div class="ictags"><span class="ict">连衣裙</span><span class="ict">粉色</span><span class="ict">夏</span></div></div></div>
+
+        <div class="ic" onclick="sel(this)"><div class="ic-chk"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div><span class="icbadge bai">AI 已识别</span><div class="ic-img"><div class="icii ci10"><svg class="cs" viewBox="0 0 60 80" fill="none" stroke="rgba(165,145,85,.45)" stroke-width="1.5"><path d="M10 5v70h40V5L30 15Z"/></svg></div></div><div class="ic-acts"><div class="ia" onclick="ote(event)"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div><div class="ia"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="ia" onclick="del(event,this)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></div></div><div class="icfoot"><div class="icname">香草奶白半裙</div><div class="ictags"><span class="ict">下装</span><span class="ict">米色</span><span class="ict">春</span></div></div></div>
+      </div>
+
+      <div class="pagi">
+        <div class="pg arr"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+        <div class="pg on">1</div><div class="pg">2</div><div class="pg">3</div>
+        <span class="pgdots">…</span><div class="pg">13</div>
+        <div class="pg arr"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TAG EDITOR -->
+<div class="te" id="te">
+  <div class="tehd"><div class="tetitle">编辑标签 &amp; 信息</div><button class="tex" onclick="cte()">×</button></div>
+  <span class="telbl">单品名称</span>
+  <input class="tein" type="text" placeholder="如：奶油白衬衫">
+  <span class="telbl">品类</span>
+  <input class="tein" type="text" placeholder="上衣 / 下装 / 连衣裙…">
+  <span class="telbl">颜色</span>
+  <input class="tein" type="text" placeholder="白色 / 粉色 / 驼色…">
+  <span class="telbl">标签</span>
+  <div class="tetags" id="tetags">
+    <div class="tetag">春夏 <button class="tedel" onclick="this.closest('.tetag').remove()">×</button></div>
+    <div class="tetag">日常 <button class="tedel" onclick="this.closest('.tetag').remove()">×</button></div>
+    <button class="teadd" onclick="atag()">+ 添加</button>
+  </div>
+  <span class="telbl">备注（选填）</span>
+  <input class="tein" type="text" placeholder="品牌、购入渠道…" style="margin-bottom:16px">
+  <div class="tebtns"><button class="tesave" onclick="cte()">保 存</button><button class="tecancel" onclick="cte()">取消</button></div>
+</div>
+
+<script>
+let sc=0;
+function sel(c){if(event.target.closest('.ic-acts')||event.target.closest('.ic-chk'))return;c.classList.toggle('sel');sc=document.querySelectorAll('.ic.sel').length;document.getElementById('bulk').classList.toggle('show',sc>0);document.getElementById('bn').textContent='已选 '+sc+' 件'}
+function clrSel(){document.querySelectorAll('.ic.sel').forEach(c=>c.classList.remove('sel'));sc=0;document.getElementById('bulk').classList.remove('show')}
+function fpick(el){document.querySelectorAll('.fpp').forEach(p=>p.classList.remove('on'));el.classList.add('on')}
+function sbp(el){document.querySelectorAll('.sbi').forEach(i=>i.classList.remove('on'));el.classList.add('on')}
+function sv(v){const g=document.getElementById('cg');g.classList.toggle('lv',v==='list');document.getElementById('vbg').classList.toggle('on',v==='grid');document.getElementById('vbl').classList.toggle('on',v==='list')}
+function del(e,b){e.stopPropagation();const c=b.closest('.ic');c.style.transition='all .28s';c.style.opacity='0';c.style.transform='scale(.88)';setTimeout(()=>c.remove(),280)}
+function ote(e){e.stopPropagation();const ed=document.getElementById('te');ed.classList.add('show');let x=e.clientX+12,y=e.clientY-10;ed.style.left=x+'px';ed.style.top=y+'px';requestAnimationFrame(()=>{const r=ed.getBoundingClientRect();if(r.right>window.innerWidth-12)ed.style.left=(e.clientX-r.width-12)+'px';if(r.bottom>window.innerHeight-12)ed.style.top=(e.clientY-r.height+10)+'px'})}
+function cte(){document.getElementById('te').classList.remove('show')}
+function atag(){const t=prompt('新标签');if(!t)return;const w=document.getElementById('tetags'),b=w.querySelector('.teadd'),d=document.createElement('div');d.className='tetag';d.innerHTML=t+' <button class="tedel" onclick="this.closest(\'.tetag\').remove()">×</button>';w.insertBefore(d,b)}
+function filt(){const v=document.getElementById('si').value.toLowerCase();document.querySelectorAll('.ic').forEach(c=>{const n=c.querySelector('.icname')?.textContent.toLowerCase()||'';const t=Array.from(c.querySelectorAll('.ict')).map(x=>x.textContent.toLowerCase()).join(' ');c.style.display=(n.includes(v)||t.includes(v))?'':'none'})}
+document.addEventListener('click',e=>{if(!e.target.closest('#te')&&!e.target.closest('.ia'))cte()})
+</script>
+</body>
+</html>

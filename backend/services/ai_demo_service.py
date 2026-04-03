@@ -130,15 +130,15 @@ WORKFLOW_CONFIGS: tuple[WorkflowConfig, ...] = (
     ),
     WorkflowConfig(
         id="triposr-avatar-rebuild",
-        title="2.5D / 3D Reconstruction",
-        model_name="TripoSR / InstantMesh",
-        task="人体或单品重建入口",
+        title="2.5D Avatar Prep",
+        model_name="2.5D prep / TripoSR upgrade path",
+        task="2.5D 虚拟形象底稿与轻量资产准备",
         priority="P4",
         gpu_requirement="~12GB",
         stage="demo-api",
         api_route="/api/v1/ai-demo/run",
-        sample_prompt="Prepare a lightweight 3D-ready avatar asset",
-        summary="The demo focuses on API orchestration and output contracts, so you can later plug in TripoSR or InstantMesh without rewriting the product flow.",
+        sample_prompt="Prepare a lightweight 2.5D-ready avatar base asset",
+        summary="The MVP stays 2.5D-first so you can ship stable try-on interactions without waiting for full 3D reconstruction. If your own TripoSR or InstantMesh worker is ready later, you can still upgrade behind the same API contract.",
         service_slot="avatar-builder",
         settings_attr="avatar_builder_api_url",
     ),
@@ -305,9 +305,9 @@ def _demo_artifacts_for_workflow(request: AiDemoRunRequest, user: User, wardrobe
         ]
 
     return [
-        AiDemoArtifact(kind="text", label="3D prep summary", value="Collect multi-view references, normalize pose, export lightweight reconstruction package."),
-        AiDemoArtifact(kind="json", label="Worker handoff", payload={"future_worker": "triposr-or-instantmesh", "output": "glb + preview turntable"}),
-        AiDemoArtifact(kind="text", label="Product note", value="MVP stays 2.5D first, then upgrades the same API contract when your own 3D worker is ready."),
+        AiDemoArtifact(kind="text", label="2.5D prep summary", value="Collect one clean portrait or avatar base, normalize pose, and emit a lightweight 2.5D-ready asset package."),
+        AiDemoArtifact(kind="json", label="Worker handoff", payload={"future_worker": "2.5d-prep-first", "upgrade_path": "triposr-or-instantmesh", "output": "avatar base asset + preview package"}),
+        AiDemoArtifact(kind="text", label="Product note", value="MVP stays 2.5D first, then upgrades behind the same API contract when your own heavier reconstruction worker is ready."),
     ]
 
 

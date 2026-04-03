@@ -1,6 +1,6 @@
 "use client";
 
-import type { RefObject } from "react";
+import type { Ref } from "react";
 import { motion } from "framer-motion";
 import { Canvas } from "@react-three/fiber";
 import { Float, OrbitControls } from "@react-three/drei";
@@ -11,7 +11,7 @@ interface AvatarStageProps {
   dropActive?: boolean;
   dropHovered?: boolean;
   dragHint?: string;
-  stageRef?: RefObject<HTMLDivElement | null>;
+  stageRef?: Ref<HTMLDivElement>;
   dropTone?: string;
   absorbLabel?: string | null;
   absorbActive?: boolean;

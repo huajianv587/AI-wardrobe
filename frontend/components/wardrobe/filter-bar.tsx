@@ -4,12 +4,12 @@ import { Search } from "lucide-react";
 import { FilterCategory, useWardrobeStore } from "@/store/wardrobe-store";
 
 const categories: { value: FilterCategory; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "tops", label: "Tops" },
-  { value: "bottoms", label: "Bottoms" },
-  { value: "outerwear", label: "Outerwear" },
-  { value: "shoes", label: "Shoes" },
-  { value: "accessories", label: "Accessories" }
+  { value: "all", label: "全部" },
+  { value: "tops", label: "上衣" },
+  { value: "bottoms", label: "下装" },
+  { value: "outerwear", label: "外搭" },
+  { value: "shoes", label: "鞋子" },
+  { value: "accessories", label: "配饰" }
 ];
 
 export function FilterBar() {
@@ -47,7 +47,7 @@ export function FilterBar() {
           <input
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="Search by item, brand, or mood"
+            placeholder="按名称、品牌、标签或场景搜索"
             className="w-full bg-transparent text-sm text-[var(--ink)] outline-none placeholder:text-[var(--muted)]"
           />
         </label>

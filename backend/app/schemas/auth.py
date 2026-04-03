@@ -28,9 +28,19 @@ class LogoutRequest(BaseModel):
     refresh_token: str | None = None
 
 
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+    redirect_to: str | None = None
+
+
 class StatusMessageResponse(BaseModel):
     status: str
     message: str
+
+
+class OAuthStartResponse(BaseModel):
+    provider: str
+    url: str
 
 
 class AuthSessionResponse(BaseModel):

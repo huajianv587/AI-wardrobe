@@ -1,0 +1,42 @@
+.shell {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(245, 207, 198, 0.18), transparent 22%),
+    radial-gradient(circle at 86% 16%, rgba(244, 201, 138, 0.12), transparent 22%),
+    linear-gradient(180deg, #fdf6f0 0%, #f9f1eb 100%);
+}
+
+.frameWrap {
+  height: 100%;
+  padding-top: 92px;
+}
+
+.frame {
+  display: block;
+  width: 100%;
+  height: calc(100vh - 92px);
+  border: 0;
+  background: #faf3ee;
+}
+
+@media (max-width: 1180px) {
+  .frameWrap {
+    padding-top: 130px;
+  }
+
+  .frame {
+    height: calc(100vh - 130px);
+  }
+}
+
+@media (max-width: 780px) {
+  .frameWrap {
+    padding-top: 182px;
+  }
+
+  .frame {
+    height: calc(100vh - 182px);
+  }
+}

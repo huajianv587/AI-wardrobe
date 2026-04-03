@@ -1,0 +1,24 @@
+:root {
+  --background: #fffaf5;
+  --background-soft: #f8f0e7;
+  --background-contrast: #fff8f1;
+  --card: rgba(255, 253, 249, 0.86);
+  --card-strong: rgba(255, 255, 255, 0.96);
+  --line: rgba(84, 71, 68, 0.09);
+  --ink-strong: #1f2838;
+  --ink: #39475d;
+  --muted: #78839a;
+  --accent: #ff9a7b;
+  --accent-soft: #ffe5d8;
+  --accent-rose: #ffc8c2;
+  --accent-sky: #d7ebff;
+  --accent-lilac: #ece4ff;
+  --accent-mint: #d8f3e4;
+  --accent-butter: #fff0c9;
+  --shadow-soft: 0 28px 82px rgba(117, 89, 73, 0.09);
+  --shadow-float: 0 22px 56px rgba(243, 169, 137, 0.18);
+  --shadow-glow: 0 26px 82px rgba(248, 200, 170, 0.24);
+  --font-display: "Iowan Old Style", "Baskerville", "Palatino Linotype", "Book Antiqua", "Songti SC", "STSong", "Noto Serif SC", "Source Han Serif SC", serif;
+  --font-body: "Avenir Next", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --font-label: "Avenir Next", "Optima", "Gill Sans", "PingFang SC", "Hiragino Sans GB", sans-serif;
+}

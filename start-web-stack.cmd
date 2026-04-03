@@ -2,15 +2,19 @@
 setlocal
 cd /d "%~dp0"
 
-echo [AI Wardrobe] opening frontend and backend in separate windows...
-
-start "AI Wardrobe Backend" cmd /k "%~dp0start-backend.cmd"
-start "AI Wardrobe Frontend" cmd /k "%~dp0start-frontend.cmd"
-
+echo [AI Wardrobe] starting backend and frontend in separate windows...
 echo.
-echo Frontend: http://localhost:3000
-echo Backend:  http://localhost:8000
+
+start "AI Wardrobe Backend" cmd /k call "%~dp0start-backend.cmd"
+ping -n 2 127.0.0.1 >nul
+start "AI Wardrobe Frontend" cmd /k call "%~dp0start-frontend.cmd"
+
+echo [AI Wardrobe] both launch windows were opened.
 echo.
-echo If the pages do not open automatically, paste the addresses into your browser.
+echo Frontend: http://127.0.0.1:3000
+echo Backend:  http://127.0.0.1:8000/docs
+echo.
+echo [AI Wardrobe] a browser window should open automatically after startup.
+echo [AI Wardrobe] if not, copy the addresses above into your browser.
 echo.
 pause

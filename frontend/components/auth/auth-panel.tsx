@@ -11,11 +11,15 @@ import { useAuthSession } from "@/hooks/use-auth-session";
 
 type AuthMode = "login" | "sign-up";
 
-export function AuthPanel() {
+interface AuthPanelProps {
+  defaultMode?: AuthMode;
+}
+
+export function AuthPanel({ defaultMode = "login" }: AuthPanelProps) {
   const router = useRouter();
   const { ready, isAuthenticated, session, user } = useAuthSession();
 
-  const [mode, setMode] = useState<AuthMode>("login");
+  const [mode, setMode] = useState<AuthMode>(defaultMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -31,6 +35,10 @@ export function AuthPanel() {
     setEmail((current) => current || user.email);
   }, [user]);
 
+  useEffect(() => {
+    setMode(defaultMode);
+  }, [defaultMode]);
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
@@ -45,17 +53,17 @@ export function AuthPanel() {
       if (payload.access_token) {
         persistAuthSession(payload);
         setPassword("");
-        setMessage(mode === "login" ? "Supabase Auth session is active. Redirecting to your wardrobe..." : payload.message ?? "Account created and signed in successfully.");
+        setMessage(mode === "login" ? "登录成功，正在进入你的衣橱..." : payload.message ?? "注册成功，并已自动登录。");
         router.push("/wardrobe");
         return;
       }
 
       clearStoredSession();
       setPassword("");
-      setMessage(payload.message ?? "Account created. Check your inbox before signing in.");
+      setMessage(payload.message ?? "账号已创建，请先完成邮箱确认再登录。");
       setMode("login");
     } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : "Authentication request failed.");
+      setError(nextError instanceof Error ? nextError.message : "认证请求失败。");
     } finally {
       setLoading(false);
     }
@@ -69,15 +77,15 @@ export function AuthPanel() {
     try {
       const currentUser = await fetchCurrentUser();
       updateStoredSessionUser(currentUser);
-      setMessage("Session validated with the backend and user profile refreshed.");
+      setMessage("会话已经通过后端验证，当前用户信息也已刷新。");
     } catch (nextError) {
       const isUnauthorized = nextError instanceof ApiError && nextError.status === 401;
 
       if (isUnauthorized) {
         clearStoredSession();
-        setMessage("The local session expired, so it was cleared. Please sign in again.");
+        setMessage("本地会话已经过期，已自动清理，请重新登录。");
       } else {
-        setError(nextError instanceof Error ? nextError.message : "Could not refresh the current session.");
+        setError(nextError instanceof Error ? nextError.message : "刷新当前会话失败。");
       }
     } finally {
       setRefreshing(false);
@@ -96,18 +104,18 @@ export function AuthPanel() {
     } finally {
       clearStoredSession();
       setPassword("");
-      setMessage("Signed out on this device. Local tokens were cleared and the backend logout endpoint was notified.");
+      setMessage("当前设备已经退出登录，本地令牌已清理，也已通知后端注销会话。");
       setError("");
     }
   }
 
   const submitLabel = loading
     ? mode === "login"
-      ? "Signing in..."
-      : "Creating account..."
+      ? "登录中..."
+      : "注册中..."
     : mode === "login"
-      ? "Sign in with email"
-      : "Create account";
+      ? "邮箱登录"
+      : "创建账号";
 
   return (
     <article className="section-card soft-panel rounded-[34px] p-6">
@@ -118,7 +126,7 @@ export function AuthPanel() {
             Supabase Auth
           </div>
           <h2 className="text-2xl font-semibold tracking-[-0.04em] text-[var(--ink-strong)]">
-            {isAuthenticated ? "Session connected" : "Private account access"}
+            {isAuthenticated ? "账号已连接" : "私人账号入口"}
           </h2>
         </div>
 
@@ -128,26 +136,26 @@ export function AuthPanel() {
             onClick={() => setMode("login")}
             className={`rounded-full px-4 py-2 text-sm transition ${mode === "login" ? "bg-[var(--ink-strong)] text-white shadow-[var(--shadow-float)]" : "text-[var(--ink)]"}`}
           >
-            Sign in
+            登录
           </button>
           <button
             type="button"
             onClick={() => setMode("sign-up")}
             className={`rounded-full px-4 py-2 text-sm transition ${mode === "sign-up" ? "bg-[var(--ink-strong)] text-white shadow-[var(--shadow-float)]" : "text-[var(--ink)]"}`}
           >
-            Sign up
+            注册
           </button>
         </div>
       </div>
 
       {ready && isAuthenticated && session ? (
         <div className="mb-5 rounded-[24px] border border-[var(--line)] bg-white/80 p-4">
-          <p className="pill mb-3">Current browser session</p>
+          <p className="pill mb-3">当前浏览器会话</p>
           <p className="text-sm text-[var(--ink)]">
-            Signed in as <span className="font-semibold">{session.user.email}</span>
+            当前登录账号 <span className="font-semibold">{session.user.email}</span>
           </p>
           <p className="mt-2 text-xs leading-6 text-[var(--muted)]">
-            Local user id: {session.user.id} | Supabase user id: {session.user.supabase_user_id ?? "pending sync"}
+            本地用户 ID: {session.user.id} | Supabase 用户 ID: {session.user.supabase_user_id ?? "等待同步"}
           </p>
 
           <div className="mt-4 flex flex-wrap gap-3">
@@ -155,7 +163,7 @@ export function AuthPanel() {
               href="/wardrobe"
               className="inline-flex items-center gap-2 rounded-full bg-[var(--ink-strong)] px-5 py-3 text-sm text-white shadow-[var(--shadow-float)] transition hover:translate-y-[-1px]"
             >
-              Open wardrobe
+              打开衣橱
               <ArrowRight className="size-4" />
             </Link>
 
@@ -166,7 +174,7 @@ export function AuthPanel() {
               className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/80 px-5 py-3 text-sm text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {refreshing ? <LoaderCircle className="size-4 animate-spin" /> : <RefreshCw className="size-4" />}
-              {refreshing ? "Refreshing..." : "Validate session"}
+              {refreshing ? "验证中..." : "验证会话"}
             </button>
 
             <button
@@ -175,7 +183,7 @@ export function AuthPanel() {
               className="inline-flex items-center gap-2 rounded-full border border-[var(--accent-rose)] bg-[var(--accent-rose)]/25 px-5 py-3 text-sm text-[var(--ink)]"
             >
               <LogOut className="size-4" />
-              Sign out
+              退出登录
             </button>
           </div>
         </div>
@@ -183,7 +191,7 @@ export function AuthPanel() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <label className="block">
-          <span className="mb-2 inline-flex items-center gap-2 text-sm font-medium text-[var(--ink)]">Email</span>
+          <span className="mb-2 inline-flex items-center gap-2 text-sm font-medium text-[var(--ink)]">邮箱</span>
           <input
             value={email}
             onChange={(event) => setEmail(event.target.value)}
@@ -195,7 +203,7 @@ export function AuthPanel() {
         </label>
 
         <label className="block">
-          <span className="mb-2 inline-flex items-center gap-2 text-sm font-medium text-[var(--ink)]">Password</span>
+          <span className="mb-2 inline-flex items-center gap-2 text-sm font-medium text-[var(--ink)]">密码</span>
           <input
             value={password}
             onChange={(event) => setPassword(event.target.value)}
@@ -203,7 +211,7 @@ export function AuthPanel() {
             required
             minLength={6}
             className="w-full rounded-[24px] border border-[var(--line)] bg-white/85 px-4 py-3 text-sm outline-none placeholder:text-[var(--muted)] transition focus:border-[var(--accent)] focus:bg-white"
-            placeholder="At least 6 characters"
+            placeholder="至少 6 位"
           />
         </label>
 
@@ -229,7 +237,7 @@ export function AuthPanel() {
         </div>
       ) : (
         <p className="mt-5 text-sm leading-6 text-[var(--muted)]">
-          Email and password are sent to the FastAPI backend, which proxies sign-in and sign-up to Supabase Auth, then mirrors the user into the local SQLite database for ownership isolation.
+          邮箱和密码会先发到 FastAPI，再代理给 Supabase Auth，并把认证后的用户镜像到本地 SQLite 数据库里，用来实现衣橱数据的用户隔离。
         </p>
       )}
     </article>

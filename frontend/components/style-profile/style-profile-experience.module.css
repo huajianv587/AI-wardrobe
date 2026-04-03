@@ -11,7 +11,11 @@
   --shadow: rgba(140, 120, 100, 0.1);
   position: relative;
   min-height: 100%;
-  background: var(--bg);
+  background:
+    radial-gradient(circle at 10% 18%, rgba(237, 190, 179, 0.18), transparent 24%),
+    radial-gradient(circle at 86% 14%, rgba(230, 212, 176, 0.14), transparent 22%),
+    radial-gradient(circle at 80% 88%, rgba(215, 235, 224, 0.16), transparent 24%),
+    var(--bg);
   color: var(--text);
 }
 
@@ -97,6 +101,36 @@
   max-width: 1040px;
   margin: 0 auto;
   padding: 20px 20px 60px;
+}
+
+.modeNotice {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 18px 20px;
+  border: 1px solid rgba(232, 226, 216, 0.88);
+  border-radius: 22px;
+  background: linear-gradient(135deg, rgba(255, 248, 242, 0.92), rgba(255, 252, 249, 0.82), rgba(239, 246, 242, 0.72));
+  box-shadow: 0 12px 30px rgba(140, 120, 100, 0.08);
+  backdrop-filter: blur(12px);
+}
+
+.modeNoticeBadge {
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(192, 139, 92, 0.14);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-deep);
+}
+
+.modeNoticeText {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-mid);
 }
 
 .sectionBlock {

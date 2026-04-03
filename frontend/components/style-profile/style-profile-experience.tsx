@@ -6,6 +6,7 @@ import { useAuthSession } from "@/hooks/use-auth-session";
 import {
   ApiError,
   type ExperienceStyleDnaEntry,
+  type ExperienceStyleProfileDraft,
   type ExperienceStyleProfileOverview,
   fetchExperienceStyleProfile,
   updateExperienceStyleProfile
@@ -55,6 +56,48 @@ const SILHOUETTE_ICON_MAP: Record<string, string> = {
   A型: "🌊"
 };
 
+const STYLE_PROFILE_DEMO_STORAGE_KEY = "ai-wardrobe:experience-style-profile-demo";
+
+const STYLE_PROFILE_DEMO_DRAFT: ExperienceStyleProfileDraft = {
+  favorite_colors: ["奶油白", "柔粉", "浅灰蓝"],
+  avoid_colors: ["荧光绿", "高饱和紫"],
+  favorite_silhouettes: ["H型", "A型", "宽松廓形"],
+  avoid_silhouettes: ["修身"],
+  style_keywords: ["甜感", "轻盈", "通勤", "安静精致"],
+  dislike_keywords: ["太街头", "过度张扬"],
+  commute_profile: "轻正式，但不要显得太板正",
+  comfort_priorities: ["面料柔软", "方便久坐", "不勒腰"],
+  wardrobe_rules: ["通勤 look 不超过三个主色", "约会时保留一个柔和亮点", "配饰只选一个重点"],
+  personal_note: "希望整体是温柔、有呼吸感的，不想为了精致而显得太用力。"
+};
+
+const STYLE_PROFILE_COLOR_HEX: Record<string, string> = {
+  奶油白: "#F5EBDD",
+  柔粉: "#E7B8B0",
+  浅灰蓝: "#B9C8D6",
+  荧光绿: "#A4FF00",
+  高饱和紫: "#8A34D6",
+  驼色: "#C8A27A",
+  深蓝: "#4C628A",
+  米白: "#F2E6D8"
+};
+
+const STYLE_PROFILE_SILHOUETTE_DESC: Record<string, string> = {
+  H型: "线条平衡，适合日常通勤和长期穿着",
+  V型: "上提比例，更显精神和利落感",
+  X型: "强调腰线，适合轻正式和约会场景",
+  A型: "下摆轻盈有呼吸感，走动更柔和",
+  宽松廓形: "松弛不压身，适合久坐和叠搭",
+  修身: "强调曲线，但容易显得拘束"
+};
+
+const STYLE_PROFILE_KEYWORD_TONES = ["primary", "primary", "secondary", "secondary", "tertiary", "tertiary"] as const;
+
+interface DemoStyleProfileStorage {
+  draft: ExperienceStyleProfileDraft;
+  updatedAt: string | null;
+}
+
 function joinList(values: string[]) {
   return values.join("，");
 }
@@ -81,12 +124,202 @@ function buildRadarPoints(dna: ExperienceStyleDnaEntry[]) {
   }).join(" ");
 }
 
+function cloneDraft(draft: ExperienceStyleProfileDraft): ExperienceStyleProfileDraft {
+  return {
+    favorite_colors: [...draft.favorite_colors],
+    avoid_colors: [...draft.avoid_colors],
+    favorite_silhouettes: [...draft.favorite_silhouettes],
+    avoid_silhouettes: [...draft.avoid_silhouettes],
+    style_keywords: [...draft.style_keywords],
+    dislike_keywords: [...draft.dislike_keywords],
+    commute_profile: draft.commute_profile,
+    comfort_priorities: [...draft.comfort_priorities],
+    wardrobe_rules: [...draft.wardrobe_rules],
+    personal_note: draft.personal_note
+  };
+}
+
+function mergeDraft(
+  draft: ExperienceStyleProfileDraft,
+  patch: Partial<ExperienceStyleProfileDraft>
+): ExperienceStyleProfileDraft {
+  return {
+    favorite_colors: patch.favorite_colors !== undefined ? patch.favorite_colors : draft.favorite_colors,
+    avoid_colors: patch.avoid_colors !== undefined ? patch.avoid_colors : draft.avoid_colors,
+    favorite_silhouettes: patch.favorite_silhouettes !== undefined ? patch.favorite_silhouettes : draft.favorite_silhouettes,
+    avoid_silhouettes: patch.avoid_silhouettes !== undefined ? patch.avoid_silhouettes : draft.avoid_silhouettes,
+    style_keywords: patch.style_keywords !== undefined ? patch.style_keywords : draft.style_keywords,
+    dislike_keywords: patch.dislike_keywords !== undefined ? patch.dislike_keywords : draft.dislike_keywords,
+    commute_profile: patch.commute_profile !== undefined ? patch.commute_profile : draft.commute_profile,
+    comfort_priorities: patch.comfort_priorities !== undefined ? patch.comfort_priorities : draft.comfort_priorities,
+    wardrobe_rules: patch.wardrobe_rules !== undefined ? patch.wardrobe_rules : draft.wardrobe_rules,
+    personal_note: patch.personal_note !== undefined ? patch.personal_note : draft.personal_note
+  };
+}
+
+function formatDemoUpdatedAt(updatedAt: string | null) {
+  if (!updatedAt) {
+    return "演示模式 · 尚未本地保存";
+  }
+
+  const date = new Date(updatedAt);
+  if (Number.isNaN(date.getTime())) {
+    return "演示模式 · 已本地保存";
+  }
+
+  return `演示模式 · ${date.toLocaleString("zh-CN", {
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  })}`;
+}
+
+function readDemoStyleProfileStorage(): DemoStyleProfileStorage {
+  if (typeof window === "undefined") {
+    return {
+      draft: cloneDraft(STYLE_PROFILE_DEMO_DRAFT),
+      updatedAt: null
+    };
+  }
+
+  try {
+    const raw = window.localStorage.getItem(STYLE_PROFILE_DEMO_STORAGE_KEY);
+    if (!raw) {
+      return {
+        draft: cloneDraft(STYLE_PROFILE_DEMO_DRAFT),
+        updatedAt: null
+      };
+    }
+
+    const parsed = JSON.parse(raw) as Partial<DemoStyleProfileStorage>;
+    return {
+      draft: mergeDraft(
+        cloneDraft(STYLE_PROFILE_DEMO_DRAFT),
+        parsed.draft && typeof parsed.draft === "object" ? parsed.draft : {}
+      ),
+      updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : null
+    };
+  } catch {
+    return {
+      draft: cloneDraft(STYLE_PROFILE_DEMO_DRAFT),
+      updatedAt: null
+    };
+  }
+}
+
+function writeDemoStyleProfileStorage(draft: ExperienceStyleProfileDraft) {
+  const payload: DemoStyleProfileStorage = {
+    draft,
+    updatedAt: new Date().toISOString()
+  };
+
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(STYLE_PROFILE_DEMO_STORAGE_KEY, JSON.stringify(payload));
+  }
+
+  return payload;
+}
+
+function mapColorEntry(name: string) {
+  return {
+    name,
+    hex: STYLE_PROFILE_COLOR_HEX[name] ?? "#D7C4AE"
+  };
+}
+
+function buildDemoDna(profile: ExperienceStyleProfileDraft): ExperienceStyleDnaEntry[] {
+  const metrics = [
+    { label: "甜感", weight: 3 + Math.min(profile.style_keywords.length, 4), color: "#D8A299" },
+    { label: "轻盈", weight: 2 + Math.min(profile.favorite_silhouettes.length, 4), color: "#DDBB8C" },
+    { label: "通勤", weight: 2 + Math.min(profile.wardrobe_rules.length, 4), color: "#B7A7D8" },
+    { label: "柔和", weight: 2 + Math.min(profile.favorite_colors.length, 4), color: "#9EBBCB" },
+    { label: "舒适", weight: 2 + Math.min(profile.comfort_priorities.length, 4), color: "#94B9A0" }
+  ];
+  const total = metrics.reduce((sum, entry) => sum + entry.weight, 0);
+
+  let used = 0;
+
+  return metrics.map((entry, index) => {
+    const value = index === metrics.length - 1
+      ? 100 - used
+      : Math.floor((entry.weight / total) * 100);
+
+    used += value;
+
+    return {
+      label: entry.label,
+      value,
+      color: entry.color
+    };
+  });
+}
+
+function buildDemoSilhouettes(profile: ExperienceStyleProfileDraft) {
+  const order = Array.from(new Set([
+    ...profile.favorite_silhouettes,
+    ...profile.avoid_silhouettes,
+    "H型",
+    "A型",
+    "宽松廓形",
+    "修身",
+    "V型",
+    "X型"
+  ]));
+
+  return order.slice(0, 6).map((name) => {
+    const preferred = profile.favorite_silhouettes.includes(name);
+    const avoided = profile.avoid_silhouettes.includes(name);
+
+    return {
+      name,
+      desc: STYLE_PROFILE_SILHOUETTE_DESC[name] ?? "作为演示态的轮廓标签，可继续手动调整偏好。",
+      preferred,
+      badge: preferred ? "偏爱" : avoided ? "少穿" : ""
+    };
+  });
+}
+
+function buildDemoKeywords(profile: ExperienceStyleProfileDraft) {
+  const pool = [
+    ...profile.style_keywords,
+    ...profile.comfort_priorities.slice(0, 2),
+    ...(profile.commute_profile ? [profile.commute_profile] : [])
+  ];
+
+  return pool.slice(0, 6).map((label, index) => ({
+    label,
+    tone: STYLE_PROFILE_KEYWORD_TONES[index] ?? "tertiary"
+  }));
+}
+
+function buildDemoOverview(storage: DemoStyleProfileStorage = readDemoStyleProfileStorage()): ExperienceStyleProfileOverview {
+  const profile = storage.draft;
+  const heroSubtitle = profile.commute_profile?.trim()
+    ? `演示模式 · ${profile.commute_profile?.trim()}`
+    : "演示模式 · 后端未连通时，依然可以先编辑和预览你的风格档案";
+
+  return {
+    hero_subtitle: heroSubtitle,
+    dna: buildDemoDna(profile),
+    favorite_colors: profile.favorite_colors.map(mapColorEntry),
+    avoid_colors: profile.avoid_colors.map(mapColorEntry),
+    silhouettes: buildDemoSilhouettes(profile),
+    keywords: buildDemoKeywords(profile),
+    rules: profile.wardrobe_rules,
+    personal_note: profile.personal_note?.trim() || "演示模式下可先写下你的风格边界，等后端接通后再同步到真实账号。",
+    updated_at_label: formatDemoUpdatedAt(storage.updatedAt),
+    profile
+  };
+}
+
 export function StyleProfileExperience() {
   const { ready } = useAuthSession();
   const [overview, setOverview] = useState<ExperienceStyleProfileOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [demoMode, setDemoMode] = useState(false);
   const [flashColor, setFlashColor] = useState<string | null>(null);
   const [editor, setEditor] = useState<EditorState | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
@@ -137,17 +370,19 @@ export function StyleProfileExperience() {
 
         setOverview(result);
         setError("");
+        setDemoMode(false);
       } catch (nextError) {
         if (!active) {
           return;
         }
 
+        const fallback = buildDemoOverview();
+        setOverview(fallback);
+        setDemoMode(true);
         setError(
           nextError instanceof ApiError && nextError.status === 401
-            ? "登录状态已失效，请重新登录后查看风格画像。"
-            : nextError instanceof Error
-              ? nextError.message
-              : "暂时无法读取风格画像。"
+            ? "登录状态暂未就绪，当前先展示可编辑的演示画像。"
+            : "风格雷达已切换到演示模式，后端接通后会自动显示真实画像。"
         );
       } finally {
         if (active) {
@@ -168,13 +403,17 @@ export function StyleProfileExperience() {
       const result = await fetchExperienceStyleProfile();
       setOverview(result);
       setError("");
+      setDemoMode(false);
       if (showMessage) {
         setToast({ message: showMessage, tone: "soft" });
       }
     } catch (nextError) {
+      const fallback = buildDemoOverview();
+      setOverview(fallback);
+      setDemoMode(true);
       setToast({
-        message: nextError instanceof Error ? nextError.message : "刷新风格画像失败",
-        tone: "error"
+        message: showMessage ?? (nextError instanceof Error ? `${nextError.message}，已继续显示演示画像。` : "刷新失败，已继续显示演示画像。"),
+        tone: "soft"
       });
     }
   }
@@ -378,6 +617,18 @@ export function StyleProfileExperience() {
     setSaving(true);
 
     try {
+      if (demoMode && overview) {
+        const draft = mergeDraft(overview.profile, payload);
+        const storage = writeDemoStyleProfileStorage(draft);
+        setOverview(buildDemoOverview(storage));
+        setEditor(null);
+        setToast({
+          message: `${editor.successMessage}（演示模式已本地保存）`,
+          tone: "soft"
+        });
+        return;
+      }
+
       const result = await updateExperienceStyleProfile(payload);
       setEditor(null);
       await reloadOverview(result.message || editor.successMessage);
@@ -433,6 +684,15 @@ export function StyleProfileExperience() {
       </section>
 
       <div className={styles.content}>
+        {demoMode ? (
+          <section className={styles.modeNotice}>
+            <div className={styles.modeNoticeBadge}>Demo Mode</div>
+            <div className={styles.modeNoticeText}>
+              {error || "真实风格画像尚未接通，当前先展示可编辑的演示内容。你现在做的修改会先保存在本地，后端接通后再切到真实输出。"}
+            </div>
+          </section>
+        ) : null}
+
         <section className={styles.sectionBlock}>
           <div className={styles.sectionHeader}>
             <div className={styles.sectionIcon} style={{ background: "#F0E5D8" }}>🧬</div>

@@ -74,7 +74,7 @@ body::after {
   background: rgba(221, 241, 232, 0.48);
 }
 
-.top-bar,
+.view-switch-row,
 .stats-bar,
 .calendar-section,
 .suitcase-section,
@@ -83,65 +83,12 @@ body::after {
   z-index: 1;
 }
 
-.top-bar {
+.view-switch-row {
+  width: min(100%, 960px);
+  margin: 0 auto;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 18px 20px 16px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(255, 247, 240, 0.78), rgba(245, 255, 250, 0.68));
-  border-bottom: 1px solid rgba(236, 228, 218, 0.8);
-  backdrop-filter: blur(18px);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 14px 34px rgba(180, 160, 140, 0.08);
-}
-
-.brand-cluster {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-
-.brand-mark {
-  width: 46px;
-  height: 46px;
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(145deg, rgba(255, 238, 230, 0.96), rgba(255, 252, 248, 0.86), rgba(221, 243, 233, 0.76));
-  border: 1px solid rgba(236, 220, 207, 0.92);
-  box-shadow: 0 14px 28px rgba(196, 149, 106, 0.16);
-}
-
-.brand-mark svg {
-  width: 22px;
-  height: 22px;
-  fill: #9f7251;
-}
-
-.brand-copy {
-  min-width: 0;
-}
-
-.brand-copy h1 {
-  font-family: "Playfair Display", serif;
-  font-size: 22px;
-  font-weight: 600;
-  letter-spacing: 0.4px;
-  white-space: nowrap;
-}
-
-.brand-copy .subtitle {
-  font-size: 11px;
-  color: var(--text-light);
-  font-weight: 300;
-  margin-top: 2px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  justify-content: flex-end;
+  padding: 2px 20px 10px;
 }
 
 .mode-toggle {
@@ -750,15 +697,6 @@ body[data-diary-loading="true"] .suitcase-visual::after {
 }
 
 @media (max-width: 720px) {
-  .top-bar {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .brand-copy h1 {
-    font-size: 20px;
-  }
-
   .mode-toggle {
     width: 100%;
     justify-content: space-between;
@@ -780,6 +718,12 @@ body[data-diary-loading="true"] .suitcase-visual::after {
     padding-right: 16px;
   }
 
+  .view-switch-row {
+    padding-left: 16px;
+    padding-right: 16px;
+    justify-content: stretch;
+  }
+
   .trip-row {
     align-items: flex-start;
     flex-direction: column;
@@ -794,29 +738,18 @@ body[data-diary-loading="true"] .suitcase-visual::after {
 </head>
 <body>
 
-<div class="top-bar">
-  <div class="brand-cluster">
-    <div class="brand-mark" aria-hidden="true">
-      <svg viewBox="0 0 24 24">
-        <path d="M12 2C9.24 2 7 4.02 7 6.5c0 1.4.65 2.64 1.65 3.5H5.5L6.5 21h11l1-11h-3.15A4.47 4.47 0 0 0 17 6.5C17 4.02 14.76 2 12 2zm0 2c1.38 0 2.5 1.01 2.5 2.5S13.38 9 12 9s-2.5-1.01-2.5-2.5S10.62 4 12 4z"/>
-      </svg>
-    </div>
-    <div class="brand-copy">
-      <h1>文文的衣橱</h1>
-      <div class="subtitle">Outfit Diary</div>
-    </div>
-  </div>
-  <div class="mode-toggle">
-    <button class="mode-btn active" onclick="switchMode('calendar')">📅 日历</button>
-    <button class="mode-btn" onclick="switchMode('suitcase')">🧳 行李箱</button>
-  </div>
-</div>
-
 <div class="stats-bar">
   <div class="stat-chip"><div class="stat-num">0</div><div class="stat-label">本月记录</div></div>
   <div class="stat-chip"><div class="stat-num">0%</div><div class="stat-label">穿搭率</div></div>
   <div class="stat-chip"><div class="stat-num">0</div><div class="stat-label">最爱单品</div></div>
   <div class="stat-chip"><div class="stat-num">0</div><div class="stat-label">新入单品</div></div>
+</div>
+
+<div class="view-switch-row">
+  <div class="mode-toggle">
+    <button class="mode-btn active" onclick="switchMode('calendar')">📅 日历</button>
+    <button class="mode-btn" onclick="switchMode('suitcase')">🧳 行李箱</button>
+  </div>
 </div>
 
 <div class="calendar-section" id="calendarSection">

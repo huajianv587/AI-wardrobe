@@ -13,6 +13,7 @@ interface RecommendationLookCardProps {
   items: WardrobeItem[];
   prompt?: string;
   scene?: string;
+  previewMode?: boolean;
   onActionComplete?: (message: string) => void;
 }
 
@@ -20,9 +21,13 @@ function findItem(items: WardrobeItem[], itemId: number) {
   return items.find((item) => item.id === itemId) ?? null;
 }
 
-export function RecommendationLookCard({ recommendation, items, prompt, scene, onActionComplete }: RecommendationLookCardProps) {
+export function RecommendationLookCard({ recommendation, items, prompt, scene, previewMode = false, onActionComplete }: RecommendationLookCardProps) {
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [actionEcho, setActionEcho] = useState<string>("");
+
+  function buildModeAwareMessage(message: string) {
+    return previewMode ? `${message} 当前记录写入的是公开体验空间，登录后会自动切到你的私人账号。` : message;
+  }
 
   async function handleFeedback(action: string, successMessage: string) {
     setBusyAction(action);
@@ -40,8 +45,9 @@ export function RecommendationLookCard({ recommendation, items, prompt, scene, o
           confidence_label: recommendation.confidenceLabel
         }
       });
-      setActionEcho(successMessage);
-      onActionComplete?.(successMessage);
+      const message = buildModeAwareMessage(successMessage);
+      setActionEcho(message);
+      onActionComplete?.(message);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Could not record recommendation feedback.";
       setActionEcho(message);
@@ -62,8 +68,9 @@ export function RecommendationLookCard({ recommendation, items, prompt, scene, o
         item_ids: recommendation.itemIds,
         reasoning: recommendation.rationale
       });
-      setActionEcho("这套已经存进你的私人搭配夹啦。");
-      onActionComplete?.("这套已经存进你的私人搭配夹啦。");
+      const message = buildModeAwareMessage(previewMode ? "这套已经存进公开体验搭配夹啦。" : "这套已经存进你的私人搭配夹啦。");
+      setActionEcho(message);
+      onActionComplete?.(message);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Could not save the outfit.";
       setActionEcho(message);
@@ -84,8 +91,9 @@ export function RecommendationLookCard({ recommendation, items, prompt, scene, o
         period: "all-day",
         feedback_note: "Marked as worn from the recommendation card."
       });
-      setActionEcho("已记成穿过记录，后续会帮你避开太像的重复搭配。");
-      onActionComplete?.("已记成穿过记录，后续会帮你避开太像的重复搭配。");
+      const message = buildModeAwareMessage(previewMode ? "已记成公开体验穿搭记录，后续会继续更新演示时间线。" : "已记成穿过记录，后续会帮你避开太像的重复搭配。");
+      setActionEcho(message);
+      onActionComplete?.(message);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Could not create the wear log.";
       setActionEcho(message);

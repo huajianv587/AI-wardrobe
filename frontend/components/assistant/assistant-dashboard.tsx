@@ -3,7 +3,7 @@
 import { startTransition, useEffect, useMemo, useState } from "react";
 import { Bot, BriefcaseBusiness, CalendarDays, CloudSun, MapPinned, Package2, Sparkles } from "lucide-react";
 
-import { AuthRequiredCard } from "@/components/auth/auth-required-card";
+import { VisitorPreviewNotice } from "@/components/auth/visitor-preview-notice";
 import { RecommendationLookCard } from "@/components/outfit/recommendation-look-card";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { PanelSkeleton } from "@/components/ui/panel-skeleton";
@@ -20,9 +20,103 @@ import {
   StyleProfile,
   updateStyleProfile
 } from "@/lib/api";
-import { useWardrobeStore } from "@/store/wardrobe-store";
+import { seedWardrobeItems, useWardrobeStore } from "@/store/wardrobe-store";
 
 const quickModes = ["上班", "约会", "出门买咖啡", "今天不想费脑"];
+
+function buildPreviewRecommendation(title: string, rationale: string, itemIds: number[]): RecommendationResult {
+  return {
+    source: "fallback",
+    outfits: [
+      {
+        title,
+        rationale,
+        itemIds,
+        confidence: 0.77,
+        confidenceLabel: "Preview look",
+        keyItemId: itemIds[0] ?? null,
+        substituteItemIds: itemIds.slice(1, 3),
+        reasonBadges: ["preview", "soft", "easy"],
+        charmCopy: "访客预览模式下，这里先展示一套演示搭配逻辑。登录后会替换成你的专属助手结果。",
+        moodEmoji: "☁️"
+      }
+    ],
+    agentTrace: [
+      { node: "Preview Router", summary: "先用演示衣橱和场景词构造预览结果。" },
+      { node: "Preview Stylist", summary: "保留和正式版一致的结果结构，方便之后直连真实模型。" }
+    ],
+    profileSummary: "当前是访客预览模式，还没有读取你的个人画像。",
+    closetGaps: ["轻薄外搭", "舒适通勤鞋"],
+    reminderFlags: ["本周重复率偏高", "有一件针织需要洗护"]
+  };
+}
+
+function buildPreviewProfile(): StyleProfile {
+  return {
+    user_id: 0,
+    favorite_colors: ["奶油白", "柔粉", "浅灰蓝"],
+    avoid_colors: ["荧光绿", "高饱和紫"],
+    favorite_silhouettes: ["高腰", "A字", "轻垂坠"],
+    avoid_silhouettes: ["过紧身", "太硬挺"],
+    style_keywords: ["甜感", "轻盈", "通勤"],
+    dislike_keywords: ["过辣", "过于街头"],
+    commute_profile: "轻正式，不想太板正",
+    comfort_priorities: ["面料柔软", "方便久坐"],
+    wardrobe_rules: ["通勤不超过三个主色", "约会时保留一个柔和亮点"],
+    personal_note: "希望整体是温柔、有呼吸感的。",
+    updated_at: new Date().toISOString()
+  };
+}
+
+function buildPreviewOverview() {
+  return {
+    tomorrow: {
+      weather: {
+        location_name: "上海",
+        timezone: "Asia/Shanghai",
+        date: new Date().toISOString().slice(0, 10),
+        weather_code: 1,
+        condition_label: "晴间多云",
+        temperature_max: 24,
+        temperature_min: 18,
+        precipitation_probability_max: 16
+      },
+      morning: {
+        period: "morning",
+        summary: "早上通勤稍微偏凉，建议保留一层轻外搭。",
+        recommendation: buildPreviewRecommendation("轻柔通勤早晨", "用浅色衬衫和柔和外搭稳定通勤氛围，同时避免太沉重。", [6, 1, 3, 7])
+      },
+      evening: {
+        period: "evening",
+        summary: "晚上可以更轻松一点，保留一点柔和亮点。",
+        recommendation: buildPreviewRecommendation("下班后的轻松版本", "把白天的稳重感放松一点，保留舒适和精致之间的平衡。", [2, 4, 8, 9])
+      },
+      commute_tip: "早晚温差轻微，建议准备一件可随时叠穿的外搭。"
+    },
+    gaps: {
+      summary: "演示衣橱在轻外搭和通勤鞋履上还有补充空间。",
+      insights: [
+        { title: "缺少薄外搭", description: "天气变化时还缺少轻便的过渡层。", urgency: "中" },
+        { title: "舒适通勤鞋偏少", description: "连续通勤时能轮换的鞋履不够。", urgency: "中" }
+      ]
+    },
+    reminders: {
+      repeat_warning: [
+        { title: "重复搭配提醒", description: "最近几次都偏向奶油白 + 深色下装的组合。", tone: "提醒", item_ids: [1, 3] }
+      ],
+      laundry_and_care: [
+        { title: "洗护提醒", description: "常穿针织建议安排一次轻柔洗护。", tone: "洗护", item_ids: [2] }
+      ],
+      idle_and_seasonal: [
+        { title: "换季提醒", description: "有一件外搭已经较久没有被重新激活。", tone: "闲置", item_ids: [5] }
+      ]
+    },
+    style_profile: buildPreviewProfile(),
+    recent_saved_outfits: [
+      { id: 1, user_id: null, name: "奶油通勤风", occasion: "通勤", style: "轻正式", item_ids: [1, 3, 7], reasoning: "柔和且稳定。", ai_generated: true, created_at: new Date().toISOString() }
+    ]
+  } satisfies AssistantOverview;
+}
 
 function joinList(values: string[]) {
   return values.join(", ");
@@ -64,6 +158,8 @@ export function AssistantDashboard() {
   const { ready: authReady, isAuthenticated } = useAuthSession();
   const items = useWardrobeStore((state) => state.items);
   const replaceItems = useWardrobeStore((state) => state.replaceItems);
+  const previewMode = !isAuthenticated;
+  const displayItems = items.length > 0 ? items : seedWardrobeItems;
 
   const [overview, setOverview] = useState<AssistantOverview | null>(null);
   const [quickResult, setQuickResult] = useState<RecommendationResult | null>(null);
@@ -86,7 +182,7 @@ export function AssistantDashboard() {
   }, [overview]);
 
   useEffect(() => {
-    if (!authReady || !isAuthenticated) {
+    if (!authReady) {
       return;
     }
 
@@ -94,13 +190,17 @@ export function AssistantDashboard() {
 
     async function hydrate() {
       setBusyKey("overview");
-      setStatusText("Loading your weather-aware styling assistant...");
+      setStatusText(
+        isAuthenticated
+          ? "Loading your weather-aware styling assistant..."
+          : "Loading the public experience assistant workspace..."
+      );
 
       try {
         const [overviewPayload, profilePayload, wardrobePayload] = await Promise.all([
           fetchAssistantOverview(),
           fetchStyleProfile(),
-          items.length > 0 ? Promise.resolve(items) : fetchWardrobeItems()
+          fetchWardrobeItems()
         ]);
 
         if (!active) {
@@ -110,16 +210,24 @@ export function AssistantDashboard() {
         setOverview(overviewPayload);
         setStyleProfile(profilePayload);
         setFormState(toFormState(profilePayload));
-        if (wardrobePayload !== items) {
-          startTransition(() => replaceItems(wardrobePayload));
-        }
-        setStatusText("Your assistant overview is ready, with tomorrow planning, closet gaps, and gentle reminders.");
+        startTransition(() => replaceItems(wardrobePayload));
+        setStatusText(
+          isAuthenticated
+            ? "Your assistant overview is ready, with tomorrow planning, closet gaps, and gentle reminders."
+            : "公开体验工作台已经就绪。当前页面仍然走真实接口，只是先读取公开体验衣橱；登录后会自动切到你的私人账号。"
+        );
       } catch (error) {
         if (!active) {
           return;
         }
 
-        setStatusText(error instanceof Error ? error.message : "Could not load the assistant overview.");
+        const fallbackOverview = buildPreviewOverview();
+        const fallbackProfile = fallbackOverview.style_profile;
+        setOverview(fallbackOverview);
+        setStyleProfile(fallbackProfile);
+        setFormState(toFormState(fallbackProfile));
+        startTransition(() => replaceItems(seedWardrobeItems));
+        setStatusText(error instanceof Error ? `${error.message} 已切到本地降级展示。` : "Could not load the assistant overview. Switched to local fallback.");
       } finally {
         if (active) {
           setBusyKey(null);
@@ -132,7 +240,7 @@ export function AssistantDashboard() {
     return () => {
       active = false;
     };
-  }, [authReady, isAuthenticated, items, replaceItems]);
+  }, [authReady, isAuthenticated, replaceItems]);
 
   async function handleSearchLocation() {
     setBusyKey("location-search");
@@ -142,7 +250,12 @@ export function AssistantDashboard() {
       setLocationSuggestions(matches.map((item) => [item.name, item.admin1, item.country].filter(Boolean).join(", ")));
       setStatusText(matches.length > 0 ? "地点候选已更新，点一个就能直接生成明日穿搭。" : "没有搜到更合适的地点候选，试试更完整的城市名。");
     } catch (error) {
-      setStatusText(error instanceof Error ? error.message : "Could not search locations.");
+      setLocationSuggestions([
+        `${locationQuery}, 中国`,
+        `${locationQuery}, 市中心`,
+        `${locationQuery}, 通勤区域`
+      ]);
+      setStatusText(error instanceof Error ? `${error.message} 已先给出本地点候选。` : "Could not search locations. Showing local fallback suggestions instead.");
     } finally {
       setBusyKey(null);
     }
@@ -160,7 +273,18 @@ export function AssistantDashboard() {
       setOverview((current) => current ? { ...current, tomorrow } : current);
       setStatusText("明天穿什么助手已经按地点、天气和通勤状态更新好了。");
     } catch (error) {
-      setStatusText(error instanceof Error ? error.message : "Could not generate the tomorrow plan.");
+      setOverview((current) => current ? {
+        ...current,
+        tomorrow: {
+          ...current.tomorrow,
+          weather: {
+            ...current.tomorrow.weather,
+            location_name: locationQuery
+          },
+          commute_tip: hasCommute ? "降级模式: 先保留一层轻外搭会更稳妥。" : "降级模式: 可以更轻松地收掉外搭。"
+        }
+      } : current);
+      setStatusText(error instanceof Error ? `${error.message} 已先按当前地点刷新降级结果。` : "Could not generate the tomorrow plan. Switched to a local fallback.");
     } finally {
       setBusyKey(null);
     }
@@ -174,7 +298,9 @@ export function AssistantDashboard() {
       setQuickResult(recommendation);
       setStatusText(`少思考模式已切到「${mode}」，现在会更偏向直接给结果。`);
     } catch (error) {
-      setStatusText(error instanceof Error ? error.message : "Could not run quick mode.");
+      const ids = mode === "上班" ? [6, 1, 3, 7] : mode === "约会" ? [5, 4, 9] : mode === "出门买咖啡" ? [2, 4, 8] : [1, 3, 7];
+      setQuickResult(buildPreviewRecommendation(`${mode} · 直接给结果`, `真实少思考模式暂时不可用，所以先按当前场景给你一套降级答案。`, ids));
+      setStatusText(error instanceof Error ? `${error.message} 已先切到降级推荐。` : "Could not run quick mode. Switched to local fallback.");
     } finally {
       setBusyKey(null);
     }
@@ -190,11 +316,13 @@ export function AssistantDashboard() {
         trip_kind: "city break",
         include_commute: false
       });
-      const itemNames = result.suggestions.map((entry: { item_id: number }) => items.find((item) => item.id === entry.item_id)?.name ?? `#${entry.item_id}`);
+      const itemNames = result.suggestions.map((entry: { item_id: number }) => displayItems.find((item) => item.id === entry.item_id)?.name ?? `#${entry.item_id}`);
       setPackingSummary(`${result.capsule_summary} 推荐带上：${itemNames.join(" / ")}`);
       setStatusText("行李箱模式已经按城市天气和现有衣橱做了胶囊衣橱建议。");
     } catch (error) {
-      setStatusText(error instanceof Error ? error.message : "Could not build the packing plan.");
+      const itemNames = displayItems.slice(0, 4).map((item) => item.name);
+      setPackingSummary(`降级模式: 适合 ${locationQuery} 的 4 天胶囊衣橱建议，推荐带上：${itemNames.join(" / ")}`);
+      setStatusText(error instanceof Error ? `${error.message} 已先生成降级版行李箱建议。` : "Could not build the packing plan. Switched to local fallback.");
     } finally {
       setBusyKey(null);
     }
@@ -218,9 +346,24 @@ export function AssistantDashboard() {
       });
       setStyleProfile(nextProfile);
       setFormState(toFormState(nextProfile));
-      setStatusText("个人风格记忆层已经更新，后续推荐会开始按这份画像重新排序。");
+      setStatusText(previewMode ? "公开体验画像已经更新。登录后保存时会自动写入你的私人账号。" : "个人风格记忆层已经更新，后续推荐会开始按这份画像重新排序。");
     } catch (error) {
-      setStatusText(error instanceof Error ? error.message : "Could not update the style profile.");
+      const nextProfile = {
+        ...(styleProfile ?? buildPreviewProfile()),
+        favorite_colors: splitList(formState.favoriteColors),
+        avoid_colors: splitList(formState.avoidColors),
+        favorite_silhouettes: splitList(formState.favoriteSilhouettes),
+        avoid_silhouettes: splitList(formState.avoidSilhouettes),
+        style_keywords: splitList(formState.styleKeywords),
+        dislike_keywords: splitList(formState.dislikeKeywords),
+        commute_profile: formState.commuteProfile || null,
+        comfort_priorities: splitList(formState.comfortPriorities),
+        wardrobe_rules: splitList(formState.wardrobeRules),
+        personal_note: formState.personalNote || null
+      };
+      setStyleProfile(nextProfile);
+      setFormState(toFormState(nextProfile));
+      setStatusText(error instanceof Error ? `${error.message} 已先保留本地修改。` : "Could not update the style profile. Saved locally as a fallback.");
     } finally {
       setBusyKey(null);
     }
@@ -230,17 +373,12 @@ export function AssistantDashboard() {
     return <PanelSkeleton rows={3} />;
   }
 
-  if (!isAuthenticated) {
-    return (
-      <AuthRequiredCard
-        title="Sign in to open your personal assistant"
-        description="Tomorrow planning, closet gaps, low-thought mode, and personalized memory all depend on your private wardrobe and feedback signals."
-      />
-    );
-  }
-
   return (
     <div className="space-y-6">
+      {previewMode ? (
+        <VisitorPreviewNotice description="当前是公开体验模式。这个页面仍然优先请求真实接口，只是暂时读取公开体验衣橱；登录后会自动切到你的私人衣橱、地点和反馈数据。" />
+      ) : null}
+
       <section className="section-card story-gradient rounded-[36px] p-6">
         <div className="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
           <div>
@@ -339,8 +477,8 @@ export function AssistantDashboard() {
 
           {overview ? (
             <>
-              <RecommendationLookCard recommendation={overview.tomorrow.morning.recommendation.outfits[0]} items={items} prompt={schedule} scene="tomorrow-morning" onActionComplete={setStatusText} />
-              <RecommendationLookCard recommendation={overview.tomorrow.evening.recommendation.outfits[0]} items={items} prompt={schedule} scene="tomorrow-evening" onActionComplete={setStatusText} />
+              <RecommendationLookCard recommendation={overview.tomorrow.morning.recommendation.outfits[0]} items={displayItems} prompt={schedule} scene="tomorrow-morning" previewMode={previewMode} onActionComplete={setStatusText} />
+              <RecommendationLookCard recommendation={overview.tomorrow.evening.recommendation.outfits[0]} items={displayItems} prompt={schedule} scene="tomorrow-evening" previewMode={previewMode} onActionComplete={setStatusText} />
             </>
           ) : null}
         </div>
@@ -362,7 +500,7 @@ export function AssistantDashboard() {
           </article>
 
           {quickResult ? (
-            <RecommendationLookCard recommendation={quickResult.outfits[0]} items={items} prompt="quick-mode" scene="quick-mode" onActionComplete={setStatusText} />
+            <RecommendationLookCard recommendation={quickResult.outfits[0]} items={displayItems} prompt="quick-mode" scene="quick-mode" previewMode={previewMode} onActionComplete={setStatusText} />
           ) : null}
 
           <article className="section-card rounded-[32px] p-5">

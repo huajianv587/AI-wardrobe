@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智能衣物 · 云衣橱</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;300;400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf3ee;--panel:#fdf9f6;--rose:#c07a6e;--rose-dk:#a8645a;
+  --rose-lt:#edd5cb;--rose-pale:#f7ece7;--rose-faint:#faf4f1;
+  --ink:#1e1410;--ink2:#6b4f47;--ink3:#b89088;
+  --sage:#7a9e98;--sage-lt:#d4e8e4;--sage-pale:#edf5f3;
+  --amber:#b08040;--amber-lt:#f0e0c0;--amber-pale:#faf3e8;
+  --blue:#6080a8;--blue-lt:#c8d8f0;--blue-pale:#edf2fa;
+  --border:rgba(192,122,110,0.13);
+  --serif-jp:'Noto Serif SC',serif;
+  --serif-en:'Cormorant Garamond',serif;
+  --sans:'Lato',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);font-family:var(--sans);font-weight:300;color:var(--ink);overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 85% 60% at 0% 10%,rgba(240,215,205,.5) 0%,transparent 60%),
+  radial-gradient(ellipse 55% 55% at 100% 80%,rgba(200,220,215,.22) 0%,transparent 55%),
+  radial-gradient(ellipse 45% 40% at 55% 0%,rgba(255,248,244,.65) 0%,transparent 55%)}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:300;height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 52px;background:rgba(250,243,238,.82);backdrop-filter:blur(16px);border-bottom:.5px solid var(--border)}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.lm{width:30px;height:30px;border-radius:50%;background:var(--rose);display:flex;align-items:center;justify-content:center}
+.lm svg{width:15px;height:15px;fill:#fff}
+.lcn{font-family:var(--serif-jp);font-size:15px;font-weight:300;letter-spacing:.1em;color:var(--ink);line-height:1}
+.len{font-family:var(--serif-en);font-size:9px;font-style:italic;letter-spacing:.2em;color:var(--ink3);display:block;margin-top:2px}
+.nl{display:flex;gap:36px}
+.nl a{text-decoration:none;font-family:var(--serif-jp);font-size:13px;font-weight:300;letter-spacing:.06em;color:var(--ink2);transition:color .2s;position:relative;padding-bottom:3px}
+.nl a.active{color:var(--rose)}.nl a.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:var(--rose)}
+.nl a:hover{color:var(--rose)}
+.nr{display:flex;gap:10px;align-items:center}
+.nr a{text-decoration:none;font-family:var(--serif-jp);font-size:13px;font-weight:300;letter-spacing:.06em;color:var(--ink2);padding:6px 16px;border:.5px solid transparent;border-radius:2px;transition:all .2s}
+.nr a.reg{border-color:var(--rose);color:var(--rose)}.nr a:hover{color:var(--rose)}
+
+/* PAGE */
+.page{position:relative;z-index:1;padding:86px 40px 60px;min-height:100vh}
+
+/* PAGE HEADER */
+.pg-header{display:grid;grid-template-columns:1fr auto;align-items:end;padding-bottom:22px;margin-bottom:28px;border-bottom:.5px solid var(--border)}
+.pgh-l{}
+.pgh-eyebrow{font-family:var(--serif-en);font-style:italic;font-size:10px;color:var(--rose);letter-spacing:.18em;display:block;margin-bottom:7px}
+.pgh-title{font-family:var(--serif-jp);font-weight:200;font-size:28px;letter-spacing:.07em;color:var(--ink);margin-bottom:6px}
+.pgh-sub{font-family:var(--serif-jp);font-size:12.5px;font-weight:300;color:var(--ink3);letter-spacing:.05em;line-height:1.8}
+.pgh-r{display:flex;gap:8px;align-items:center}
+
+/* STAT CARDS TOP */
+.stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:28px}
+.stc{background:var(--panel);border:.5px solid var(--border);border-radius:3px;padding:14px 16px;transition:border-color .2s;cursor:default}
+.stc:hover{border-color:rgba(192,122,110,.28)}
+.stc-ico{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.stc-ico svg{width:13px;height:13px;fill:none;stroke-width:1.5}
+.stc-val{font-family:var(--serif-jp);font-size:22px;font-weight:200;color:var(--ink);line-height:1;margin-bottom:3px}
+.stc-lbl{font-family:var(--serif-en);font-style:italic;font-size:9px;color:var(--ink3);letter-spacing:.14em}
+.stc-bar{height:2px;border-radius:1px;background:var(--rose-pale);margin-top:8px}
+.stc-fill{height:100%;border-radius:1px}
+
+/* MAIN GRID */
+.main-grid{display:grid;grid-template-columns:260px 1fr;gap:20px;align-items:start}
+
+/* LEFT PANEL */
+.lp{display:flex;flex-direction:column;gap:14px;position:sticky;top:80px}
+
+/* section card */
+.lcard{background:var(--panel);border:.5px solid var(--border);border-radius:3px;overflow:hidden}
+.lcard-hd{padding:12px 16px;border-bottom:.5px solid var(--border);background:var(--rose-faint);display:flex;align-items:center;gap:8px}
+.lcard-hd svg{width:13px;height:13px;fill:none;stroke:var(--rose);stroke-width:1.5;flex-shrink:0}
+.lcard-title{font-family:var(--serif-en);font-style:italic;font-size:10px;color:var(--rose);letter-spacing:.14em}
+.lcard-body{padding:14px 16px}
+
+/* pipeline status */
+.pipe-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:.5px solid rgba(192,122,110,.06)}
+.pipe-item:last-child{border-bottom:none}
+.pi-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.pi-dot.run{background:var(--sage);animation:blink 1.8s ease-in-out infinite}
+.pi-dot.wait{background:var(--amber-lt);border:.5px solid var(--amber)}
+.pi-dot.done{background:var(--sage-lt);border:.5px solid var(--sage)}
+.pi-dot.err{background:#f0c0c0;border:.5px solid #d08080}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+.pi-label{font-family:var(--serif-jp);font-size:11.5px;font-weight:300;color:var(--ink2);letter-spacing:.04em;flex:1}
+.pi-count{font-size:10px;color:var(--ink3);background:var(--rose-faint);border-radius:8px;padding:1px 8px}
+.pi-count.run{background:rgba(122,158,152,.15);color:var(--sage)}
+.pi-count.err{background:#fef0f0;color:#d08080}
+
+/* queue progress */
+.queue-bar{margin-top:10px}
+.qb-label{display:flex;justify-content:space-between;font-size:10px;color:var(--ink3);margin-bottom:5px;letter-spacing:.04em}
+.qb-track{height:4px;background:var(--rose-pale);border-radius:2px;overflow:hidden}
+.qb-fill{height:100%;border-radius:2px;background:var(--sage);transition:width .8s ease}
+
+/* service list */
+.svc-item{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:.5px solid rgba(192,122,110,.06)}
+.svc-item:last-child{border-bottom:none}
+.svc-l{display:flex;align-items:center;gap:8px}
+.svc-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.svc-dot.on{background:var(--sage)}.svc-dot.off{background:var(--ink3)}.svc-dot.local{background:var(--amber)}
+.svc-name{font-family:var(--serif-jp);font-size:11.5px;font-weight:300;color:var(--ink2);letter-spacing:.04em}
+.svc-badge{font-size:9px;padding:2px 7px;border-radius:8px;letter-spacing:.06em}
+.sb-on{background:rgba(122,158,152,.15);color:var(--sage)}
+.sb-off{background:var(--rose-faint);color:var(--ink3)}
+.sb-local{background:var(--amber-pale);color:var(--amber)}
+.sb-pri{background:var(--blue-pale);color:var(--blue)}
+
+/* filter section */
+.filter-section{display:flex;flex-direction:column;gap:6px}
+.fs-label{font-family:var(--serif-en);font-style:italic;font-size:9.5px;color:var(--ink3);letter-spacing:.14em;margin-top:8px;margin-bottom:2px;display:block}
+.fs-label:first-child{margin-top:0}
+.filter-pills{display:flex;flex-wrap:wrap;gap:5px}
+.fpill{font-family:var(--serif-jp);font-size:11px;font-weight:300;letter-spacing:.04em;padding:5px 12px;border-radius:16px;border:.5px solid var(--border);background:var(--panel);color:var(--ink2);cursor:pointer;transition:all .2s}
+.fpill:hover{border-color:var(--rose);color:var(--rose)}
+.fpill.on{background:var(--rose);border-color:var(--rose);color:#fff}
+.fpill.sage.on{background:var(--sage);border-color:var(--sage)}
+.fpill.amber.on{background:var(--amber);border-color:var(--amber)}
+
+/* RIGHT PANEL */
+.rp{display:flex;flex-direction:column;gap:20px}
+
+/* TOOLBAR */
+.toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tsearch{position:relative;flex:1;min-width:200px;max-width:320px}
+.tsearch input{width:100%;font-family:var(--serif-jp);font-weight:300;font-size:12.5px;letter-spacing:.04em;color:var(--ink);background:var(--panel);border:.5px solid var(--border);border-radius:2px;padding:9px 12px 9px 34px;outline:none;transition:all .2s}
+.tsearch input:focus{border-color:var(--rose);box-shadow:0 0 0 3px rgba(192,122,110,.07)}
+.tsearch input::placeholder{color:var(--ink3);font-size:12px}
+.tsearch svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;fill:none;stroke:var(--ink3);stroke-width:1.5}
+.tsort{font-family:var(--serif-jp);font-weight:300;font-size:11.5px;letter-spacing:.05em;color:var(--ink2);background:var(--panel);border:.5px solid var(--border);border-radius:2px;padding:7px 26px 7px 11px;outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='5'%3E%3Cpath d='M0 0l4.5 5 4.5-5z' fill='%23b89088'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center}
+.tact{display:flex;align-items:center;gap:6px;font-family:var(--serif-jp);font-weight:300;font-size:12px;letter-spacing:.06em;padding:8px 16px;border-radius:2px;cursor:pointer;transition:all .2s}
+.tact svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.5;flex-shrink:0}
+.tact-ink{background:var(--ink);color:var(--panel);border:none}.tact-ink:hover{background:var(--rose)}
+.tact-sage{background:var(--sage);color:#fff;border:none}.tact-sage:hover{background:#5a8882}
+.tact-out{background:transparent;color:var(--ink2);border:.5px solid var(--border)}.tact-out:hover{border-color:var(--rose);color:var(--rose)}
+.tact-amber{background:var(--amber);color:#fff;border:none}.tact-amber:hover{background:#886030}
+.ml-auto{margin-left:auto}
+
+/* SECTION HEADER */
+.sec-hd{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.sec-hd-line{flex:1;height:.5px;background:var(--border)}
+.sec-hd-txt{font-family:var(--serif-en);font-style:italic;font-size:10px;color:var(--ink3);letter-spacing:.16em;white-space:nowrap}
+.sec-hd-count{font-size:10px;color:var(--rose);background:var(--rose-pale);border-radius:8px;padding:1px 8px}
+
+/* IMAGE PROCESSING GRID */
+.ip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+
+.ipc{background:var(--panel);border:.5px solid var(--border);border-radius:3px;overflow:hidden;transition:all .22s;position:relative}
+.ipc:hover{border-color:rgba(192,122,110,.3);box-shadow:0 6px 24px rgba(30,20,16,.07)}
+
+/* before/after image strip */
+.ipc-visual{position:relative;height:140px;overflow:hidden;cursor:pointer}
+.ipc-before,.ipc-after{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transition:opacity .4s}
+.ipc-before{background:linear-gradient(145deg,#e8d8c8,#d8c8b8)}
+.ipc-after{opacity:0;background:linear-gradient(145deg,#f8f4f0,#f0ece8)}
+.ipc:hover .ipc-before{opacity:0}
+.ipc:hover .ipc-after{opacity:1}
+.ipc-ba-label{position:absolute;top:7px;left:7px;font-size:8.5px;border-radius:2px;padding:2px 7px;letter-spacing:.06em;font-family:var(--serif-jp);z-index:2;transition:opacity .3s}
+.ipc-ba-label.before-l{background:rgba(30,20,16,.35);color:#fff}
+.ipc-ba-label.after-l{background:rgba(122,158,152,.8);color:#fff;opacity:0}
+.ipc:hover .ipc-ba-label.before-l{opacity:0}
+.ipc:hover .ipc-ba-label.after-l{opacity:1}
+
+/* clothing silhouette inside card */
+.cloth-sil{width:52px;height:68px;opacity:.55}
+
+/* status overlay */
+.ipc-status{position:absolute;top:7px;right:7px;z-index:3}
+.st-badge{font-size:8.5px;padding:3px 8px;border-radius:2px;font-family:var(--serif-jp);letter-spacing:.06em;display:flex;align-items:center;gap:4px}
+.st-badge svg{width:10px;height:10px;flex-shrink:0}
+.st-done{background:rgba(122,158,152,.9);color:#fff}
+.st-run{background:rgba(192,122,110,.85);color:#fff;animation:stpulse 1.5s ease-in-out infinite}
+@keyframes stpulse{0%,100%{opacity:1}50%{opacity:.6}}
+.st-wait{background:rgba(176,128,64,.75);color:#fff}
+.st-err{background:rgba(200,80,70,.8);color:#fff}
+.st-raw{background:rgba(100,100,100,.5);color:#fff}
+
+/* progress bar inside card */
+.ipc-prog{height:2px;background:var(--rose-pale);overflow:hidden}
+.ipc-prog-fill{height:100%;transition:width 1s ease}
+.fill-done{background:var(--sage);width:100%}
+.fill-run{background:var(--rose);animation:progrun 1.8s ease-in-out infinite}
+@keyframes progrun{0%,100%{width:60%}50%{width:80%}}
+.fill-wait{background:var(--amber-lt);width:30%}
+.fill-err{background:#d08080;width:100%}
+
+/* card info */
+.ipc-info{padding:10px 12px}
+.ipc-name{font-family:var(--serif-jp);font-size:12px;font-weight:300;color:var(--ink);letter-spacing:.04em;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ipc-meta{display:flex;align-items:center;gap:6px;margin-bottom:7px;flex-wrap:wrap}
+.ipc-tag{font-size:9.5px;padding:2px 8px;border-radius:8px;letter-spacing:.03em}
+.t-rose{background:var(--rose-pale);color:var(--rose-dk)}
+.t-sage{background:var(--sage-pale);color:var(--sage)}
+.t-amber{background:var(--amber-pale);color:var(--amber)}
+.t-blue{background:var(--blue-pale);color:var(--blue)}
+.t-gray{background:#f0ede8;color:#888}
+.ipc-service{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--ink3);letter-spacing:.04em}
+.ipc-service svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:1.5;flex-shrink:0}
+
+/* card actions */
+.ipc-acts{display:flex;gap:6px;margin-top:6px}
+.ia{display:flex;align-items:center;gap:4px;font-family:var(--serif-jp);font-size:11px;letter-spacing:.04em;padding:5px 10px;border-radius:2px;cursor:pointer;transition:all .18s;border:.5px solid var(--border);background:transparent;color:var(--ink2)}
+.ia svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:1.7}
+.ia:hover{border-color:var(--rose);color:var(--rose)}
+.ia.primary{background:var(--rose);border-color:var(--rose);color:#fff}
+.ia.primary:hover{background:var(--rose-dk)}
+.ia.sage{background:var(--sage);border-color:var(--sage);color:#fff}
+.ia.sage:hover{background:#5a8882}
+
+/* ENRICH GRID */
+.enrich-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+
+.enc{background:var(--panel);border:.5px solid var(--border);border-radius:3px;overflow:hidden;transition:all .22s}
+.enc:hover{border-color:rgba(192,122,110,.3);box-shadow:0 6px 24px rgba(30,20,16,.07)}
+
+.enc-top{display:flex;gap:12px;padding:14px 14px 12px}
+.enc-thumb{width:56px;height:72px;border-radius:3px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.enc-thumb-inner{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.enc-right{flex:1;min-width:0}
+.enc-name{font-family:var(--serif-jp);font-size:13px;font-weight:300;color:var(--ink);letter-spacing:.05em;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.enc-orig-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:7px}
+.enc-score{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--ink3)}
+.enc-score-bar{flex:1;height:3px;background:var(--rose-pale);border-radius:2px;overflow:hidden}
+.enc-score-fill{height:100%;border-radius:2px;background:var(--sage)}
+.enc-score-val{font-family:var(--serif-en);font-size:10px;color:var(--sage);white-space:nowrap;letter-spacing:.06em}
+
+/* enriched data block */
+.enc-enriched{padding:12px 14px;background:var(--rose-faint);border-top:.5px solid var(--border)}
+.enc-enr-row{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start}
+.enc-enr-row:last-child{margin-bottom:0}
+.enr-key{font-family:var(--serif-en);font-style:italic;font-size:9.5px;color:var(--ink3);letter-spacing:.12em;white-space:nowrap;padding-top:2px;min-width:42px}
+.enr-val{font-family:var(--serif-jp);font-size:11.5px;font-weight:300;color:var(--ink2);letter-spacing:.04em;line-height:1.6}
+.enr-tags{display:flex;gap:4px;flex-wrap:wrap}
+.enr-tag{font-size:10px;padding:2px 8px;border-radius:8px}
+.enr-tag.new{background:rgba(122,158,152,.15);color:var(--sage);border:.5px solid rgba(122,158,152,.3)}
+.enr-tag.exist{background:var(--rose-pale);color:var(--rose-dk)}
+
+.enc-acts{display:flex;gap:6px;padding:10px 14px;border-top:.5px solid var(--border)}
+
+/* pending row — items not yet enriched */
+.pending-row{display:grid;grid-template-columns:1fr;gap:8px}
+.pr-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--panel);border:.5px solid var(--border);border-radius:3px;transition:all .2s}
+.pr-item:hover{border-color:rgba(192,122,110,.25)}
+.pr-thumb{width:42px;height:54px;border-radius:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.pr-name{font-family:var(--serif-jp);font-size:12.5px;font-weight:300;color:var(--ink);letter-spacing:.05em;flex:1}
+.pr-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.pr-status{display:flex;align-items:center;gap:6px}
+.pr-progress{width:80px;height:3px;background:var(--rose-pale);border-radius:2px;overflow:hidden}
+.pr-pfill{height:100%;background:var(--sage);border-radius:2px;transition:width .6s ease}
+.pr-pct{font-size:10px;color:var(--sage);letter-spacing:.04em;white-space:nowrap}
+
+/* batch actions bar */
+.batch-bar{display:flex;align-items:center;gap:10px;padding:11px 16px;background:var(--sage-pale);border:.5px solid rgba(122,158,152,.2);border-radius:3px;margin-bottom:16px}
+.bb-label{font-family:var(--serif-jp);font-size:12px;color:var(--sage);letter-spacing:.05em;font-weight:300}
+.bb-sep{width:.5px;height:14px;background:rgba(122,158,152,.3)}
+.bba{display:flex;align-items:center;gap:5px;font-family:var(--serif-jp);font-size:11.5px;color:var(--ink2);background:none;border:none;cursor:pointer;letter-spacing:.04em;transition:color .2s;padding:0}
+.bba svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.8}
+.bba:hover{color:var(--sage)}
+.bb-ml{margin-left:auto}
+
+/* modal backdrop */
+.modal-bg{position:fixed;inset:0;z-index:400;background:rgba(30,20,16,.25);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center}
+.modal-bg.show{display:flex}
+.modal{background:var(--panel);border:.5px solid rgba(192,122,110,.2);border-radius:4px;padding:28px;width:480px;max-width:90vw;box-shadow:0 16px 56px rgba(30,20,16,.14)}
+.modal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.modal-title{font-family:var(--serif-jp);font-size:16px;font-weight:300;color:var(--ink);letter-spacing:.07em}
+.modal-x{background:none;border:none;font-size:18px;color:var(--ink3);cursor:pointer;padding:0;line-height:1}
+.modal-body{}
+.modal-field{margin-bottom:16px}
+.mf-label{font-family:var(--serif-jp);font-size:11px;color:var(--ink3);letter-spacing:.07em;display:block;margin-bottom:6px}
+.mf-input{width:100%;font-family:var(--serif-jp);font-weight:300;font-size:13px;color:var(--ink);background:var(--bg);border:.5px solid var(--border);border-radius:2px;padding:10px 12px;outline:none;transition:border-color .2s}
+.mf-input:focus{border-color:var(--rose)}
+.mf-input::placeholder{color:var(--ink3)}
+.mf-select{width:100%;font-family:var(--serif-jp);font-weight:300;font-size:13px;color:var(--ink);background:var(--bg);border:.5px solid var(--border);border-radius:2px;padding:10px 28px 10px 12px;outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23b89088'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.modal-btns{display:flex;gap:8px;margin-top:4px}
+.mb-main{flex:1;font-family:var(--serif-jp);font-size:13px;letter-spacing:.1em;background:var(--ink);color:var(--panel);border:none;border-radius:2px;padding:11px;cursor:pointer;transition:background .2s}
+.mb-main:hover{background:var(--rose)}
+.mb-sub{font-family:var(--serif-jp);font-size:13px;letter-spacing:.06em;background:transparent;color:var(--ink3);border:.5px solid var(--border);border-radius:2px;padding:11px 18px;cursor:pointer;transition:all .2s}
+.mb-sub:hover{color:var(--rose);border-color:var(--rose)}
+
+/* action buttons shared */
+.btn{display:inline-flex;align-items:center;gap:6px;font-family:var(--serif-jp);font-weight:300;font-size:12px;letter-spacing:.06em;padding:8px 16px;border-radius:2px;cursor:pointer;transition:all .2s}
+.btn svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.5;flex-shrink:0}
+.btn-ink{background:var(--ink);color:var(--panel);border:none}.btn-ink:hover{background:var(--rose)}
+.btn-sage{background:var(--sage);color:#fff;border:none}.btn-sage:hover{background:#5a8882}
+.btn-out{background:transparent;color:var(--ink2);border:.5px solid var(--border)}.btn-out:hover{border-color:var(--rose);color:var(--rose)}
+
+/* toast */
+.toast{position:fixed;bottom:28px;right:28px;z-index:500;background:var(--ink);color:var(--panel);font-family:var(--serif-jp);font-size:12.5px;letter-spacing:.06em;padding:12px 20px;border-radius:3px;transform:translateY(60px);opacity:0;transition:all .35s;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* pagi */
+.pagi{display:flex;align-items:center;justify-content:center;gap:5px;margin-top:24px}
+.pg{width:30px;height:30px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-family:var(--serif-en);font-size:13px;background:var(--panel);border:.5px solid var(--border);color:var(--ink2);cursor:pointer;transition:all .2s}
+.pg:hover{border-color:var(--rose);color:var(--rose)}.pg.on{background:var(--rose);border-color:var(--rose);color:#fff}
+.pg.arr svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2}
+
+/* ci colors */
+.ci1{background:linear-gradient(145deg,#f3e0d8,#ebcfc5)}.ci2{background:linear-gradient(145deg,#d8eae6,#c4d8d3)}.ci3{background:linear-gradient(145deg,#eee8de,#e4dcd0)}.ci4{background:linear-gradient(145deg,#e8d8e8,#dcc8dc)}.ci5{background:linear-gradient(145deg,#dde8f2,#c8d8e6)}.ci6{background:linear-gradient(145deg,#f2ead8,#e8e0c4)}.ci7{background:linear-gradient(145deg,#e4f0d8,#d0e4c0)}.ci8{background:linear-gradient(145deg,#f2dde8,#e4c8d8)}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="#"><div class="lm"><svg viewBox="0 0 24 24"><path d="M12 2C9.24 2 7 4.02 7 6.5c0 1.4.65 2.64 1.65 3.5H5.5L6.5 21h11l1-11h-3.15A4.47 4.47 0 0 0 17 6.5C17 4.02 14.76 2 12 2zm0 2c1.38 0 2.5 1.01 2.5 2.5S13.38 9 12 9s-2.5-1.01-2.5-2.5S10.62 4 12 4z"/></svg></div><div><div class="lcn">云衣橱</div><span class="len">AI WARDROBE</span></div></a>
+  <div class="nl"><a href="#">首页</a><a href="wardrobe_manage.html">衣橱管理</a><a href="#" class="active">智能衣物</a><a href="#">穿搭日志</a><a href="#">衣橱分析</a><a href="#">功能</a></div>
+  <div class="nr"><a href="#" class="reg">注册</a><a href="#">登录</a></div>
+</nav>
+
+<div class="page">
+
+  <!-- PAGE HEADER -->
+  <div class="pg-header">
+    <div class="pgh-l">
+      <span class="pgh-eyebrow">AI Intelligence · Smart Processing</span>
+      <div class="pgh-title">智能衣物处理</div>
+      <div class="pgh-sub">AI 图片处理 · 自动标签补全 · 异步处理队列</div>
+    </div>
+    <div class="pgh-r">
+      <button class="btn btn-out" onclick="showModal('service')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>服务配置</button>
+      <button class="btn btn-sage" onclick="runAll()"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>全量处理</button>
+      <button class="btn btn-ink" onclick="showModal('upload')"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>批量上传</button>
+    </div>
+  </div>
+
+  <!-- STAT ROW -->
+  <div class="stat-row">
+    <div class="stc">
+      <div class="stc-ico" style="background:var(--rose-pale)"><svg viewBox="0 0 24 24" stroke="var(--rose)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+      <div class="stc-val">128</div>
+      <div class="stc-lbl">Total Images</div>
+      <div class="stc-bar"><div class="stc-fill" style="width:100%;background:var(--rose)"></div></div>
+    </div>
+    <div class="stc">
+      <div class="stc-ico" style="background:var(--sage-pale)"><svg viewBox="0 0 24 24" stroke="var(--sage)"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="stc-val">104</div>
+      <div class="stc-lbl">Processed</div>
+      <div class="stc-bar"><div class="stc-fill" style="width:81%;background:var(--sage)"></div></div>
+    </div>
+    <div class="stc">
+      <div class="stc-ico" style="background:var(--rose-pale)"><svg viewBox="0 0 24 24" stroke="var(--rose)"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+      <div class="stc-val" style="font-size:17px;margin-top:2px">3 件</div>
+      <div class="stc-lbl">Processing</div>
+      <div class="stc-bar"><div class="stc-fill" style="width:100%;background:var(--rose);animation:progrun 1.8s ease-in-out infinite"></div></div>
+    </div>
+    <div class="stc">
+      <div class="stc-ico" style="background:var(--amber-pale)"><svg viewBox="0 0 24 24" stroke="var(--amber)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+      <div class="stc-val">21</div>
+      <div class="stc-lbl">Pending</div>
+      <div class="stc-bar"><div class="stc-fill" style="width:16%;background:var(--amber)"></div></div>
+    </div>
+    <div class="stc">
+      <div class="stc-ico" style="background:var(--sage-pale)"><svg viewBox="0 0 24 24" stroke="var(--sage)"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></div>
+      <div class="stc-val">96</div>
+      <div class="stc-lbl">Tags Enriched</div>
+      <div class="stc-bar"><div class="stc-fill" style="width:75%;background:var(--sage)"></div></div>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+
+    <!-- LEFT -->
+    <div class="lp">
+
+      <!-- Pipeline status -->
+      <div class="lcard">
+        <div class="lcard-hd"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span class="lcard-title">Pipeline Status</span></div>
+        <div class="lcard-body">
+          <div class="pipe-item"><div class="pi-dot run"></div><span class="pi-label">图片抠图处理</span><span class="pi-count run">运行中</span></div>
+          <div class="pipe-item"><div class="pi-dot run"></div><span class="pi-label">白底图生成</span><span class="pi-count run">运行中</span></div>
+          <div class="pipe-item"><div class="pi-dot wait"></div><span class="pi-label">标签自动补全</span><span class="pi-count" style="background:var(--amber-pale);color:var(--amber)">队列中</span></div>
+          <div class="pipe-item"><div class="pi-dot wait"></div><span class="pi-label">场景风格分析</span><span class="pi-count" style="background:var(--amber-pale);color:var(--amber)">等待</span></div>
+          <div class="pipe-item"><div class="pi-dot done"></div><span class="pi-label">本地 Fallback</span><span class="pi-count" style="background:var(--sage-pale);color:var(--sage)">就绪</span></div>
+          <div class="pipe-item"><div class="pi-dot err"></div><span class="pi-label">外部 AI 写入</span><span class="pi-count err">超时</span></div>
+          <div class="queue-bar">
+            <div class="qb-label"><span>处理进度</span><span id="q-pct">81%</span></div>
+            <div class="qb-track"><div class="qb-fill" id="q-fill" style="width:81%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Services -->
+      <div class="lcard">
+        <div class="lcard-hd"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg><span class="lcard-title">AI Services</span></div>
+        <div class="lcard-body">
+          <div class="svc-item"><div class="svc-l"><div class="svc-dot on"></div><span class="svc-name">Remove.bg</span></div><span class="svc-badge sb-on sb-pri" style="background:var(--blue-pale);color:var(--blue)">主服务</span></div>
+          <div class="svc-item"><div class="svc-l"><div class="svc-dot on"></div><span class="svc-name">Clipdrop API</span></div><span class="svc-badge sb-on">备用</span></div>
+          <div class="svc-item"><div class="svc-l"><div class="svc-dot local"></div><span class="svc-name">本地 rembg</span></div><span class="svc-badge sb-local">Fallback</span></div>
+          <div class="svc-item"><div class="svc-l"><div class="svc-dot on"></div><span class="svc-name">GPT-4o Vision</span></div><span class="svc-badge sb-on">标签识别</span></div>
+          <div class="svc-item"><div class="svc-l"><div class="svc-dot off"></div><span class="svc-name">Azure CV</span></div><span class="svc-badge sb-off">未配置</span></div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="lcard">
+        <div class="lcard-hd"><svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg><span class="lcard-title">Filters</span></div>
+        <div class="lcard-body">
+          <div class="filter-section">
+            <span class="fs-label">处理状态</span>
+            <div class="filter-pills">
+              <div class="fpill on" onclick="fp(this)">全部</div>
+              <div class="fpill sage" onclick="fp(this)">已完成</div>
+              <div class="fpill" onclick="fp(this)" style="color:var(--rose)">处理中</div>
+              <div class="fpill amber" onclick="fp(this)">待处理</div>
+              <div class="fpill" onclick="fp(this)">错误</div>
+            </div>
+            <span class="fs-label">图片类型</span>
+            <div class="filter-pills">
+              <div class="fpill on" onclick="fp(this)">全部</div>
+              <div class="fpill" onclick="fp(this)">原图</div>
+              <div class="fpill sage" onclick="fp(this)">白底图</div>
+              <div class="fpill" onclick="fp(this)">抠图</div>
+            </div>
+            <span class="fs-label">标签状态</span>
+            <div class="filter-pills">
+              <div class="fpill on" onclick="fp(this)">全部</div>
+              <div class="fpill sage" onclick="fp(this)">已补全</div>
+              <div class="fpill amber" onclick="fp(this)">未补全</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="rp">
+
+      <!-- TOOLBAR -->
+      <div class="toolbar">
+        <div class="tsearch"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="搜索单品名称、标签…" oninput="filt(this.value)"></div>
+        <select class="tsort"><option>最近上传</option><option>处理优先级</option><option>置信度排序</option><option>名称排序</option></select>
+        <button class="tact tact-out"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>批量确认</button>
+        <button class="tact tact-amber ml-auto" onclick="runEnrich()"><svg viewBox="0 0 24 24"><path d="M12 2l2.09 6.26L21 10l-5.5 4.09L17.18 21 12 17.27 6.82 21l1.68-6.91L3 10l6.91-1.74L12 2z"/></svg>AI 补全全部</button>
+        <button class="tact tact-sage" onclick="runBg()"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>批量抠图</button>
+      </div>
+
+      <!-- ── SECTION 1: IMAGE PROCESSING ── -->
+      <div>
+        <div class="sec-hd">
+          <span class="sec-hd-txt">AI Image Processing · 图片处理</span>
+          <div class="sec-hd-line"></div>
+          <span class="sec-hd-count">128 件</span>
+        </div>
+
+        <div class="ip-grid">
+
+          <!-- done -->
+          <div class="ipc">
+            <div class="ipc-visual" title="悬停预览白底图">
+              <div class="ipc-before ci1"><svg class="cloth-sil" viewBox="0 0 60 80" fill="none" stroke="rgba(192,100,88,.5)" stroke-width="1.5"><path d="M15 5L5 20l10-2v57h30V18l10 2L45 5c-5 5-10 7-15 7S20 10 15 5Z"/></svg></div>
+              <div class="ipc-after" style="background:#f8f5f2"><svg class="cloth-sil" viewBox="0 0 60 80" fill="none" stroke="rgba(192,100,88,.65)" stroke-width="1.5" style="opacity:.75"><path d="M15 5L5 20l10-2v57h30V18l10 2L45 5c-5 5-10 7-15 7S20 10 15 5Z"/></svg></div>
+              <span class="ipc-ba-label before-l">原图</span>
+              <span class="ipc-ba-label after-l">白底图</span>
+              <div class="ipc-status"><span class="st-badge st-done"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>已完成</span></div>
+            </div>
+            <div class="ipc-prog"><div class="ipc-prog-fill fill-done"></div></div>
+            <div class="ipc-info">
+              <div class="ipc-name">奶油白衬衫</div>
+              <div class="ipc-meta"><span class="ipc-tag t-sage">白底图 ✓</span><span class="ipc-tag t-rose">抠图 ✓</span></div>
+              <div class="ipc-service"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72"/></svg>Remove.bg · 置信度 98%</div>
+              <div class="ipc-acts"><button class="ia"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>查看</button><button class="ia sage"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>确认</button></div>
+            </div>
+          </div>
+
+          <!-- done -->
+          <div class="ipc">
+            <div class="ipc-visual" title="悬停预览白底图">
+              <div class="ipc-before ci2"><svg class="cloth-sil" viewBox="0 0 60 80" fill="none" stroke="rgba(80,150,140,.5)" stroke-width="1.5"><path d="M10 5v70h40V5c-5 3-10 5-20 5S15 8 10 5Z"/></svg></div>
+              <div class="ipc-after" style="background:#f8f5f2"><svg class="cloth-sil" viewBox="0 0 60 80" fill="none" stroke="rgba(80,150,140,.65)" stroke-width="1.5" style="opacity:.75"><path d="M10 5v70h40V5c-5 3-10 5-20 5S15 8 10 5Z"/></svg></div>
+              <span class="ipc-ba-label before-l">原图</span>
+              <span class="ipc-ba-label after-l">白底图</span>
+              <div class="ipc-status"><span class="st-badge st-done"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>已完成</span></div>
+            </div>
+            <div class="ipc-prog"><div class="ipc-prog-fill fill-done"></div></div>
+            <div class="ipc-info">
+              <div class="ipc-name">薄荷连衣裙</div>
+              <div class="ipc-meta"><span class="ipc-tag t-sage">白底图 ✓</span><span class="ipc-tag t-rose">抠图 ✓</span></div>
+              <div class="ipc-service"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72"/></svg>Remove.bg · 置信度 96%</div>
+              <div class="ipc-acts"><button class="ia"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>查看</button><button class="ia sage"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>确认</button></div>
+            </div>
+          </div>
+
+          <!-- running -->
+          <div class="ipc">
+            <div class="ipc-visual">
+              <div class="ipc-before ci3"><svg class="cloth-sil" viewBox="0 0 60 80" fill="none" stroke="rgba(155,130,90,.5)" stroke-width="1.5"><rect x="8" y="5" width="44" height="55" rx="3"/><path d="M8 28h44"/></svg></div>
+              <div class="ipc-status"><span class="st-badge st-run"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>处理中</span></div>
+            </div>
+            <div class="ipc-prog"><div class="ipc-prog-fill fill-run"></div></div>
+            <div class="ipc-info">
+              <div class="ipc-name">驼色大衣</div>
+              <div class="ipc-meta"><span class="ipc-tag t-gray">抠图中…</span></div>
+              <div class="ipc-service"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72"/></svg>Remove.bg · 队列 #3</div>
+              <div class="ipc-acts"><button class="ia"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>取消</button></div>
+            </div>
+          </div>
+
+          <!-- waiting -->
+          <div class="ipc">
+            <div class="ipc-visual">
+              <div class="ipc-before ci4"><svg class="cloth-sil" viewBox="0 0 60 80" fill="none" stroke="rgba(170,110,175,.5)" stroke-width="1.5"><path d="M10 5v70h40V5L30 15Z"/></svg></div>
+              <div class="ipc-status"><span class="st-badge st-wait"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>待处理</span></div>
+            </div>
+            <div class="ipc-prog"><div class="ipc-prog-fill fill-wait"></div></div>
+            <div class="ipc-info">
+              <div class="ipc-name">紫调百褶裙</div>
+              <div class="ipc-meta"><span class="ipc-tag t-amber">队列 #12</span></div>
+              <div class="ipc-service"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>等待队列调度</div>
+              <div class="ipc-acts"><button class="ia primary"><svg viewBox="0 0 24 24"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>优先处理</button></div>
+            </div>
+          </div>
+
+          <!-- error -->
+          <div class="ipc">
+            <div class="ipc-visual">
+              <div class="ipc-before ci5" style="opacity:.6"><svg class="cloth-sil" viewBox="0 0 60 80" fill="none" stroke="rgba(90,125,165,.4)" stroke-width="1.5"><path d="M15 5L5 20l10-2v57h30V18l10 2L45 5c-5 5-10 7-15 7S20 10 15 5Z"/></svg></div>
+              <div class="ipc-status"><span class="st-badge st-err"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>处理失败</span></div>
+            </div>
+            <div class="ipc-prog"><div class="ipc-prog-fill fill-err"></div></div>
+            <div class="ipc-info">
+              <div class="ipc-name">天蓝条纹衬衫</div>
+              <div class="ipc-meta"><span class="ipc-tag" style="background:#fef0f0;color:#d08080">服务超时</span></div>
+              <div class="ipc-service"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>外部 API 超时，切换 Fallback</div>
+              <div class="ipc-acts"><button class="ia primary"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>重试</button><button class="ia"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>本地处理</button></div>
+            </div>
+          </div>
+
+          <!-- done local fallback -->
+          <div class="ipc">
+            <div class="ipc-visual" title="悬停预览白底图">
+              <div class="ipc-before ci6"><svg class="cloth-sil" viewBox="0 0 60 80" fill="none" stroke="rgba(175,145,90,.5)" stroke-width="1.5"><rect x="8" y="5" width="44" height="70" rx="4"/></svg></div>
+              <div class="ipc-after" style="background:#f8f5f2"><svg class="cloth-sil" viewBox="0 0 60 80" fill="none" stroke="rgba(175,145,90,.6)" stroke-width="1.5" style="opacity:.75"><rect x="8" y="5" width="44" height="70" rx="4"/></svg></div>
+              <span class="ipc-ba-label before-l">原图</span>
+              <span class="ipc-ba-label after-l">白底图</span>
+              <div class="ipc-status"><span class="st-badge" style="background:rgba(176,128,64,.8);color:#fff"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width:10px;height:10px"><polyline points="20 6 9 17 4 12"/></svg>本地完成</span></div>
+            </div>
+            <div class="ipc-prog"><div class="ipc-prog-fill fill-done" style="background:var(--amber)"></div></div>
+            <div class="ipc-info">
+              <div class="ipc-name">焦糖色风衣</div>
+              <div class="ipc-meta"><span class="ipc-tag t-amber">本地 Fallback</span><span class="ipc-tag t-rose">白底图 ✓</span></div>
+              <div class="ipc-service"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>rembg · 本地处理 · 质量 82%</div>
+              <div class="ipc-acts"><button class="ia"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>查看</button><button class="ia"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>云端重试</button></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── SECTION 2: TAG ENRICHMENT ── -->
+      <div>
+        <div class="sec-hd">
+          <span class="sec-hd-txt">Tag Enrichment · 标签自动补全</span>
+          <div class="sec-hd-line"></div>
+          <span class="sec-hd-count">96 件已补全</span>
+        </div>
+
+        <div class="batch-bar">
+          <span class="bb-label">批量操作</span>
+          <div class="bb-sep"></div>
+          <button class="bba"><svg viewBox="0 0 24 24"><path d="M12 2l2.09 6.26L21 10l-5.5 4.09L17.18 21 12 17.27 6.82 21l1.68-6.91L3 10l6.91-1.74L12 2z"/></svg>全部 AI 重新分析</button>
+          <button class="bba"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>批量确认已补全</button>
+          <button class="bba"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>导出标签数据</button>
+          <div class="bb-ml"></div>
+          <span style="font-size:10px;color:var(--ink3);font-family:var(--serif-en);font-style:italic;letter-spacing:.1em">GPT-4o Vision · 上次运行 14:28</span>
+        </div>
+
+        <div class="enrich-grid">
+
+          <!-- enriched card 1 -->
+          <div class="enc">
+            <div class="enc-top">
+              <div class="enc-thumb ci1"><div class="enc-thumb-inner"><svg style="width:28px;height:36px;opacity:.5" viewBox="0 0 60 80" fill="none" stroke="rgba(192,100,88,.6)" stroke-width="1.5"><path d="M15 5L5 20l10-2v57h30V18l10 2L45 5c-5 5-10 7-15 7S20 10 15 5Z"/></svg></div></div>
+              <div class="enc-right">
+                <div class="enc-name">奶油白衬衫</div>
+                <div class="enc-orig-tags"><span class="ipc-tag t-rose">上衣</span><span class="ipc-tag t-gray">白色</span></div>
+                <div class="enc-score"><span style="font-size:9.5px;color:var(--ink3);letter-spacing:.06em">置信度</span><div class="enc-score-bar"><div class="enc-score-fill" style="width:96%"></div></div><span class="enc-score-val">96%</span></div>
+              </div>
+            </div>
+            <div class="enc-enriched">
+              <div class="enc-enr-row"><span class="enr-key">场景</span><div class="enr-tags"><span class="enr-tag new">日常通勤</span><span class="enr-tag new">约会</span><span class="enr-tag new">商务休闲</span></div></div>
+              <div class="enc-enr-row"><span class="enr-key">风格</span><div class="enr-tags"><span class="enr-tag new">法式简约</span><span class="enr-tag new">奶油风</span></div></div>
+              <div class="enc-enr-row"><span class="enr-key">季节</span><div class="enr-tags"><span class="enr-tag exist">春夏</span></div></div>
+              <div class="enc-enr-row"><span class="enr-key">说明</span><div class="enr-val">宽松版型，v 领设计，适合搭配高腰半裙或阔腿裤</div></div>
+            </div>
+            <div class="enc-acts"><button class="ia sage"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>确认保存</button><button class="ia"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>手动修改</button><button class="ia" style="margin-left:auto"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>重新分析</button></div>
+          </div>
+
+          <!-- enriched card 2 -->
+          <div class="enc">
+            <div class="enc-top">
+              <div class="enc-thumb ci2"><div class="enc-thumb-inner"><svg style="width:28px;height:36px;opacity:.5" viewBox="0 0 60 80" fill="none" stroke="rgba(80,150,140,.6)" stroke-width="1.5"><path d="M10 5v70h40V5c-5 3-10 5-20 5S15 8 10 5Z"/></svg></div></div>
+              <div class="enc-right">
+                <div class="enc-name">薄荷连衣裙</div>
+                <div class="enc-orig-tags"><span class="ipc-tag t-sage">连衣裙</span><span class="ipc-tag t-gray">绿色</span></div>
+                <div class="enc-score"><span style="font-size:9.5px;color:var(--ink3);letter-spacing:.06em">置信度</span><div class="enc-score-bar"><div class="enc-score-fill" style="width:91%"></div></div><span class="enc-score-val">91%</span></div>
+              </div>
+            </div>
+            <div class="enc-enriched">
+              <div class="enc-enr-row"><span class="enr-key">场景</span><div class="enr-tags"><span class="enr-tag new">度假</span><span class="enr-tag new">周末出行</span><span class="enr-tag new">海边</span></div></div>
+              <div class="enc-enr-row"><span class="enr-key">风格</span><div class="enr-tags"><span class="enr-tag new">清新自然</span><span class="enr-tag new">少女感</span></div></div>
+              <div class="enc-enr-row"><span class="enr-key">季节</span><div class="enr-tags"><span class="enr-tag exist">春夏</span></div></div>
+              <div class="enc-enr-row"><span class="enr-key">说明</span><div class="enr-val">薄荷绿色调，飘逸材质，A 字裙摆，适合气温 18-28°C</div></div>
+            </div>
+            <div class="enc-acts"><button class="ia sage"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>确认保存</button><button class="ia"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>手动修改</button><button class="ia" style="margin-left:auto"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>重新分析</button></div>
+          </div>
+
+          <!-- enriched card 3 -->
+          <div class="enc">
+            <div class="enc-top">
+              <div class="enc-thumb ci3"><div class="enc-thumb-inner"><svg style="width:28px;height:36px;opacity:.5" viewBox="0 0 60 80" fill="none" stroke="rgba(155,130,90,.6)" stroke-width="1.5"><rect x="8" y="5" width="44" height="55" rx="3"/><path d="M8 28h44"/></svg></div></div>
+              <div class="enc-right">
+                <div class="enc-name">驼色大衣</div>
+                <div class="enc-orig-tags"><span class="ipc-tag t-rose">外套</span><span class="ipc-tag t-amber">驼色</span></div>
+                <div class="enc-score"><span style="font-size:9.5px;color:var(--ink3);letter-spacing:.06em">置信度</span><div class="enc-score-bar"><div class="enc-score-fill" style="width:88%"></div></div><span class="enc-score-val">88%</span></div>
+              </div>
+            </div>
+            <div class="enc-enriched">
+              <div class="enc-enr-row"><span class="enr-key">场景</span><div class="enr-tags"><span class="enr-tag new">都市通勤</span><span class="enr-tag new">商务</span></div></div>
+              <div class="enc-enr-row"><span class="enr-key">风格</span><div class="enr-tags"><span class="enr-tag new">经典优雅</span><span class="enr-tag new">知性</span><span class="enr-tag new">OL 风</span></div></div>
+              <div class="enc-enr-row"><span class="enr-key">季节</span><div class="enr-tags"><span class="enr-tag exist">秋冬</span></div></div>
+              <div class="enc-enr-row"><span class="enr-key">说明</span><div class="enr-val">羊毛混纺，双排扣设计，适合叠穿，色温偏暖可百搭</div></div>
+            </div>
+            <div class="enc-acts"><button class="ia sage"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>确认保存</button><button class="ia"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>手动修改</button><button class="ia" style="margin-left:auto"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>重新分析</button></div>
+          </div>
+
+        </div>
+
+        <!-- Pending enrichment -->
+        <div style="margin-top:16px">
+          <div class="sec-hd">
+            <span class="sec-hd-txt">Pending Enrichment · 待补全</span>
+            <div class="sec-hd-line"></div>
+            <span class="sec-hd-count" style="background:var(--amber-pale);color:var(--amber)">32 件</span>
+          </div>
+          <div class="pending-row">
+            <div class="pr-item">
+              <div class="pr-thumb ci4"><svg style="width:22px;height:28px;opacity:.5" viewBox="0 0 60 80" fill="none" stroke="rgba(170,110,175,.6)" stroke-width="1.5"><path d="M10 5v70h40V5L30 15Z"/></svg></div>
+              <div style="flex:1;min-width:0">
+                <div class="pr-name">紫调百褶裙</div>
+                <div class="pr-tags"><span class="ipc-tag t-gray">下装</span><span class="ipc-tag t-gray">紫色</span><span class="ipc-tag t-amber">待 AI 分析</span></div>
+              </div>
+              <div class="pr-status">
+                <div class="pr-progress"><div class="pr-pfill" style="width:0%"></div></div>
+                <span class="pr-pct">队列 #8</span>
+                <button class="btn btn-out" style="padding:5px 12px;font-size:11px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:11px;height:11px"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>优先</button>
+              </div>
+            </div>
+            <div class="pr-item">
+              <div class="pr-thumb ci7"><svg style="width:22px;height:28px;opacity:.5" viewBox="0 0 60 80" fill="none" stroke="rgba(90,145,85,.6)" stroke-width="1.5"><path d="M10 5v70h40V5c-5 3-10 5-20 5S15 8 10 5Z"/></svg></div>
+              <div style="flex:1;min-width:0">
+                <div class="pr-name">草绿针织衫</div>
+                <div class="pr-tags"><span class="ipc-tag t-gray">上衣</span><span class="ipc-tag t-amber" style="background:#fff5e8;color:#9a7030">未标签</span></div>
+              </div>
+              <div class="pr-status">
+                <div class="pr-progress"><div class="pr-pfill" style="width:35%;animation:progrun 1.8s ease-in-out infinite"></div></div>
+                <span class="pr-pct" style="color:var(--rose)">分析中</span>
+                <button class="btn btn-out" style="padding:5px 12px;font-size:11px;opacity:.4;pointer-events:none">优先</button>
+              </div>
+            </div>
+            <div class="pr-item">
+              <div class="pr-thumb ci8"><svg style="width:22px;height:28px;opacity:.5" viewBox="0 0 60 80" fill="none" stroke="rgba(175,105,140,.6)" stroke-width="1.5"><path d="M20 5C20 5 10 15 10 30L10 75h40V30C50 15 40 5 40 5L30 12Z"/></svg></div>
+              <div style="flex:1;min-width:0">
+                <div class="pr-name">玫粉吊带裙</div>
+                <div class="pr-tags"><span class="ipc-tag t-rose">连衣裙</span><span class="ipc-tag t-gray">粉色</span><span class="ipc-tag t-amber">待 AI 分析</span></div>
+              </div>
+              <div class="pr-status">
+                <div class="pr-progress"><div class="pr-pfill" style="width:0%"></div></div>
+                <span class="pr-pct">队列 #11</span>
+                <button class="btn btn-out" style="padding:5px 12px;font-size:11px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:11px;height:11px"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>优先</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pagi" style="margin-top:20px">
+          <div class="pg arr"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+          <div class="pg on">1</div><div class="pg">2</div><div class="pg">3</div>
+          <span style="font-size:12px;color:var(--ink3);padding:0 4px">…</span><div class="pg">8</div>
+          <div class="pg arr"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-bg" id="modal-service">
+  <div class="modal">
+    <div class="modal-hd"><div class="modal-title">AI 服务配置</div><button class="modal-x" onclick="closeModal('service')">×</button></div>
+    <div class="modal-body">
+      <div class="modal-field"><span class="mf-label">主服务</span><select class="mf-select"><option>Remove.bg API</option><option>Clipdrop API</option><option>本地 rembg</option></select></div>
+      <div class="modal-field"><span class="mf-label">Remove.bg API Key</span><input class="mf-input" type="password" placeholder="rm_xxxxxxxxxxxxxxxx"></div>
+      <div class="modal-field"><span class="mf-label">Fallback 策略</span><select class="mf-select"><option>自动切换本地 rembg</option><option>重试 3 次后放弃</option><option>仅使用本地</option></select></div>
+      <div class="modal-field"><span class="mf-label">标签识别模型</span><select class="mf-select"><option>GPT-4o Vision</option><option>Claude 3.5 Sonnet</option><option>Azure Computer Vision</option></select></div>
+      <div class="modal-field"><span class="mf-label">队列并发数</span><input class="mf-input" type="number" value="3" min="1" max="10"></div>
+    </div>
+    <div class="modal-btns"><button class="mb-main" onclick="toast('服务配置已保存');closeModal('service')">保 存 配 置</button><button class="mb-sub" onclick="closeModal('service')">取消</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-upload">
+  <div class="modal">
+    <div class="modal-hd"><div class="modal-title">批量上传图片</div><button class="modal-x" onclick="closeModal('upload')">×</button></div>
+    <div class="modal-body">
+      <div style="border:1.5px dashed rgba(192,122,110,.28);border-radius:3px;padding:32px;text-align:center;margin-bottom:16px;cursor:pointer;background:var(--rose-faint);transition:all .2s" onmouseenter="this.style.borderColor='var(--rose)'" onmouseleave="this.style.borderColor='rgba(192,122,110,.28)'">
+        <svg style="width:28px;height:28px;fill:none;stroke:var(--rose);stroke-width:1.2;margin:0 auto 10px;display:block" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div style="font-family:var(--serif-jp);font-size:13px;color:var(--ink2);letter-spacing:.06em;margin-bottom:4px">拖拽图片或点击上传</div>
+        <div style="font-size:11px;color:var(--ink3)">支持 JPG · PNG · WEBP · 单次最多 50 张</div>
+      </div>
+      <div class="modal-field"><span class="mf-label">处理选项</span><select class="mf-select"><option>上传后自动抠图 + 补全标签</option><option>仅上传，手动触发处理</option><option>仅抠图，不补全标签</option></select></div>
+      <div class="modal-field"><span class="mf-label">默认品类（选填）</span><select class="mf-select"><option>自动识别</option><option>上衣</option><option>下装</option><option>连衣裙</option><option>外套</option><option>鞋子</option><option>配饰</option></select></div>
+    </div>
+    <div class="modal-btns"><button class="mb-main" onclick="toast('已加入处理队列');closeModal('upload')">开 始 上 传</button><button class="mb-sub" onclick="closeModal('upload')">取消</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function fp(el){const p=el.closest('.filter-pills');p.querySelectorAll('.fpill').forEach(x=>x.classList.remove('on'));el.classList.add('on')}
+function showModal(id){document.getElementById('modal-'+id).classList.add('show')}
+function closeModal(id){document.getElementById('modal-'+id).classList.remove('show')}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400)}
+function runAll(){toast('已启动全量处理队列，128 件单品排队中…')}
+function runBg(){toast('批量抠图任务已提交，使用 Remove.bg 服务')}
+function runEnrich(){toast('AI 标签补全任务已提交，使用 GPT-4o Vision')}
+function filt(v){
+  v=v.toLowerCase();
+  document.querySelectorAll('.ipc,.enc,.pr-item').forEach(c=>{
+    const n=c.querySelector('.ipc-name,.enc-name,.pr-name')?.textContent.toLowerCase()||'';
+    c.style.display=(!v||n.includes(v))?'':'none';
+  });
+}
+document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('show')}));
+
+// simulate queue progress
+let qp=81;
+setInterval(()=>{
+  if(qp<100){qp=Math.min(100,qp+Math.random()*0.4);document.getElementById('q-fill').style.width=qp.toFixed(0)+'%';document.getElementById('q-pct').textContent=qp.toFixed(0)+'%'}
+},1200);
+</script>
+</body>
+</html>

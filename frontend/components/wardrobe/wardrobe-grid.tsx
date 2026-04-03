@@ -33,7 +33,7 @@ export function WardrobeGrid() {
     return (
       <StateCard
         variant="empty"
-        title="No matching items"
+        title="没有匹配到单品"
         description="试着换一个关键词，或者给衣橱再添一件单品。你的衣橱记忆越丰富，后面的推荐和提醒就会越贴心。"
       />
     );
@@ -73,12 +73,10 @@ export function WardrobeGrid() {
                 <div className="rounded-full bg-white/85 px-3 py-1 text-xs font-medium text-[var(--ink)]">{item.imageLabel}</div>
                 {item.processedImageUrl ? (
                   <div className="rounded-full bg-[var(--accent-mint)]/85 px-3 py-1 text-xs font-medium text-[var(--ink-strong)]">
-                    processed
+                    已处理
                   </div>
                 ) : item.imageUrl ? (
-                  <div className="rounded-full bg-white/85 px-3 py-1 text-xs font-medium text-[var(--ink)]">
-                    source linked
-                  </div>
+                  <div className="rounded-full bg-white/85 px-3 py-1 text-xs font-medium text-[var(--ink)]">已保留原图</div>
                 ) : null}
               </div>
             </div>
@@ -86,11 +84,11 @@ export function WardrobeGrid() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h3 className="text-lg font-semibold text-[var(--ink-strong)]">{item.name}</h3>
-                <p className="mt-1 text-sm text-[var(--muted)]">{item.brand} - {item.color}</p>
+                <p className="mt-1 text-sm text-[var(--muted)]">{item.brand} · {item.color}</p>
               </div>
               <div className="flex flex-col items-end gap-2">
                 <span className="rounded-full bg-[var(--background-soft)] px-3 py-1 text-xs text-[var(--ink)]">{item.category}</span>
-                {selected ? <span className="pill">Selected</span> : null}
+                {selected ? <span className="pill">已选中</span> : null}
               </div>
             </div>
 
@@ -111,7 +109,7 @@ export function WardrobeGrid() {
             <div className="mt-4 flex items-center justify-between text-xs text-[var(--muted)]">
               <span className="inline-flex items-center gap-2">
                 <ImageIcon className="size-4" />
-                {previewUrl ? "Preview ready" : "No image yet"}
+                {previewUrl ? "预览已就绪" : "暂未上传图片"}
               </span>
               {selected ? <CheckCircle2 className="size-4 text-[var(--accent)]" /> : null}
             </div>

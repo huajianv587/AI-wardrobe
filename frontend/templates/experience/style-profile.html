@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>风格画像 · AI衣橱</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Cormorant+Garamond:ital,wght@0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F8F5F0;
+  --card: #FFFFFF;
+  --text: #2A2520;
+  --text-mid: #65594E;
+  --text-light: #9C8E82;
+  --accent: #C08B5C;
+  --accent-deep: #A06830;
+  --accent-light: #F5E6D4;
+  --border: #EAE2D8;
+  --shadow: rgba(140,120,100,0.1);
+  --glass: rgba(255,255,255,0.7);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Noto Sans SC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 60px;
+}
+
+/* === Hero Header === */
+.hero {
+  background: linear-gradient(160deg, #E8D8C4 0%, #D4BFA8 40%, #C8A888 100%);
+  padding: 28px 24px 32px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -50%; right: -30%;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -20%; left: -20%;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.hero-content { position: relative; z-index: 1; }
+.hero-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.hero h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.1;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.hero .hero-sub {
+  font-size: 13px;
+  color: rgba(255,255,255,0.8);
+  margin-top: 8px;
+  font-weight: 300;
+}
+
+/* Radar mini */
+.radar-mini {
+  position: absolute;
+  top: 20px; right: 20px;
+  width: 80px; height: 80px;
+  z-index: 2;
+}
+
+/* === Sections === */
+.content { padding: 20px; }
+
+.section-block {
+  background: var(--card);
+  border-radius: 20px;
+  padding: 22px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 12px var(--shadow);
+  animation: blockIn 0.5s ease forwards;
+  opacity: 0;
+}
+@keyframes blockIn {
+  from { opacity:0; transform:translateY(20px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.section-block:nth-child(1) { animation-delay: 0.1s; }
+.section-block:nth-child(2) { animation-delay: 0.2s; }
+.section-block:nth-child(3) { animation-delay: 0.3s; }
+.section-block:nth-child(4) { animation-delay: 0.4s; }
+.section-block:nth-child(5) { animation-delay: 0.5s; }
+.section-block:nth-child(6) { animation-delay: 0.6s; }
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.section-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+.edit-btn {
+  margin-left: auto;
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  font-size: 11px;
+  color: var(--text-light);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.edit-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* === Color Palettes === */
+.color-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.color-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 24px;
+  background: var(--bg);
+  transition: transform 0.2s;
+}
+.color-chip:hover { transform: scale(1.05); }
+.color-dot {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+}
+.color-name { font-size: 12px; font-weight: 500; }
+
+.avoid-chip {
+  background: #FFF5F5;
+  border: 1px dashed #E8C0C0;
+}
+.avoid-chip .color-dot {
+  position: relative;
+}
+.avoid-chip .color-dot::after {
+  content: '✕';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.8);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* === Silhouettes === */
+.silhouette-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.silhouette-card {
+  text-align: center;
+  padding: 16px 10px;
+  background: var(--bg);
+  border-radius: 14px;
+  transition: all 0.3s;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+.silhouette-card.preferred {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+.sil-icon { font-size: 32px; margin-bottom: 6px; }
+.sil-name { font-size: 12px; font-weight: 500; }
+.sil-desc { font-size: 10px; color: var(--text-light); margin-top: 2px; }
+.sil-pref {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 8px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 10px;
+}
+
+/* === Style Keywords === */
+.keyword-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+.keyword {
+  padding: 8px 16px;
+  border-radius: 24px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.3s;
+  cursor: default;
+}
+.keyword:hover { transform: scale(1.08); }
+.kw-primary { background: var(--accent); color: #fff; font-size: 15px; padding: 10px 20px; }
+.kw-secondary { background: var(--accent-light); color: var(--accent-deep); }
+.kw-tertiary { background: var(--bg); color: var(--text-mid); border: 1px solid var(--border); }
+
+/* === Wardrobe Rules === */
+.rules-list { display: flex; flex-direction: column; gap: 10px; }
+.rule-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px;
+  background: var(--bg);
+  border-radius: 14px;
+  border-left: 3px solid var(--accent);
+}
+.rule-num {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.rule-text { font-size: 13px; line-height: 1.6; color: var(--text-mid); }
+
+/* === Notes === */
+.note-area {
+  background: linear-gradient(135deg, #FFF9F0 0%, #FFF5E8 100%);
+  border-radius: 14px;
+  padding: 18px;
+  min-height: 120px;
+  border: 1px dashed var(--accent-light);
+  position: relative;
+}
+.note-area p {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text-mid);
+  font-style: italic;
+}
+.note-time {
+  font-size: 10px;
+  color: var(--text-light);
+  margin-top: 12px;
+  text-align: right;
+}
+
+/* === Style DNA Bar === */
+.dna-bar {
+  display: flex;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 16px 0 10px;
+}
+.dna-seg { height: 100%; transition: width 0.8s ease; }
+.dna-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.dna-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-mid);
+}
+.dna-legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+
+/* Floating add button */
+.fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+  color: #fff;
+  border: none;
+  font-size: 24px;
+  box-shadow: 0 4px 20px rgba(192,139,92,0.4);
+  cursor: pointer;
+  z-index: 100;
+  transition: transform 0.2s;
+}
+.fab:hover { transform: scale(1.1); }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <svg class="radar-mini" viewBox="0 0 100 100">
+    <polygon points="50,15 80,35 75,70 25,70 20,35" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+    <polygon points="50,25 70,38 67,62 33,62 30,38" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+    <polygon points="50,20 76,36 72,68 28,68 24,36" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+    <circle cx="50" cy="20" r="3" fill="#fff"/>
+    <circle cx="76" cy="36" r="3" fill="#fff"/>
+    <circle cx="72" cy="68" r="3" fill="#fff"/>
+    <circle cx="28" cy="68" r="3" fill="#fff"/>
+    <circle cx="24" cy="36" r="3" fill="#fff"/>
+  </svg>
+  <div class="hero-content">
+    <div class="hero-label">Style Profile</div>
+    <h1>风格画像</h1>
+    <div class="hero-sub">基于 247 件单品 & 89 次穿搭记录生成</div>
+  </div>
+</div>
+
+<div class="content">
+  <!-- Style DNA -->
+  <div class="section-block" style="animation-delay:0.05s;">
+    <div class="section-header">
+      <div class="section-icon" style="background:#F0E5D8;">🧬</div>
+      <div class="section-title">风格 DNA</div>
+    </div>
+    <div class="dna-bar">
+      <div class="dna-seg" style="width:35%;background:#C08B5C;"></div>
+      <div class="dna-seg" style="width:25%;background:#8BA0B5;"></div>
+      <div class="dna-seg" style="width:20%;background:#9B8EA0;"></div>
+      <div class="dna-seg" style="width:12%;background:#A0B090;"></div>
+      <div class="dna-seg" style="width:8%;background:#B0A090;"></div>
+    </div>
+    <div class="dna-legend">
+      <div class="dna-legend-item"><div class="dna-legend-dot" style="background:#C08B5C;"></div>简约经典 35%</div>
+      <div class="dna-legend-item"><div class="dna-legend-dot" style="background:#8BA0B5;"></div>都市通勤 25%</div>
+      <div class="dna-legend-item"><div class="dna-legend-dot" style="background:#9B8EA0;"></div>文艺雅痞 20%</div>
+      <div class="dna-legend-item"><div class="dna-legend-dot" style="background:#A0B090;"></div>户外休闲 12%</div>
+      <div class="dna-legend-item"><div class="dna-legend-dot" style="background:#B0A090;"></div>正式商务 8%</div>
+    </div>
+  </div>
+
+  <!-- 1: Favorite Colors -->
+  <div class="section-block">
+    <div class="section-header">
+      <div class="section-icon" style="background:#E8F0E8;">🎨</div>
+      <div class="section-title">喜欢颜色</div>
+      <button class="edit-btn">编辑</button>
+    </div>
+    <div class="color-grid">
+      <div class="color-chip"><div class="color-dot" style="background:#D4C5B5;"></div><span class="color-name">驼色</span></div>
+      <div class="color-chip"><div class="color-dot" style="background:#2C3E50;"></div><span class="color-name">深海蓝</span></div>
+      <div class="color-chip"><div class="color-dot" style="background:#F5F5F0;"></div><span class="color-name">米白</span></div>
+      <div class="color-chip"><div class="color-dot" style="background:#808B7A;"></div><span class="color-name">橄榄绿</span></div>
+      <div class="color-chip"><div class="color-dot" style="background:#C8B0A0;"></div><span class="color-name">裸粉</span></div>
+      <div class="color-chip"><div class="color-dot" style="background:#5C5C5C;"></div><span class="color-name">石墨灰</span></div>
+      <div class="color-chip"><div class="color-dot" style="background:#8B7355;"></div><span class="color-name">焦糖色</span></div>
+      <div class="color-chip"><div class="color-dot" style="background:#1A1A1A;"></div><span class="color-name">纯黑</span></div>
+    </div>
+  </div>
+
+  <!-- 2: Avoid Colors -->
+  <div class="section-block">
+    <div class="section-header">
+      <div class="section-icon" style="background:#F8E8E8;">🚫</div>
+      <div class="section-title">避开颜色</div>
+      <button class="edit-btn">编辑</button>
+    </div>
+    <div class="color-grid">
+      <div class="color-chip avoid-chip"><div class="color-dot" style="background:#FF6B6B;"></div><span class="color-name">正红</span></div>
+      <div class="color-chip avoid-chip"><div class="color-dot" style="background:#FF69B4;"></div><span class="color-name">亮粉</span></div>
+      <div class="color-chip avoid-chip"><div class="color-dot" style="background:#FFD700;"></div><span class="color-name">亮黄</span></div>
+      <div class="color-chip avoid-chip"><div class="color-dot" style="background:#FF4500;"></div><span class="color-name">荧光橙</span></div>
+    </div>
+    <p style="font-size:11px;color:var(--text-light);margin-top:10px;line-height:1.5;">
+      AI 穿搭推荐将自动避开这些颜色，确保推荐结果符合你的偏好
+    </p>
+  </div>
+
+  <!-- 3: Silhouettes -->
+  <div class="section-block">
+    <div class="section-header">
+      <div class="section-icon" style="background:#E8E0F0;">👤</div>
+      <div class="section-title">偏好轮廓</div>
+      <button class="edit-btn">编辑</button>
+    </div>
+    <div class="silhouette-grid">
+      <div class="silhouette-card preferred">
+        <div class="sil-icon">📐</div>
+        <div class="sil-name">H型</div>
+        <div class="sil-desc">直筒·利落</div>
+        <span class="sil-pref">常穿</span>
+      </div>
+      <div class="silhouette-card preferred">
+        <div class="sil-icon">🔺</div>
+        <div class="sil-name">V型</div>
+        <div class="sil-desc">宽肩·收腰</div>
+        <span class="sil-pref">偏好</span>
+      </div>
+      <div class="silhouette-card">
+        <div class="sil-icon">⏳</div>
+        <div class="sil-name">X型</div>
+        <div class="sil-desc">收腰·曲线</div>
+      </div>
+      <div class="silhouette-card preferred">
+        <div class="sil-icon">🔷</div>
+        <div class="sil-name">宽松廓形</div>
+        <div class="sil-desc">Oversize</div>
+        <span class="sil-pref">周末</span>
+      </div>
+      <div class="silhouette-card">
+        <div class="sil-icon">📏</div>
+        <div class="sil-name">修身</div>
+        <div class="sil-desc">贴合身形</div>
+      </div>
+      <div class="silhouette-card">
+        <div class="sil-icon">🌊</div>
+        <div class="sil-name">A型</div>
+        <div class="sil-desc">上紧下宽</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4: Style Keywords -->
+  <div class="section-block">
+    <div class="section-header">
+      <div class="section-icon" style="background:#F0E8D8;">🏷️</div>
+      <div class="section-title">风格关键词</div>
+      <button class="edit-btn">编辑</button>
+    </div>
+    <div class="keyword-cloud">
+      <span class="keyword kw-primary">简约</span>
+      <span class="keyword kw-primary">质感</span>
+      <span class="keyword kw-secondary">大地色系</span>
+      <span class="keyword kw-secondary">法式</span>
+      <span class="keyword kw-secondary">中性风</span>
+      <span class="keyword kw-tertiary">层次感</span>
+      <span class="keyword kw-tertiary">通勤友好</span>
+      <span class="keyword kw-tertiary">亚麻控</span>
+      <span class="keyword kw-tertiary">高级基本款</span>
+      <span class="keyword kw-secondary">Quiet Luxury</span>
+      <span class="keyword kw-tertiary">海洋风</span>
+      <span class="keyword kw-tertiary">针织</span>
+    </div>
+  </div>
+
+  <!-- 5: Wardrobe Rules -->
+  <div class="section-block">
+    <div class="section-header">
+      <div class="section-icon" style="background:#E0E8F0;">📋</div>
+      <div class="section-title">衣橱规则</div>
+      <button class="edit-btn">编辑</button>
+    </div>
+    <div class="rules-list">
+      <div class="rule-item">
+        <div class="rule-num">1</div>
+        <div class="rule-text">一进一出原则：每购入一件新品，必须淘汰一件旧品，保持衣橱总量不超过 250 件</div>
+      </div>
+      <div class="rule-item">
+        <div class="rule-num">2</div>
+        <div class="rule-text">新品冷静期：加入购物车后等待 72 小时再决定是否购买</div>
+      </div>
+      <div class="rule-item">
+        <div class="rule-num">3</div>
+        <div class="rule-text">单次穿着成本目标 ≤ ¥50，超过此标准的单品需搭配至少 3 套方案</div>
+      </div>
+      <div class="rule-item">
+        <div class="rule-num">4</div>
+        <div class="rule-text">基础款占比 60%，亮点款 30%，实验款 10%</div>
+      </div>
+      <div class="rule-item">
+        <div class="rule-num">5</div>
+        <div class="rule-text">颜色规则：主色调不超过 3 个，中性色随意搭配，彩色系单品需能融入至少 2 套搭配</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6: Private Notes -->
+  <div class="section-block">
+    <div class="section-header">
+      <div class="section-icon" style="background:#F8F0E0;">🔒</div>
+      <div class="section-title">私人备注</div>
+      <button class="edit-btn">编辑</button>
+    </div>
+    <div class="note-area">
+      <p>最近觉得自己的穿搭太保守了，想在春夏季尝试更多色彩——但控制在大地色系的延伸范围内，比如赤陶色、鼠尾草绿。
+
+另外发现自己真的很抗拒亮色，可能跟肤色有关。下次去做个色彩诊断看看？
+
+想入手一件好的亚麻西装外套，预算 2000 以内，备选品牌：COS、ARKET、MR PORTER。</p>
+      <div class="note-time">最后编辑：2026年4月1日 22:35</div>
+    </div>
+  </div>
+</div>
+
+<button class="fab" onclick="alert('编辑风格画像')">✏️</button>
+
+<script>
+// Animate sections on scroll
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.style.animationPlayState = 'running';
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.section-block').forEach(el => {
+  el.style.animationPlayState = 'paused';
+  observer.observe(el);
+});
+
+// Color chip hover effect
+document.querySelectorAll('.color-chip:not(.avoid-chip)').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const dot = chip.querySelector('.color-dot');
+    const color = dot.style.background;
+    document.body.style.transition = 'background 0.5s';
+    document.body.style.background = color + '15';
+    setTimeout(() => { document.body.style.background = 'var(--bg)'; }, 1500);
+  });
+});
+</script>
+</body>
+</html>

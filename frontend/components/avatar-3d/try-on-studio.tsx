@@ -4,14 +4,14 @@ import { startTransition, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, type PanInfo, useReducedMotion } from "framer-motion";
 import { GripVertical, RefreshCw, Sparkles } from "lucide-react";
 
-import { AuthRequiredCard } from "@/components/auth/auth-required-card";
+import { VisitorPreviewNotice } from "@/components/auth/visitor-preview-notice";
 import { AvatarStage } from "@/components/avatar-3d/avatar-stage";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { PanelSkeleton } from "@/components/ui/panel-skeleton";
 import { StateCard } from "@/components/ui/state-card";
 import { StoryCluster } from "@/components/ui/story-cluster";
 import { fetchWardrobeItems } from "@/lib/api";
-import { useWardrobeStore } from "@/store/wardrobe-store";
+import { seedWardrobeItems, useWardrobeStore } from "@/store/wardrobe-store";
 
 interface AbsorbBurst {
   id: number;
@@ -43,18 +43,19 @@ export function TryOnStudio() {
   const replaceItems = useWardrobeStore((state) => state.replaceItems);
 
   const [hydratingWardrobe, setHydratingWardrobe] = useState(false);
-  const [hasHydratedWardrobe, setHasHydratedWardrobe] = useState(false);
   const [statusText, setStatusText] = useState("");
   const [draggingItemId, setDraggingItemId] = useState<number | null>(null);
   const [dropHovered, setDropHovered] = useState(false);
   const [absorbBurst, setAbsorbBurst] = useState<AbsorbBurst | null>(null);
   const [absorbLabel, setAbsorbLabel] = useState<string | null>(null);
   const [dragTelemetry, setDragTelemetry] = useState<DragTelemetry | null>(null);
+  const previewMode = !isAuthenticated;
+  const displayItems = items.length > 0 ? items : seedWardrobeItems;
 
   const stageRef = useRef<HTMLDivElement | null>(null);
   const dragGuardRef = useRef<{ itemId: number | null; until: number }>({ itemId: null, until: 0 });
 
-  const wearingItems = items.filter((item) => selectedTryOnIds.includes(item.id));
+  const wearingItems = displayItems.filter((item) => selectedTryOnIds.includes(item.id));
 
   useEffect(() => {
     if (!absorbLabel) {
@@ -89,22 +90,15 @@ export function TryOnStudio() {
       return;
     }
 
-    if (!isAuthenticated) {
-      startTransition(() => replaceItems([]));
-      setHasHydratedWardrobe(false);
-      setStatusText("");
-      return;
-    }
-
-    if (items.length > 0 || hasHydratedWardrobe) {
-      return;
-    }
-
     let active = true;
 
     async function hydrateWardrobe() {
       setHydratingWardrobe(true);
-      setStatusText("Loading your wardrobe so the try-on stage can use your private items.");
+      setStatusText(
+        isAuthenticated
+          ? "Loading your wardrobe so the try-on stage can use your private items."
+          : "Loading the public experience wardrobe for the try-on stage."
+      );
 
       try {
         const wardrobeItems = await fetchWardrobeItems();
@@ -116,7 +110,9 @@ export function TryOnStudio() {
         startTransition(() => replaceItems(wardrobeItems));
         setStatusText(
           wardrobeItems.length > 0
-            ? `Loaded ${wardrobeItems.length} private wardrobe items for try-on.`
+            ? isAuthenticated
+              ? `Loaded ${wardrobeItems.length} private wardrobe items for try-on.`
+              : `已载入 ${wardrobeItems.length} 件公开体验单品，试衣工作台和私人模式现在共用同一条读取链路。`
             : "Your wardrobe is empty. Add clothing first, then return to build looks in the try-on studio."
         );
       } catch (error) {
@@ -124,10 +120,10 @@ export function TryOnStudio() {
           return;
         }
 
-        setStatusText(error instanceof Error ? error.message : "Could not load wardrobe items for try-on.");
+        startTransition(() => replaceItems(seedWardrobeItems));
+        setStatusText(error instanceof Error ? `${error.message} 已切到本地降级试衣轨道。` : "Could not load wardrobe items for try-on. Switched to local fallback.");
       } finally {
         if (active) {
-          setHasHydratedWardrobe(true);
           setHydratingWardrobe(false);
         }
       }
@@ -138,22 +134,13 @@ export function TryOnStudio() {
     return () => {
       active = false;
     };
-  }, [authReady, hasHydratedWardrobe, isAuthenticated, items.length, replaceItems]);
+  }, [authReady, isAuthenticated, replaceItems]);
 
   if (!authReady) {
     return <PanelSkeleton rows={2} />;
   }
 
-  if (!isAuthenticated) {
-    return (
-      <AuthRequiredCard
-        title="Sign in to open your try-on studio"
-        description="The 2.5D try-on stage now uses the same authenticated wardrobe store as the rest of the app, so only the signed-in user's items appear here."
-      />
-    );
-  }
-
-  const draggingItem = items.find((item) => item.id === draggingItemId) ?? null;
+  const draggingItem = displayItems.find((item) => item.id === draggingItemId) ?? null;
 
   function getStageRect() {
     return stageRef.current?.getBoundingClientRect() ?? null;
@@ -194,7 +181,7 @@ export function TryOnStudio() {
   }
 
   function triggerAbsorbBurst(itemId: number, point: { x: number; y: number }) {
-    const item = items.find((entry) => entry.id === itemId);
+    const item = displayItems.find((entry) => entry.id === itemId);
     const rect = getStageRect();
 
     if (!item || !rect) {
@@ -216,7 +203,7 @@ export function TryOnStudio() {
   function handleDropItem(itemId: number) {
     toggleTryOnItem(itemId);
     setDraggingItemId(null);
-    setStatusText(`Updated avatar layers with ${items.find((item) => item.id === itemId)?.name ?? "the selected garment"}.`);
+    setStatusText(`Updated avatar layers with ${displayItems.find((item) => item.id === itemId)?.name ?? "the selected garment"}.`);
   }
 
   function handleRailTap(itemId: number, active: boolean) {
@@ -225,7 +212,7 @@ export function TryOnStudio() {
     }
 
     toggleTryOnItem(itemId);
-    const item = items.find((entry) => entry.id === itemId);
+    const item = displayItems.find((entry) => entry.id === itemId);
     setStatusText(
       active
         ? `${item?.name ?? "That piece"} slipped back off the avatar.`
@@ -234,7 +221,7 @@ export function TryOnStudio() {
   }
 
   function handleDrag(itemId: number, info: PanInfo) {
-    const item = items.find((entry) => entry.id === itemId);
+    const item = displayItems.find((entry) => entry.id === itemId);
     setDraggingItemId(itemId);
     const telemetry = getMagneticTelemetry(itemId, info.point);
     setDragTelemetry(telemetry);
@@ -254,7 +241,7 @@ export function TryOnStudio() {
   }
 
   function handleDragEnd(itemId: number, info: PanInfo) {
-    const item = items.find((entry) => entry.id === itemId);
+    const item = displayItems.find((entry) => entry.id === itemId);
     const telemetry = getMagneticTelemetry(itemId, info.point);
     const snapped = Boolean(telemetry?.engaged);
 
@@ -274,6 +261,12 @@ export function TryOnStudio() {
 
   return (
     <div className="relative grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+      {previewMode ? (
+        <div className="xl:col-span-2">
+          <VisitorPreviewNotice description="当前是公开体验模式。你现在拖拽的是公开体验衣橱单品，但页面仍然优先走真实读取接口；登录后会自动切到你自己的衣橱单品。" />
+        </div>
+      ) : null}
+
       <AnimatePresence>
         {dragTelemetry && draggingItem ? (
           <motion.div
@@ -385,7 +378,7 @@ export function TryOnStudio() {
           </button>
         </div>
 
-        {items.length === 0 ? (
+        {displayItems.length === 0 ? (
           <StateCard
             variant={hydratingWardrobe ? "loading" : "empty"}
             title={hydratingWardrobe ? "Loading your try-on rail" : "Your try-on rail is still empty"}
@@ -409,7 +402,7 @@ export function TryOnStudio() {
         ) : null}
 
         <div className="space-y-3">
-          {items.map((item) => {
+          {displayItems.map((item) => {
             const active = selectedTryOnIds.includes(item.id);
             const magneticStrength = draggingItemId === item.id ? dragTelemetry?.strength ?? 0 : 0;
             const dynamicShadow =

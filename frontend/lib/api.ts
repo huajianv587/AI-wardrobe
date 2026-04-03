@@ -119,6 +119,16 @@ export interface EmailPasswordAuthPayload {
   password: string;
 }
 
+export interface PasswordResetPayload {
+  email: string;
+  redirect_to?: string;
+}
+
+export interface OAuthStartResponse {
+  provider: string;
+  url: string;
+}
+
 export interface AgentTraceStep {
   node: string;
   summary: string;
@@ -227,6 +237,50 @@ export interface StyleProfile {
   comfort_priorities: string[];
   wardrobe_rules: string[];
   personal_note: string | null;
+  updated_at: string | null;
+}
+
+export type ExperienceStyleProfileDraft = Omit<StyleProfile, "user_id" | "updated_at">;
+
+export interface ExperienceStyleDnaEntry {
+  label: string;
+  value: number;
+  color: string;
+}
+
+export interface ExperienceStyleColorEntry {
+  name: string;
+  hex: string;
+}
+
+export interface ExperienceStyleSilhouetteEntry {
+  name: string;
+  desc: string;
+  preferred: boolean;
+  badge: string;
+}
+
+export interface ExperienceStyleKeywordEntry {
+  label: string;
+  tone: string;
+}
+
+export interface ExperienceStyleProfileOverview {
+  hero_subtitle: string;
+  dna: ExperienceStyleDnaEntry[];
+  favorite_colors: ExperienceStyleColorEntry[];
+  avoid_colors: ExperienceStyleColorEntry[];
+  silhouettes: ExperienceStyleSilhouetteEntry[];
+  keywords: ExperienceStyleKeywordEntry[];
+  rules: string[];
+  personal_note: string;
+  updated_at_label: string;
+  profile: ExperienceStyleProfileDraft;
+}
+
+export interface ExperienceStyleProfileUpdateResponse {
+  status: string;
+  message: string;
   updated_at: string | null;
 }
 
@@ -678,11 +732,31 @@ export async function fetchCurrentUser() {
   return apiRequest<AuthUserSummary>("/api/v1/auth/me");
 }
 
+export async function fetchCurrentUserWithAccessToken(accessToken: string) {
+  return apiRequest<AuthUserSummary>("/api/v1/auth/me", {
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    }
+  }, { skipAuth: true });
+}
+
 export async function refreshAuthSession(payload: { refresh_token: string; access_token?: string | null }) {
   return apiRequest<AuthSessionResponse>("/api/v1/auth/refresh", {
     method: "POST",
     body: JSON.stringify(payload)
   }, { skipAuth: true });
+}
+
+export async function requestPasswordReset(payload: PasswordResetPayload) {
+  return apiRequest<ApiStatusMessageResponse>("/api/v1/auth/password-reset", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  }, { skipAuth: true });
+}
+
+export async function fetchOAuthStartUrl(provider: "google" | "facebook", redirectTo?: string) {
+  const query = redirectTo ? `?redirect_to=${encodeURIComponent(redirectTo)}` : "";
+  return apiRequest<OAuthStartResponse>(`/api/v1/auth/oauth/${provider}/start${query}`, undefined, { skipAuth: true });
 }
 
 export async function logoutAuthSession(refreshToken?: string | null) {
@@ -817,6 +891,17 @@ export async function fetchStyleProfile() {
 
 export async function updateStyleProfile(payload: Omit<StyleProfile, "user_id" | "updated_at">) {
   return apiRequest<StyleProfile>("/api/v1/assistant/style-profile", {
+    method: "PUT",
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function fetchExperienceStyleProfile() {
+  return apiRequest<ExperienceStyleProfileOverview>("/api/v1/experience/style-profile");
+}
+
+export async function updateExperienceStyleProfile(payload: Partial<ExperienceStyleProfileDraft>) {
+  return apiRequest<ExperienceStyleProfileUpdateResponse>("/api/v1/experience/style-profile", {
     method: "PUT",
     body: JSON.stringify(payload)
   });

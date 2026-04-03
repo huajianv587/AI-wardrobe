@@ -16,7 +16,7 @@ from supabase_auth.types import User as SupabaseUser
 
 from app.models.auth_session import AuthSessionToken
 from app.models.user import User
-from app.schemas.auth import AuthSessionResponse, MiniProgramAuthOptionsResponse, UserSummary
+from app.schemas.auth import AuthSessionResponse, MiniProgramAuthOptionsResponse, OAuthStartResponse, StatusMessageResponse, UserSummary
 from core.config import settings
 from db.session import SessionLocal
 
@@ -283,6 +283,35 @@ def sign_in_with_password(db: Session, email: str, password: str) -> AuthSession
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Sign-in did not return an active session.")
 
     return _build_session_response(db, auth_response)
+
+
+def send_password_reset_email(email: str, redirect_to: str | None = None) -> StatusMessageResponse:
+    try:
+        options = {"redirect_to": redirect_to} if redirect_to else {}
+        _auth_client().auth.reset_password_email(email, options)
+    except Exception as exc:
+        logger.warning("Supabase password reset failed for %s: %s", email, exc)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Could not start password reset email delivery.") from exc
+
+    return StatusMessageResponse(
+        status="queued",
+        message="密码重置邮件已经发出，请检查你的邮箱和垃圾邮件箱。",
+    )
+
+
+def build_oauth_start_url(provider: str, redirect_to: str | None = None) -> OAuthStartResponse:
+    normalized_provider = provider.lower().strip()
+    if normalized_provider not in {"google", "facebook"}:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported OAuth provider.")
+
+    try:
+        options = {"redirect_to": redirect_to} if redirect_to else {}
+        response = _auth_client().auth.sign_in_with_oauth({"provider": normalized_provider, "options": options})
+    except Exception as exc:
+        logger.warning("Supabase OAuth start failed for %s: %s", normalized_provider, exc)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Could not start {normalized_provider} OAuth flow.") from exc
+
+    return OAuthStartResponse(provider=normalized_provider, url=response.url)
 
 
 def _refresh_local_session(

@@ -1,0 +1,252 @@
+.shell {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 2147483000;
+  padding: 10px 22px 0;
+  pointer-events: auto;
+}
+
+.inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1.5rem;
+  min-height: 76px;
+  padding: 0 20px;
+  border: 1px solid rgba(225, 184, 173, 0.18);
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 249, 0.95), rgba(251, 243, 238, 0.86)),
+    radial-gradient(circle at 16% 16%, rgba(245, 190, 177, 0.12), transparent 24%);
+  box-shadow:
+    0 18px 38px rgba(180, 120, 140, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+}
+
+.inner::after {
+  content: "";
+  position: absolute;
+  inset: auto 18px 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(208, 145, 132, 0.28), transparent);
+  pointer-events: none;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-width: 0;
+  padding-inline: 0.35rem;
+  text-decoration: none;
+}
+
+.mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #cc8a7d, #bb7465);
+  box-shadow:
+    0 12px 24px rgba(192, 122, 110, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.26);
+}
+
+.mark svg {
+  width: 1.08rem;
+  height: 1.08rem;
+  fill: #fff;
+}
+
+.copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.16rem;
+}
+
+.title {
+  font-family: "STKaiti", "KaiTi", "Songti SC", serif;
+  font-size: 1.7rem;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  color: #2b1b16;
+  white-space: nowrap;
+}
+
+.subtitle {
+  font-family: "Cormorant Garamond", "Times New Roman", serif;
+  font-size: 0.74rem;
+  letter-spacing: 0.24em;
+  color: rgba(185, 134, 124, 0.86);
+  white-space: nowrap;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.42rem;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.nav::-webkit-scrollbar {
+  display: none;
+}
+
+.link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  flex-shrink: 0;
+  padding: 0.56rem 1rem;
+  border-radius: 999px;
+  font-family: "Noto Serif SC", "Songti SC", serif;
+  font-size: 1rem;
+  font-weight: 300;
+  letter-spacing: 0.03em;
+  color: rgba(90, 70, 66, 0.92);
+  text-decoration: none;
+  transition:
+    color 0.24s ease,
+    background-color 0.24s ease,
+    box-shadow 0.24s ease,
+    transform 0.24s ease;
+}
+
+.link:hover {
+  color: #ca8577;
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow: 0 12px 26px rgba(192, 122, 110, 0.1);
+  transform: translateY(-1px);
+}
+
+.link::after {
+  content: "";
+  position: absolute;
+  right: 18px;
+  bottom: 0.38rem;
+  left: 18px;
+  height: 1.5px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(219, 151, 137, 0.1), rgba(219, 151, 137, 0.78), rgba(244, 201, 138, 0.35));
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.24s ease;
+}
+
+.linkActive {
+  color: #d58c80;
+}
+
+.linkActive::after {
+  transform: scaleX(1);
+}
+
+.auth {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.85rem;
+  white-space: nowrap;
+}
+
+.register,
+.login {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.56rem 1.22rem;
+  border-radius: 16px;
+  font-family: "Noto Serif SC", "Songti SC", serif;
+  font-size: 1rem;
+  font-weight: 300;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  transition:
+    transform 0.24s ease,
+    box-shadow 0.24s ease,
+    border-color 0.24s ease,
+    color 0.24s ease,
+    background-color 0.24s ease;
+}
+
+.register {
+  border: 1px solid rgba(208, 145, 132, 0.6);
+  background: rgba(255, 255, 255, 0.72);
+  color: #d58c80;
+}
+
+.register:hover,
+.login:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(192, 122, 110, 0.1);
+}
+
+.login {
+  border: 1px solid transparent;
+  color: rgba(90, 70, 66, 0.9);
+  background: transparent;
+}
+
+@media (max-width: 1180px) {
+  .inner {
+    grid-template-columns: auto 1fr;
+    row-gap: 0.85rem;
+    padding: 0.9rem 1rem 0.92rem;
+  }
+
+  .auth {
+    grid-column: 2;
+    justify-self: end;
+  }
+
+  .nav {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    padding-bottom: 0.2rem;
+  }
+}
+
+@media (max-width: 780px) {
+  .shell {
+    padding: 10px 12px 0;
+  }
+
+  .inner {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+
+  .logo,
+  .nav,
+  .auth {
+    justify-self: stretch;
+  }
+
+  .auth {
+    justify-content: flex-start;
+  }
+
+  .title {
+    font-size: 1.42rem;
+  }
+
+  .link,
+  .register,
+  .login {
+    font-size: 0.92rem;
+  }
+}

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Bot, CheckCircle2, LoaderCircle, Server, Sparkles, TriangleAlert, Wand2 } from "lucide-react";
 
-import { AuthRequiredCard } from "@/components/auth/auth-required-card";
+import { VisitorPreviewNotice } from "@/components/auth/visitor-preview-notice";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import {
   AiDemoRunResponse,
@@ -15,6 +15,64 @@ import {
   runAiDemoWorkflow
 } from "@/lib/api";
 
+const previewWorkflows: AiDemoWorkflow[] = [
+  {
+    id: "ootdiffusion-virtual-tryon",
+    title: "AI 试衣生成",
+    model_name: "OOTDiffusion",
+    task: "把衣物映射到试衣效果图",
+    priority: "P1",
+    gpu_requirement: "GPU recommended",
+    stage: "preview",
+    api_route: "/api/v1/ai-demo/run",
+    sample_prompt: "Generate a polished try-on preview for a weekend look",
+    sample_image_hint: "输入一张服装原图地址",
+    summary: "这里展示未来试衣工作流的 API 交互方式。",
+    service_slot: "virtual-tryon",
+    configured_worker_url: null,
+    delivery_mode: "demo"
+  },
+  {
+    id: "clip-wardrobe-classifier",
+    title: "衣物识别补全",
+    model_name: "CLIP",
+    task: "识别品类、标签和场景信息",
+    priority: "P1",
+    gpu_requirement: "CPU ok",
+    stage: "preview",
+    api_route: "/api/v1/ai-demo/run",
+    sample_prompt: "Classify this garment and extract tags",
+    sample_image_hint: "输入一张衣物图地址",
+    summary: "这里展示自动识别与 enrich 的统一接口。",
+    service_slot: "classifier",
+    configured_worker_url: null,
+    delivery_mode: "demo"
+  }
+];
+
+const previewStatuses: AiDemoServiceStatus[] = [
+  {
+    workflow_id: "ootdiffusion-virtual-tryon",
+    title: "AI 试衣生成",
+    service_slot: "virtual-tryon",
+    configured: false,
+    healthy: null,
+    mode: "demo",
+    worker_url: null,
+    note: "当前是访客预览模式，先展示统一 API 合约。"
+  },
+  {
+    workflow_id: "clip-wardrobe-classifier",
+    title: "衣物识别补全",
+    service_slot: "classifier",
+    configured: false,
+    healthy: null,
+    mode: "demo",
+    worker_url: null,
+    note: "当前是访客预览模式，登录后可以继续接你的真实数据。"
+  }
+];
+
 const defaultPromptByWorkflow: Record<string, string> = {
   "qwen-outfit-recommendation": "Office meeting tomorrow, soft but professional",
   "birefnet-background-removal": "Create a clean white-background garment image",
@@ -23,7 +81,7 @@ const defaultPromptByWorkflow: Record<string, string> = {
   "ootdiffusion-virtual-tryon": "Generate a polished try-on preview for a weekend look",
   "realesrgan-upscale": "Upscale the result for product display",
   "controlnet-product-shot": "Create a soft e-commerce hero shot with clean lighting",
-  "triposr-avatar-rebuild": "Prepare a lightweight 3D-ready avatar asset"
+  "triposr-avatar-rebuild": "Prepare a lightweight 2.5D-ready avatar base asset"
 };
 
 function statusBadgeClass(status: AiDemoServiceStatus | null) {
@@ -53,9 +111,18 @@ export function AiDemoConsole() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AiDemoRunResponse | null>(null);
   const [error, setError] = useState("");
+  const previewMode = !isAuthenticated;
 
   useEffect(() => {
-    if (!ready || !isAuthenticated) {
+    if (!ready) {
+      return;
+    }
+
+    if (!isAuthenticated) {
+      setWorkflows(previewWorkflows);
+      setStatuses(previewStatuses);
+      setActiveWorkflowId(previewWorkflows[0].id);
+      setPrompt(previewWorkflows[0].sample_prompt);
       return;
     }
 
@@ -107,6 +174,46 @@ export function AiDemoConsole() {
     setError("");
 
     try {
+      if (previewMode) {
+        setResult({
+          workflow_id: activeWorkflow.id,
+          workflow_title: activeWorkflow.title,
+          provider_mode: "demo-preview",
+          status: "completed",
+          headline: `${activeWorkflow.title} 预览结果`,
+          summary: "当前是访客预览模式，所以先返回一份演示响应，方便直接查看未来 API 的结果结构。",
+          model_upgrade_path: "后续只需要把 demo adapter 替换成真实 worker，这个页面就能直接接到你的正式模型。",
+          artifacts: [
+            {
+              kind: "text",
+              label: "Prompt",
+              value: prompt,
+              previewUrl: null,
+              payload: null
+            },
+            {
+              kind: "text",
+              label: "Source image",
+              value: sourceImageUrl || "未填写，当前展示的是无图预览流程。",
+              previewUrl: null,
+              payload: null
+            },
+            {
+              kind: "json",
+              label: "Structured payload",
+              value: null,
+              previewUrl: null,
+              payload: {
+                workflow_id: activeWorkflow.id,
+                garment_name: garmentName || "预览衣物",
+                prompt
+              }
+            }
+          ]
+        });
+        return;
+      }
+
       const payload = await runAiDemoWorkflow({
         workflow_id: activeWorkflow.id,
         prompt,
@@ -145,18 +252,13 @@ export function AiDemoConsole() {
     );
   }
 
-  if (!isAuthenticated) {
-    return (
-      <AuthRequiredCard
-        title="Sign in to open the AI model demo console"
-        description="The demo lab is wired around authenticated API calls so the same contracts can later serve your own fine-tuned models, private wardrobe data, and cloud sync state."
-      />
-    );
-  }
-
   return (
     <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
       <section className="space-y-4">
+        {previewMode ? (
+          <VisitorPreviewNotice description="AI 实验室已经开放访客预览。现在先展示统一 API 合约、模型槽位和演示响应，登录后可继续接入你的真实图片与工作流。" />
+        ) : null}
+
         <motion.article
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}

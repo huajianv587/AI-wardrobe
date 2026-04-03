@@ -1,8 +1,15 @@
-import { TryOnStudio } from "@/components/avatar-3d/try-on-studio";
+import nextDynamic from "next/dynamic";
 import { AppShell } from "@/components/ui/app-shell";
 import { SceneSection } from "@/components/ui/scene-section";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StoryPostcard } from "@/components/ui/story-postcard";
+
+const TryOnStudio = nextDynamic(
+  () => import("@/components/avatar-3d/try-on-studio").then((module) => module.TryOnStudio),
+  { ssr: false }
+);
+
+export const dynamic = "force-dynamic";
 
 export default function TryOnPage() {
   return (

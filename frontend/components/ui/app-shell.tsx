@@ -3,33 +3,41 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bot, LogIn, ScanFace, Shirt, Sparkles, Wand2 } from "lucide-react";
+import { BarChart3, BookHeart, Home, LogIn, ScanFace, Shirt, Sparkles } from "lucide-react";
+
 import { AuthSessionBootstrap } from "@/components/auth/auth-session-bootstrap";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { useMobile } from "@/hooks/use-mobile";
 
 const navItems = [
-  { href: "/", label: "首页", shortLabel: "首页", icon: Sparkles },
-  { href: "/wardrobe", label: "衣橱", shortLabel: "衣橱", icon: Shirt },
-  { href: "/try-on", label: "试衣", shortLabel: "试衣", icon: ScanFace },
-  { href: "/recommend", label: "搭配", shortLabel: "搭配", icon: Wand2 },
-  { href: "/assistant", label: "助手", shortLabel: "助手", icon: Sparkles },
-  { href: "/ai-demo", label: "AI 实验室", shortLabel: "实验室", icon: Bot },
-  { href: "/login", label: "账户", shortLabel: "账户", icon: LogIn }
+  { href: "/", label: "首页", shortLabel: "首页", icon: Home },
+  { href: "/wardrobe", label: "衣橱管理", shortLabel: "衣橱", icon: Shirt },
+  { href: "/smart-wardrobe", label: "智能衣物", shortLabel: "智能", icon: Sparkles },
+  { href: "/outfit-diary", label: "穿搭日志", shortLabel: "日志", icon: BookHeart },
+  { href: "/closet-analysis", label: "衣橱分析", shortLabel: "分析", icon: BarChart3 },
+  { href: "/style-profile", label: "风格雷达", shortLabel: "雷达", icon: ScanFace }
 ];
 
 const mobileDockItems = [
-  { href: "/", label: "首页", icon: Sparkles },
+  { href: "/", label: "首页", icon: Home },
   { href: "/wardrobe", label: "衣橱", icon: Shirt },
-  { href: "/try-on", label: "试衣", icon: ScanFace },
-  { href: "/recommend", label: "搭配", icon: Wand2 },
-  { href: "/assistant", label: "助手", icon: Bot }
+  { href: "/smart-wardrobe", label: "智能", icon: Sparkles },
+  { href: "/outfit-diary", label: "日志", icon: BookHeart },
+  { href: "/style-profile", label: "雷达", icon: ScanFace }
 ];
 
 interface AppShellProps {
   title: string;
   subtitle: string;
   children: React.ReactNode;
+}
+
+function isActivePath(pathname: string, href: string) {
+  if (href === "/") {
+    return pathname === "/";
+  }
+
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 export function AppShell({ title, subtitle, children }: AppShellProps) {
@@ -40,6 +48,7 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
   return (
     <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-28 pt-5 md:px-6 md:pb-10">
       <AuthSessionBootstrap />
+
       <motion.span
         animate={{ x: [0, -20, 0], y: [0, 14, 0], scale: [1, 1.06, 1] }}
         transition={{ duration: 10.5, repeat: Infinity, ease: "easeInOut" }}
@@ -55,29 +64,43 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
         transition={{ duration: 11.4, repeat: Infinity, ease: "easeInOut" }}
         className="shell-orb shell-orb-sky"
       />
+
       <motion.header
         initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
         animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
         transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
         className="section-card soft-panel sticky top-4 z-30 mb-6 rounded-[32px] px-4 py-4 md:px-6"
       >
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <div className="pill mb-3">温柔一点的衣橱产品</div>
-            <h1 className="display-title text-3xl font-semibold tracking-[-0.04em] text-[var(--ink-strong)] md:text-5xl">
-              {title}
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)] md:text-base">{subtitle}</p>
-            {isAuthenticated && user ? (
-              <p className="mt-3 text-xs leading-5 text-[var(--muted)]">
-                Signed in as <span className="font-medium text-[var(--ink)]">{user.email}</span>
-              </p>
-            ) : null}
-            {isMobile ? (
-              <Link href="/login" className="mt-3 inline-flex items-center rounded-full border border-[var(--line)] bg-white/88 px-4 py-2 text-xs text-[var(--ink)] shadow-[var(--shadow-soft)]">
-                账户
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div className="pill mb-3">文文的衣橱 · 分页面工作台</div>
+              <h1 className="display-title text-[2.2rem] font-semibold leading-[0.96] tracking-[-0.04em] text-[var(--ink-strong)] md:text-[3.45rem]">
+                {title}
+              </h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)] md:text-base">{subtitle}</p>
+              {isAuthenticated && user ? (
+                <p className="mt-3 text-xs leading-5 text-[var(--muted)]">
+                  当前账号 <span className="font-medium text-[var(--ink)]">{user.email}</span>
+                </p>
+              ) : null}
+            </div>
+
+            <div className="hidden items-center gap-2 md:flex">
+              <Link
+                href="/register"
+                className="inline-flex items-center rounded-full border border-[var(--line)] bg-white/88 px-4 py-2 text-sm text-[var(--ink)] transition hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
+              >
+                注册
               </Link>
-            ) : null}
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 rounded-full bg-[var(--ink-strong)] px-4 py-2 text-sm text-white shadow-[var(--shadow-float)] transition hover:translate-y-[-1px]"
+              >
+                <LogIn className="size-4" />
+                登录
+              </Link>
+            </div>
           </div>
 
           <motion.nav
@@ -87,15 +110,15 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
               hidden: {},
               show: {
                 transition: {
-                  staggerChildren: 0.05,
-                  delayChildren: 0.08
+                  staggerChildren: 0.04,
+                  delayChildren: 0.06
                 }
               }
             }}
-            className="hidden flex-wrap gap-2 md:flex"
+            className="flex gap-2 overflow-x-auto pb-1 md:flex-wrap"
           >
             {navItems.map(({ href, label, shortLabel, icon: Icon }) => {
-              const active = pathname === href;
+              const active = isActivePath(pathname, href);
 
               return (
                 <motion.div
@@ -130,6 +153,24 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
               );
             })}
           </motion.nav>
+
+          {isMobile ? (
+            <div className="flex items-center gap-3 md:hidden">
+              <Link
+                href="/register"
+                className="inline-flex items-center rounded-full border border-[var(--line)] bg-white/88 px-4 py-2 text-xs text-[var(--ink)]"
+              >
+                注册
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 rounded-full bg-[var(--ink-strong)] px-4 py-2 text-xs text-white shadow-[var(--shadow-float)]"
+              >
+                <LogIn className="size-4" />
+                登录
+              </Link>
+            </div>
+          ) : null}
         </div>
       </motion.header>
 
@@ -162,7 +203,7 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
       {isMobile ? (
         <nav className="mobile-dock md:hidden">
           {mobileDockItems.map(({ href, label, icon: Icon }) => {
-            const active = pathname === href;
+            const active = isActivePath(pathname, href);
 
             return (
               <Link key={href} href={href} className="mobile-dock-item relative overflow-hidden" data-active={active ? "true" : "false"}>

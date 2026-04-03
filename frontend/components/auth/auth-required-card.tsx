@@ -24,7 +24,7 @@ export function AuthRequiredCard({ title, description }: AuthRequiredCardProps) 
         href="/login"
         className="mt-6 inline-flex items-center gap-2 rounded-full bg-[var(--ink-strong)] px-5 py-3 text-sm text-white shadow-[var(--shadow-float)] transition hover:translate-y-[-1px]"
       >
-        Open account space
+        前往登录页
         <ArrowRight className="size-4" />
       </Link>
     </section>

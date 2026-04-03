@@ -72,6 +72,6 @@ workers:
     enabled_now: false
     service_port: 9007
     env_url: AVATAR_BUILDER_API_URL
-    model_name: TripoSR / InstantMesh
+    model_name: 2.5D prep first / TripoSR later
     checkpoint_dir: model_training/checkpoints/avatar-builder
     dataset_dir: model_training/datasets/avatar-builder

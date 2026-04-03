@@ -4,13 +4,13 @@ import { startTransition, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, RefreshCw, Sparkles } from "lucide-react";
 
-import { AuthRequiredCard } from "@/components/auth/auth-required-card";
+import { VisitorPreviewNotice } from "@/components/auth/visitor-preview-notice";
 import { RecommendationLookCard } from "@/components/outfit/recommendation-look-card";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { PanelSkeleton } from "@/components/ui/panel-skeleton";
 import { StateCard } from "@/components/ui/state-card";
 import { ApiError, fetchRecommendations, fetchWardrobeItems, RecommendationResult } from "@/lib/api";
-import { WardrobeItem, useWardrobeStore } from "@/store/wardrobe-store";
+import { seedWardrobeItems, WardrobeItem, useWardrobeStore } from "@/store/wardrobe-store";
 
 const promptPresets = [
   "Office meeting tomorrow, soft but professional",
@@ -89,23 +89,13 @@ export function RecommendationPanel() {
   const [prompt, setPrompt] = useState(activePrompt);
   const [loading, setLoading] = useState(false);
   const [hydratingWardrobe, setHydratingWardrobe] = useState(false);
-  const [hasHydratedWardrobe, setHasHydratedWardrobe] = useState(false);
   const [statusText, setStatusText] = useState("");
-  const [result, setResult] = useState<RecommendationResult>(() => buildFallbackRecommendations(activePrompt, []));
+  const previewMode = !isAuthenticated;
+  const availableItems = items.length > 0 ? items : seedWardrobeItems;
+  const [result, setResult] = useState<RecommendationResult>(() => buildFallbackRecommendations(activePrompt, seedWardrobeItems));
 
   useEffect(() => {
     if (!authReady) {
-      return;
-    }
-
-    if (!isAuthenticated) {
-      startTransition(() => replaceItems([]));
-      setHasHydratedWardrobe(false);
-      setStatusText("");
-      return;
-    }
-
-    if (items.length > 0 || hasHydratedWardrobe) {
       return;
     }
 
@@ -113,7 +103,11 @@ export function RecommendationPanel() {
 
     async function hydrateWardrobe() {
       setHydratingWardrobe(true);
-      setStatusText("Loading your wardrobe so the recommendation cards can reference real user items.");
+      setStatusText(
+        isAuthenticated
+          ? "Loading your wardrobe so the recommendation cards can reference real user items."
+          : "Loading the public experience wardrobe for recommendation rendering."
+      );
 
       try {
         const wardrobeItems = await fetchWardrobeItems();
@@ -125,7 +119,9 @@ export function RecommendationPanel() {
         startTransition(() => replaceItems(wardrobeItems));
         setStatusText(
           wardrobeItems.length > 0
-            ? `Loaded ${wardrobeItems.length} wardrobe items for recommendation rendering.`
+            ? isAuthenticated
+              ? `Loaded ${wardrobeItems.length} wardrobe items for recommendation rendering.`
+              : `已载入 ${wardrobeItems.length} 件公开体验单品，推荐页会和私人模式共用同一条接口链路。`
             : "Your wardrobe is empty. Add a few pieces first so the styling agent can build private looks."
         );
       } catch (error) {
@@ -133,10 +129,10 @@ export function RecommendationPanel() {
           return;
         }
 
-        setStatusText(error instanceof Error ? error.message : "Could not load the wardrobe for this page.");
+        startTransition(() => replaceItems(seedWardrobeItems));
+        setStatusText(error instanceof Error ? `${error.message} 已切到本地降级衣橱。` : "Could not load the wardrobe for this page. Switched to local fallback.");
       } finally {
         if (active) {
-          setHasHydratedWardrobe(true);
           setHydratingWardrobe(false);
         }
       }
@@ -147,15 +143,15 @@ export function RecommendationPanel() {
     return () => {
       active = false;
     };
-  }, [authReady, hasHydratedWardrobe, isAuthenticated, items.length, replaceItems]);
+  }, [authReady, isAuthenticated, replaceItems]);
 
   useEffect(() => {
     if (result.source === "api") {
       return;
     }
 
-    startTransition(() => setResult(buildFallbackRecommendations(activePrompt, items)));
-  }, [activePrompt, items, result.source]);
+    startTransition(() => setResult(buildFallbackRecommendations(activePrompt, availableItems)));
+  }, [activePrompt, availableItems, result.source]);
 
   async function handleGenerate(nextPrompt: string) {
     setLoading(true);
@@ -166,12 +162,13 @@ export function RecommendationPanel() {
     try {
       const payload = await fetchRecommendations(nextPrompt);
       startTransition(() => setResult(payload));
+      setStatusText(previewMode ? "公开体验推荐已经返回。登录后同一按钮会直接切到你的私人衣橱推荐。" : "推荐结果已经按你的私人衣橱返回。");
     } catch (error) {
-      const fallback = buildFallbackRecommendations(nextPrompt, items);
+      const fallback = buildFallbackRecommendations(nextPrompt, availableItems);
       startTransition(() => setResult(fallback));
       setStatusText(
         error instanceof ApiError && error.status === 401
-          ? "Your session expired while requesting a recommendation. Sign in again to continue."
+          ? "Your session expired while requesting a recommendation. The page has temporarily switched back to the public experience path."
           : "Backend recommendation is unavailable right now, so the panel is showing a local heuristic draft."
       );
     } finally {
@@ -183,18 +180,15 @@ export function RecommendationPanel() {
     return <PanelSkeleton rows={2} />;
   }
 
-  if (!isAuthenticated) {
-    return (
-      <AuthRequiredCard
-        title="Sign in to run private outfit recommendations"
-        description="The recommendation API now queries only the authenticated owner's wardrobe, so the styling agent needs an active Supabase session before it can retrieve items."
-      />
-    );
-  }
-
   return (
     <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
       <section className="section-card story-gradient rounded-[32px] p-5">
+        {previewMode ? (
+          <div className="mb-5">
+            <VisitorPreviewNotice description="当前是公开体验模式。推荐页仍然优先走真实接口，只是暂时读取公开体验衣橱；登录后会自动切到你的私人衣橱与反馈闭环。" />
+          </div>
+        ) : null}
+
         <div className="mb-5">
           <div className="pill mb-3"><Sparkles className="size-4" />LangGraph-ready flow</div>
           <h3 className="text-2xl font-semibold text-[var(--ink-strong)]">Prompt your styling agent</h3>
@@ -204,7 +198,7 @@ export function RecommendationPanel() {
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="metric-tile p-4">
             <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Retriever scope</p>
-            <p className="mt-2 text-lg font-semibold text-[var(--ink-strong)]">{items.length} private items</p>
+            <p className="mt-2 text-lg font-semibold text-[var(--ink-strong)]">{availableItems.length} {previewMode ? "public demo items" : "private items"}</p>
           </div>
           <div className="metric-tile p-4">
             <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Request mode</p>
@@ -255,7 +249,7 @@ export function RecommendationPanel() {
       </section>
 
       <section className="space-y-4">
-        {items.length === 0 ? (
+        {availableItems.length === 0 ? (
           <StateCard
             variant="empty"
             title="Your wardrobe is still empty"
@@ -264,7 +258,7 @@ export function RecommendationPanel() {
         ) : null}
 
         {result.outfits.map((outfit) => (
-          <RecommendationLookCard key={outfit.title} recommendation={outfit} items={items} prompt={prompt} scene="recommendation-panel" onActionComplete={setStatusText} />
+          <RecommendationLookCard key={outfit.title} recommendation={outfit} items={availableItems} prompt={prompt} scene="recommendation-panel" previewMode={previewMode} onActionComplete={setStatusText} />
         ))}
 
         <article className="section-card rounded-[32px] p-5">

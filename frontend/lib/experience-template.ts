@@ -21,25 +21,43 @@ const PAGE_STYLE_MAP: Record<string, string> = {
   "wardrobe-management.html": `
 body > nav{display:none !important}
 .hero{
-  min-height:min(820px,100vh) !important;
-  padding-top:24px !important;
-  grid-template-columns:minmax(0,1.06fr) minmax(420px,.94fr) !important;
-  align-items:center !important;
+  min-height:min(640px,calc(100vh - 8px)) !important;
+  padding-top:8px !important;
+  grid-template-columns:minmax(0,1.08fr) minmax(320px,.82fr) !important;
+  align-items:start !important;
+  gap:18px !important;
+  overflow:hidden !important;
 }
 .hl{
   justify-content:flex-start !important;
-  padding:26px 42px 28px 52px !important;
+  padding:12px 40px 14px 48px !important;
 }
-.ribbon{margin-bottom:20px !important}
-.htb{margin-bottom:24px !important}
-.feat-rows{margin-bottom:26px !important}
-.hang-tags{margin-top:2px !important}
-.hr{min-height:650px !important}
+.ribbon{margin-bottom:12px !important}
+.htb{margin-bottom:16px !important}
+.feat-rows{margin-bottom:18px !important}
+.hang-tags{margin-top:0 !important}
+.hr{
+  min-height:460px !important;
+  align-self:start !important;
+}
+.stage{width:min(170px,72%) !important}
+.phone{border-radius:22px !important}
 .scroll-h,.chip.ca,.chip.cb,.vt{display:none !important}
-.panel{padding:46px 36px 54px !important}
+.panel{
+  padding:18px 36px 54px !important;
+  min-height:100vh !important;
+  scroll-margin-top:0 !important;
+}
 .ph{
-  padding-bottom:16px !important;
+  padding-bottom:14px !important;
   margin-bottom:18px !important;
+}
+.pb{
+  min-height:calc(100vh - 194px) !important;
+  align-items:stretch !important;
+}
+.pb > div:last-child{
+  min-height:calc(100vh - 194px) !important;
 }
 .stats{margin-bottom:18px !important}
 `,

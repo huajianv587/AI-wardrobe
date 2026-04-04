@@ -21,30 +21,31 @@ const PAGE_STYLE_MAP: Record<string, string> = {
   "wardrobe-management.html": `
 body > nav{display:none !important}
 .hero{
-  min-height:min(640px,calc(100vh - 8px)) !important;
-  padding-top:8px !important;
-  grid-template-columns:minmax(0,1.08fr) minmax(320px,.82fr) !important;
-  align-items:start !important;
-  gap:18px !important;
+  min-height:100vh !important;
+  padding-top:0 !important;
+  grid-template-columns:minmax(0,1.08fr) minmax(360px,.9fr) !important;
+  align-items:stretch !important;
+  gap:20px !important;
   overflow:hidden !important;
 }
 .hl{
-  justify-content:flex-start !important;
-  padding:12px 40px 14px 48px !important;
+  justify-content:space-between !important;
+  padding:24px 42px 26px 48px !important;
+  min-height:100% !important;
 }
 .ribbon{margin-bottom:12px !important}
 .htb{margin-bottom:16px !important}
 .feat-rows{margin-bottom:18px !important}
 .hang-tags{margin-top:0 !important}
 .hr{
-  min-height:460px !important;
-  align-self:start !important;
+  min-height:100% !important;
+  align-self:stretch !important;
 }
-.stage{width:min(170px,72%) !important}
-.phone{border-radius:22px !important}
+.stage{width:min(220px,78%) !important}
+.phone{border-radius:24px !important}
 .scroll-h,.chip.ca,.chip.cb,.vt{display:none !important}
 .panel{
-  padding:18px 36px 54px !important;
+  padding:8px 36px 54px !important;
   min-height:100vh !important;
   scroll-margin-top:0 !important;
 }
@@ -53,11 +54,11 @@ body > nav{display:none !important}
   margin-bottom:18px !important;
 }
 .pb{
-  min-height:calc(100vh - 194px) !important;
+  min-height:calc(100vh - 184px) !important;
   align-items:stretch !important;
 }
 .pb > div:last-child{
-  min-height:calc(100vh - 194px) !important;
+  min-height:calc(100vh - 184px) !important;
 }
 .stats{margin-bottom:18px !important}
 `,
@@ -76,9 +77,76 @@ body > nav{display:none !important}
 .lp{top:20px !important}
 `,
   "outfit-diary.html": `
-body{padding-top:0 !important}
-.top-bar{margin-bottom:0 !important}
-.stats-bar{margin-bottom:0 !important}
+body{
+  padding-top:0 !important;
+  height:100vh !important;
+  min-height:100vh !important;
+  overflow:hidden !important;
+  display:flex !important;
+  flex-direction:column !important;
+}
+.stats-bar{
+  width:min(100%,860px) !important;
+  margin:0 auto !important;
+  padding:12px 16px 6px !important;
+  gap:10px !important;
+  overflow:hidden !important;
+  flex:0 0 auto !important;
+}
+.stat-chip{
+  flex:1 1 0 !important;
+  min-width:0 !important;
+  padding:10px 14px !important;
+  border-radius:16px !important;
+}
+.stat-chip .stat-num{font-size:20px !important}
+.view-switch-row{
+  width:min(100%,860px) !important;
+  padding:0 16px 6px !important;
+  flex:0 0 auto !important;
+}
+.calendar-section{
+  width:min(100%,860px) !important;
+  padding:8px 16px 14px !important;
+  flex:1 1 auto !important;
+  min-height:0 !important;
+  display:flex !important;
+  flex-direction:column !important;
+}
+.month-nav{
+  margin-bottom:10px !important;
+  gap:18px !important;
+}
+.month-label{
+  font-size:22px !important;
+  min-width:150px !important;
+}
+.weekday-row{
+  margin-bottom:8px !important;
+  flex:0 0 auto !important;
+}
+.days-grid{
+  flex:1 1 auto !important;
+  min-height:0 !important;
+  gap:6px !important;
+  grid-template-rows:repeat(6,minmax(0,1fr)) !important;
+}
+.day-cell{
+  aspect-ratio:auto !important;
+  min-height:0 !important;
+  border-radius:14px !important;
+}
+.day-cell .day-num{font-size:13px !important}
+.suitcase-section{
+  width:min(100%,860px) !important;
+  padding:8px 16px 16px !important;
+  flex:1 1 auto !important;
+  min-height:0 !important;
+  overflow:auto !important;
+}
+.suitcase-header{margin-bottom:16px !important}
+.trip-setup{padding:18px !important;margin-bottom:16px !important}
+.suitcase-visual{padding:18px !important}
 `,
   "closet-analysis.html": `
 body{padding-top:22px !important}

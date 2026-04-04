@@ -69,6 +69,24 @@
     return W.request(API_ROOT + path, options);
   }
 
+  function escapeAttr(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/"/g, "&quot;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  function resolveDisplayImageUrl(item) {
+    var raw = (item && (item.processed_image_url || item.image_url)) || "";
+    if (!raw) return "";
+    if (/^https?:\/\//i.test(raw) || raw.indexOf("data:") === 0) return raw;
+    if (raw.charAt(0) === "/" && W.apiBase) {
+      return W.apiBase.replace(/\/$/, "") + raw;
+    }
+    return raw;
+  }
+
   function parseUploadResponse(response) {
     return response.text().then(function (text) {
       var data = {};
@@ -268,13 +286,17 @@
       var stroke = silhouetteStroke[item.visual_theme] || "rgba(192,100,88,.45)";
       var silhouetteKind = item.silhouette === "shirt" ? "shirt" : item.silhouette;
       var svg = W.silhouetteSvg(silhouetteKind, stroke, "cs");
+      var imageUrl = resolveDisplayImageUrl(item);
+      var media = imageUrl
+        ? '<img class="ic-real" src="' + escapeAttr(imageUrl) + '" alt="' + escapeAttr(item.name || "衣橱单品") + '" loading="lazy" decoding="async" referrerpolicy="no-referrer" />'
+        : '<div class="icii ' + item.visual_theme + '">' + svg + "</div>";
       return '' +
         '<div class="ic' + (checked ? " sel" : "") + '" data-id="' + item.id + '" onclick="sel(this)">' +
           '<div class="ic-chk">' +
             '<svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>' +
           '</div>' +
           '<span class="icbadge ' + item.badge_tone + '">' + W.escapeHtml(item.badge_label) + "</span>" +
-          '<div class="ic-img"><div class="icii ' + item.visual_theme + '">' + svg + "</div></div>" +
+          '<div class="ic-img">' + media + "</div>" +
           '<div class="ic-acts">' +
             '<div class="ia" data-action="edit" onclick="ote(event)"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>' +
             '<div class="ia" data-action="replace"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>' +

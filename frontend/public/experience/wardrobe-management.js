@@ -69,6 +69,16 @@
     return W.request(API_ROOT + path, options);
   }
 
+  function scrollToPanel() {
+    var panel = document.getElementById("panel");
+    if (!panel) return;
+    var top = panel.getBoundingClientRect().top + window.pageYOffset - 68;
+    window.scrollTo({
+      top: Math.max(0, top),
+      behavior: "smooth"
+    });
+  }
+
   function escapeAttr(value) {
     return String(value || "")
       .replace(/&/g, "&amp;")
@@ -750,6 +760,8 @@
     state.page = 1;
     fetchOverview();
   };
+
+  window.scrollToPanel = scrollToPanel;
 
   if (saveButton) saveButton.addEventListener("click", saveEditor);
   uploadInput.onchange = handleBulkUpload;

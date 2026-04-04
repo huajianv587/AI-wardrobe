@@ -8,7 +8,7 @@ from app.main import app
 from app.models.user import User
 from core.config import settings
 from db.base import Base
-from services import supabase_service
+from services import r2_storage_service, supabase_service
 from services.wardrobe_service import seed_demo_data
 
 
@@ -24,13 +24,26 @@ def client(tmp_path):
     original_supabase_service_role_key = settings.supabase_service_role_key
     original_ai_cleanup_api_url = settings.ai_cleanup_api_url
     original_ai_cleanup_api_key = settings.ai_cleanup_api_key
+    original_r2_account_id = settings.r2_account_id
+    original_r2_bucket = settings.r2_bucket
+    original_r2_access_key_id = settings.r2_access_key_id
+    original_r2_secret_access_key = settings.r2_secret_access_key
+    original_r2_endpoint_url = settings.r2_endpoint_url
+    original_r2_public_base_url = settings.r2_public_base_url
     settings.local_storage_root = str(asset_root)
     settings.supabase_url = ""
     settings.supabase_service_role_key = ""
     settings.ai_cleanup_api_url = ""
     settings.ai_cleanup_api_key = ""
+    settings.r2_account_id = ""
+    settings.r2_bucket = ""
+    settings.r2_access_key_id = ""
+    settings.r2_secret_access_key = ""
+    settings.r2_endpoint_url = ""
+    settings.r2_public_base_url = ""
     supabase_service.get_client.cache_clear()
     supabase_service._bucket_ready = False
+    r2_storage_service.get_client.cache_clear()
 
     Base.metadata.create_all(bind=engine)
 
@@ -73,6 +86,13 @@ def client(tmp_path):
     settings.supabase_service_role_key = original_supabase_service_role_key
     settings.ai_cleanup_api_url = original_ai_cleanup_api_url
     settings.ai_cleanup_api_key = original_ai_cleanup_api_key
+    settings.r2_account_id = original_r2_account_id
+    settings.r2_bucket = original_r2_bucket
+    settings.r2_access_key_id = original_r2_access_key_id
+    settings.r2_secret_access_key = original_r2_secret_access_key
+    settings.r2_endpoint_url = original_r2_endpoint_url
+    settings.r2_public_base_url = original_r2_public_base_url
     supabase_service.get_client.cache_clear()
     supabase_service._bucket_ready = False
+    r2_storage_service.get_client.cache_clear()
     Base.metadata.drop_all(bind=engine)

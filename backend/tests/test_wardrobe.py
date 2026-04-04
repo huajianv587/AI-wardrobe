@@ -7,6 +7,7 @@ from app.main import app
 from app.models.user import User
 from app.models.wardrobe import ClothingItem
 from core.config import settings
+from services import r2_storage_service
 
 
 def test_wardrobe_requires_auth_header(client):
@@ -56,7 +57,7 @@ def test_wardrobe_crud_and_asset_flow(client):
 
     uploaded = upload_response.json()
     assert upload_response.status_code == 200
-    assert uploaded["image_url"].startswith("/api/v1/assets/wardrobe/source/")
+    assert uploaded["image_url"].startswith("/api/v1/assets/wardrobe/source/user-")
     assert "source-image" in uploaded["tags"]
 
     source_asset_response = client.get(uploaded["image_url"])
@@ -81,7 +82,8 @@ def test_wardrobe_crud_and_asset_flow(client):
     processed = process_response.json()
 
     assert process_response.status_code == 200
-    assert processed["processed_image_url"] == f"/api/v1/assets/wardrobe/processed/item-{created['id']}-processed.png"
+    assert processed["processed_image_url"].startswith("/api/v1/assets/wardrobe/processed/user-")
+    assert processed["processed_image_url"].endswith(f"/item-{created['id']}-processed.png")
     assert "processed" in processed["tags"]
     assert "white-background" in processed["tags"]
     assert "cleanup-placeholder" in processed["tags"]
@@ -191,3 +193,60 @@ def test_remote_ai_cleanup_path(client, monkeypatch):
     assert requests[0]["headers"]["Authorization"] == f"Bearer {settings.ai_cleanup_api_key}"
     assert requests[0]["headers"]["X-API-Key"] == settings.ai_cleanup_api_key
     assert requests[0]["filename"].endswith(".png")
+
+
+def test_r2_prepare_and_confirm_upload_flow(client, monkeypatch):
+    settings.r2_account_id = "cloudflare-account"
+    settings.r2_bucket = "wardrobe-assets"
+    settings.r2_access_key_id = "r2-key"
+    settings.r2_secret_access_key = "r2-secret"
+    settings.r2_public_base_url = "https://images.example.com"
+    r2_storage_service.get_client.cache_clear()
+
+    monkeypatch.setattr(r2_storage_service, "is_enabled", lambda: True)
+    def fake_prepare(asset_path, content_type):
+        return r2_storage_service.PreparedUpload(
+            upload_url="https://upload.example.com/presigned",
+            public_url=f"https://images.example.com/{asset_path}",
+            headers={"Content-Type": content_type or "application/octet-stream"},
+        )
+
+    monkeypatch.setattr(r2_storage_service, "prepare_presigned_upload", fake_prepare)
+    monkeypatch.setattr(r2_storage_service, "object_exists", lambda asset_url: True)
+
+    create_response = client.post(
+        "/api/v1/wardrobe/items",
+        json={
+            "name": "R2 Upload Coat",
+            "category": "outerwear",
+            "slot": "outerwear",
+            "color": "Camel",
+            "brand": "R2 Test",
+            "image_url": None,
+            "processed_image_url": None,
+            "tags": ["cloud"],
+            "occasions": ["city"],
+            "style_notes": "Prepared upload integration test.",
+        },
+    )
+    created = create_response.json()
+
+    prepare_response = client.post(
+        f"/api/v1/wardrobe/items/{created['id']}/prepare-image-upload",
+        json={"filename": "coat.png", "content_type": "image/png"},
+    )
+    prepared = prepare_response.json()
+
+    assert prepare_response.status_code == 200
+    assert prepared["upload_url"] == "https://upload.example.com/presigned"
+    assert prepared["public_url"].startswith("https://images.example.com/wardrobe/source/user-")
+
+    confirm_response = client.post(
+        f"/api/v1/wardrobe/items/{created['id']}/confirm-image-upload",
+        json={"public_url": prepared["public_url"]},
+    )
+    confirmed = confirm_response.json()
+
+    assert confirm_response.status_code == 200
+    assert confirmed["image_url"] == prepared["public_url"]
+    assert "source-image" in confirmed["tags"]

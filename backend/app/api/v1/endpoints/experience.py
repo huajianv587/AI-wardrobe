@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, File, Query, UploadFile
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_or_demo_user, get_db
@@ -15,6 +15,7 @@ from app.schemas.experience import (
     ExperienceWardrobeBulkPayload,
     ExperienceWardrobeItemPayload,
 )
+from app.schemas.wardrobe import ImageUploadFinalizeRequest, ImageUploadPlan, ImageUploadPrepareRequest
 from services import experience_service
 
 router = APIRouter(prefix="/experience", tags=["experience"])
@@ -56,6 +57,36 @@ def update_wardrobe_item(
     current_user: User = Depends(get_current_or_demo_user),
 ):
     return experience_service.update_wardrobe_item_from_experience(db, current_user, item_id, payload)
+
+
+@router.post("/wardrobe-management/items/{item_id}/prepare-image-upload", response_model=ImageUploadPlan)
+def prepare_wardrobe_item_image_upload(
+    item_id: int,
+    payload: ImageUploadPrepareRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_or_demo_user),
+):
+    return experience_service.prepare_wardrobe_item_image_upload(db, current_user, item_id, payload)
+
+
+@router.post("/wardrobe-management/items/{item_id}/confirm-image-upload")
+def confirm_wardrobe_item_image_upload(
+    item_id: int,
+    payload: ImageUploadFinalizeRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_or_demo_user),
+):
+    return experience_service.confirm_wardrobe_item_image_upload(db, current_user, item_id, payload)
+
+
+@router.post("/wardrobe-management/items/{item_id}/upload-image")
+def upload_wardrobe_item_image(
+    item_id: int,
+    image: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_or_demo_user),
+):
+    return experience_service.upload_wardrobe_item_image(db, current_user, item_id, image)
 
 
 @router.delete("/wardrobe-management/items/{item_id}")

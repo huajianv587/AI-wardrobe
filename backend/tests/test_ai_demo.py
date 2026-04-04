@@ -115,7 +115,7 @@ def test_mini_program_account_endpoint(client):
 
     assert response.status_code == 200
     assert payload["user_email"] == "tester@ai-wardrobe.dev"
-    assert payload["mode"] == "local-first"
+    assert payload["mode"] == "local filesystem + metadata-local-only"
 
 
 def test_client_bootstrap_endpoint(client):

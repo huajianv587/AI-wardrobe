@@ -1,10 +1,18 @@
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Query, UploadFile
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_or_demo_user, get_current_user, get_db
+from app.api.deps import get_current_user, get_db
 from app.models.user import User
 from app.schemas.assistant import AssistantTaskResponse
-from app.schemas.wardrobe import ClothingItemCreate, ClothingItemRead, ClothingItemUpdate, DeleteResponse
+from app.schemas.wardrobe import (
+    ClothingItemCreate,
+    ClothingItemRead,
+    ClothingItemUpdate,
+    DeleteResponse,
+    ImageUploadFinalizeRequest,
+    ImageUploadPlan,
+    ImageUploadPrepareRequest,
+)
 from services import wardrobe_service
 
 router = APIRouter(prefix="/wardrobe", tags=["wardrobe"])
@@ -15,7 +23,7 @@ def get_items(
     category: str | None = Query(default=None),
     query: str | None = Query(default=None),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ) -> list[ClothingItemRead]:
     return wardrobe_service.list_items(db, current_user.id, category=category, query=query)
 
@@ -24,7 +32,7 @@ def get_items(
 def get_item(
     item_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ) -> ClothingItemRead:
     return wardrobe_service.get_item(db, item_id, current_user.id)
 
@@ -37,6 +45,32 @@ def create_item(payload: ClothingItemCreate, db: Session = Depends(get_db), curr
 @router.put("/items/{item_id}", response_model=ClothingItemRead)
 def update_item(item_id: int, payload: ClothingItemUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> ClothingItemRead:
     return wardrobe_service.update_item(db, item_id, payload, current_user)
+
+
+@router.post("/items/{item_id}/prepare-image-upload", response_model=ImageUploadPlan)
+def prepare_item_image_upload(
+    item_id: int,
+    payload: ImageUploadPrepareRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> ImageUploadPlan:
+    prepared = wardrobe_service.prepare_item_image_upload(db, item_id, payload.filename, payload.content_type, current_user)
+    return ImageUploadPlan(
+        upload_url=prepared.upload_url,
+        public_url=prepared.public_url,
+        method=prepared.method,
+        headers=prepared.headers,
+    )
+
+
+@router.post("/items/{item_id}/confirm-image-upload", response_model=ClothingItemRead)
+def confirm_item_image_upload(
+    item_id: int,
+    payload: ImageUploadFinalizeRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> ClothingItemRead:
+    return wardrobe_service.finalize_item_image_upload(db, item_id, payload.public_url, current_user)
 
 
 @router.post("/items/{item_id}/upload-image", response_model=ClothingItemRead)

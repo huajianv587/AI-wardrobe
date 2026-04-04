@@ -53,6 +53,22 @@ class ClothingItemUpdate(BaseModel):
     style_notes: str | None = None
 
 
+class ImageUploadPrepareRequest(BaseModel):
+    filename: str = Field(min_length=1, max_length=255)
+    content_type: str | None = None
+
+
+class ImageUploadPlan(BaseModel):
+    upload_url: str
+    public_url: str
+    method: str = "PUT"
+    headers: dict[str, str] = Field(default_factory=dict)
+
+
+class ImageUploadFinalizeRequest(BaseModel):
+    public_url: str = Field(min_length=1, max_length=1000)
+
+
 class ClothingItemRead(ClothingItemBase):
     model_config = ConfigDict(from_attributes=True)
 

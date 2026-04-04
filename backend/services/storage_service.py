@@ -10,7 +10,7 @@ import httpx
 from fastapi import HTTPException, UploadFile, status
 
 from core.config import settings
-from services import supabase_service
+from services import r2_storage_service
 
 ASSET_API_PREFIX = "/api/v1/assets"
 
@@ -18,7 +18,7 @@ ASSET_API_PREFIX = "/api/v1/assets"
 @dataclass
 class StoredAsset:
     relative_path: str
-    local_url: str
+    url: str
     backup_url: str | None
 
 
@@ -62,6 +62,10 @@ def _local_asset_url(asset_path: str) -> str:
     return f"{ASSET_API_PREFIX}/{asset_path.strip('/')}"
 
 
+def _public_local_asset_url(asset_path: str) -> str:
+    return f"{settings.backend_public_base_url.rstrip('/')}{_local_asset_url(asset_path)}"
+
+
 def safe_suffix_from_filename(filename: str | None) -> str:
     return Path(filename or "asset.bin").suffix.lower() or ".bin"
 
@@ -90,7 +94,21 @@ def asset_path_from_url(asset_url: str | None) -> str | None:
 
 
 def public_backup_url_for_asset(asset_url: str | None) -> str | None:
-    return supabase_service.public_url_for_asset_path(asset_path_from_url(asset_url))
+    if not asset_url:
+        return None
+
+    if r2_storage_service.is_managed_asset_url(asset_url):
+        return asset_url
+
+    asset_path = asset_path_from_url(asset_url)
+    if asset_path:
+        return _public_local_asset_url(asset_path)
+
+    parsed = urlparse(asset_url)
+    if parsed.scheme in {"http", "https"}:
+        return asset_url
+
+    return None
 
 
 def resolve_asset_path(asset_path: str) -> Path:
@@ -137,27 +155,80 @@ def load_asset_bytes(asset_url: str) -> LoadedAsset:
     return LoadedAsset(payload=response.content, content_type=content_type, filename=filename, source="remote")
 
 
+def build_upload_path(relative_directory: str, filename: str, *, user_id: int | None = None, item_id: int | None = None) -> str:
+    normalized_directory = _normalized_asset_directory(relative_directory)
+    suffix = safe_suffix_from_filename(filename)
+    parts = [normalized_directory]
+    if user_id is not None:
+        parts.append(f"user-{user_id}")
+    if item_id is not None:
+        parts.append(f"item-{item_id}")
+    parts.append(f"{uuid4().hex}{suffix}")
+    return "/".join(part.strip("/") for part in parts if part)
+
+
+def prepare_client_upload(
+    relative_directory: str,
+    filename: str,
+    content_type: str | None = None,
+    *,
+    user_id: int | None = None,
+    item_id: int | None = None,
+) -> r2_storage_service.PreparedUpload:
+    if not r2_storage_service.is_enabled():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Cloudflare R2 direct uploads are not configured.",
+        )
+
+    asset_path = build_upload_path(relative_directory, filename, user_id=user_id, item_id=item_id)
+    prepared = r2_storage_service.prepare_presigned_upload(asset_path, content_type or _guess_content_type(filename))
+    if prepared is None:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Could not prepare the Cloudflare R2 upload.",
+        )
+
+    return prepared
+
+
+def ensure_managed_upload(asset_url: str) -> str:
+    if not r2_storage_service.is_managed_asset_url(asset_url):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Uploaded asset URL is not managed by Cloudflare R2.")
+
+    if not r2_storage_service.object_exists(asset_url):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Uploaded asset was not found in Cloudflare R2.")
+
+    return asset_url
+
+
 def save_bytes(asset_path: str, payload: bytes, content_type: str) -> StoredAsset:
     normalized_path = asset_path.replace("\\", "/").strip("/")
+    if r2_storage_service.is_enabled():
+        public_url = r2_storage_service.upload_bytes(normalized_path, payload, content_type)
+        if not public_url:
+            raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="Could not store the asset in Cloudflare R2.")
+        return StoredAsset(
+            relative_path=normalized_path,
+            url=public_url,
+            backup_url=public_url,
+        )
+
     destination = _assert_inside_root(_root() / normalized_path)
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_bytes(payload)
-
-    backup_url = supabase_service.upload_bytes(normalized_path, payload, content_type)
     return StoredAsset(
         relative_path=normalized_path,
-        local_url=_local_asset_url(normalized_path),
-        backup_url=backup_url,
+        url=_local_asset_url(normalized_path),
+        backup_url=_public_local_asset_url(normalized_path),
     )
 
 
-def save_upload(relative_directory: str, upload_file: UploadFile) -> StoredAsset:
-    normalized_directory = _normalized_asset_directory(relative_directory)
-    suffix = safe_suffix_from_filename(upload_file.filename)
-    filename = f"{uuid4().hex}{suffix}"
+def save_upload(relative_directory: str, upload_file: UploadFile, *, user_id: int | None = None, item_id: int | None = None) -> StoredAsset:
+    filename = build_upload_path(relative_directory, upload_file.filename or "asset.bin", user_id=user_id, item_id=item_id)
     payload = upload_file.file.read()
-    content_type = upload_file.content_type or _guess_content_type(filename)
-    return save_bytes(f"{normalized_directory}/{filename}", payload, content_type)
+    content_type = upload_file.content_type or _guess_content_type(upload_file.filename or filename)
+    return save_bytes(filename, payload, content_type)
 
 
 def save_generated_asset(relative_directory: str, filename: str, payload: bytes, content_type: str) -> StoredAsset:
@@ -171,4 +242,4 @@ def delete_asset(asset_url: str | None) -> None:
     if local_path and local_path.exists():
         local_path.unlink(missing_ok=True)
 
-    supabase_service.delete_asset(asset_url)
+    r2_storage_service.delete_asset(asset_url)

@@ -9,7 +9,7 @@ from app.models.user import User
 from app.models.wardrobe import ClothingItem
 from app.schemas.sync import SyncRunResponse, SyncStatusResponse
 from core.config import settings
-from services import supabase_service
+from services import storage_service, supabase_service, r2_storage_service
 
 
 def _user_items(db: Session, user: User) -> list[ClothingItem]:
@@ -22,11 +22,14 @@ def build_sync_status(db: Session, user: User) -> SyncStatusResponse:
 
     latest_item_created_at = max((item.created_at for item in items), default=None)
     latest_cloud_sync_at = max((item.last_synced_at for item in items if item.last_synced_at is not None), default=None)
+    cloud_enabled = r2_storage_service.is_enabled() or supabase_service.is_enabled()
+    mode_parts = [r2_storage_service.describe_mode()]
+    mode_parts.append(supabase_service.describe_mode())
 
     return SyncStatusResponse(
-        mode=supabase_service.describe_mode(),
-        cloud_enabled=supabase_service.is_enabled(),
-        storage_bucket=settings.supabase_storage_bucket if supabase_service.is_enabled() else None,
+        mode=" + ".join(mode_parts),
+        cloud_enabled=cloud_enabled,
+        storage_bucket=r2_storage_service.configured_bucket() if r2_storage_service.is_enabled() else None,
         sync_table=settings.supabase_sync_table if supabase_service.is_enabled() else None,
         user_id=user.id,
         supabase_user_id=user.supabase_user_id,
@@ -49,7 +52,7 @@ def sync_user_wardrobe(db: Session, user: User) -> SyncRunResponse:
             failed_items=0,
             attempted_items=len(items),
             latest_cloud_sync_at=max((item.last_synced_at for item in items if item.last_synced_at is not None), default=None),
-            message="Supabase sync is not configured in .env, so only local-first storage is active.",
+            message="Supabase metadata sync is not configured in .env, so only the primary database and asset storage are active.",
         )
 
     synced_items = 0
@@ -60,6 +63,8 @@ def sync_user_wardrobe(db: Session, user: User) -> SyncRunResponse:
             item,
             owner_supabase_user_id=user.supabase_user_id,
             owner_email=user.email,
+            image_backup_url=storage_service.public_backup_url_for_asset(item.image_url),
+            processed_backup_url=storage_service.public_backup_url_for_asset(item.processed_image_url),
         )
 
         if synced:

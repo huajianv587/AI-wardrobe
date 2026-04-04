@@ -225,7 +225,7 @@ export function WardrobeManagementDashboard() {
             <div className="metric-tile p-4">
               <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">已带原图</p>
               <p className="mt-2 text-lg font-semibold text-[var(--ink-strong)]">{sourceCount}</p>
-              <p className="mt-2 text-xs leading-5 text-[var(--muted)]">保留原图 URL 和本地上传入口，方便后续 AI 流程继续处理。</p>
+              <p className="mt-2 text-xs leading-5 text-[var(--muted)]">原图会优先走云端对象存储，方便后续 AI 流程继续处理。</p>
             </div>
 
             <div className="metric-tile p-4">

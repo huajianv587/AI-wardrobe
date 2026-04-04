@@ -30,7 +30,7 @@ type SyncState = "loading" | "connected" | "error";
 
 const syncStateCopy: Record<SyncState, { label: string; accent: string }> = {
   loading: { label: "Loading backend wardrobe", accent: "var(--accent-soft)" },
-  connected: { label: "Connected to FastAPI + SQLite", accent: "var(--accent-mint)" },
+  connected: { label: "Connected to FastAPI + cloud assets", accent: "var(--accent-mint)" },
   error: { label: "Could not save to backend", accent: "var(--accent-rose)" }
 };
 
@@ -64,7 +64,7 @@ export function WardrobeWorkspace() {
       setStatusText(
         apiItems.length > 0
           ? `${apiItems.length} items loaded from backend storage.`
-          : "Connected to FastAPI + SQLite. The wardrobe is empty, so you can start by adding your first garment."
+          : "Connected to the backend. The wardrobe is empty, so you can start by adding your first garment."
       );
     } catch (error) {
       startTransition(() => replaceItems([]));
@@ -104,7 +104,7 @@ export function WardrobeWorkspace() {
 
       startTransition(() => prependItem(created));
       setSyncState("connected");
-      setStatusText(values.imageFile ? `Saved ${created.name} and uploaded its source image.` : `Saved ${created.name} into the SQLite wardrobe.`);
+      setStatusText(values.imageFile ? `Saved ${created.name} and uploaded its source image to the cloud asset lane.` : `Saved ${created.name} into your wardrobe.`);
     } catch (error) {
       setSyncState("error");
       setStatusText(error instanceof Error ? error.message : "Could not save the item to backend.");
@@ -126,7 +126,7 @@ export function WardrobeWorkspace() {
 
       startTransition(() => upsertItem(updated));
       setSyncState("connected");
-      setStatusText(values.imageFile ? `Updated ${updated.name} and replaced its image.` : `Updated ${updated.name}.`);
+      setStatusText(values.imageFile ? `Updated ${updated.name} and replaced its cloud image.` : `Updated ${updated.name}.`);
     } catch (error) {
       setSyncState("error");
       setStatusText(error instanceof Error ? error.message : "Could not update the item.");
@@ -165,7 +165,7 @@ export function WardrobeWorkspace() {
       setStatusText(
         processed.processedImageUrl
           ? usedRemoteCleanup
-            ? `Processed ${processed.name} with the configured AI cleanup service and saved the result to local-first storage.`
+            ? `Processed ${processed.name} with the configured AI cleanup service and saved the result to the cloud asset lane.`
             : usedFallbackCleanup
               ? `External AI cleanup was unavailable, so ${processed.name} fell back to the local placeholder output.`
               : `Generated the local cleanup placeholder asset for ${processed.name}.`
@@ -316,8 +316,8 @@ export function WardrobeWorkspace() {
 
             <div className="metric-tile p-4">
               <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Storage mode</p>
-              <p className="mt-2 text-lg font-semibold text-[var(--ink-strong)]">SQLite first</p>
-              <p className="mt-2 text-xs leading-5 text-[var(--muted)]">Fast local CRUD first, with optional Supabase backup layered in only when configured.</p>
+              <p className="mt-2 text-lg font-semibold text-[var(--ink-strong)]">R2 first</p>
+              <p className="mt-2 text-xs leading-5 text-[var(--muted)]">Images prefer direct cloud upload, with the legacy backend upload route kept as a fallback.</p>
             </div>
 
             <div className="metric-tile p-4">

@@ -7,3 +7,4 @@ alembic
 supabase
 httpx
 pytest
+boto3

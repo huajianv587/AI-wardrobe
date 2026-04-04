@@ -114,6 +114,13 @@ interface ApiRequestOptions {
   skipAuth?: boolean;
 }
 
+interface ApiImageUploadPlan {
+  upload_url: string;
+  public_url: string;
+  method: string;
+  headers: Record<string, string>;
+}
+
 export interface EmailPasswordAuthPayload {
   email: string;
   password: string;
@@ -695,6 +702,45 @@ export async function deleteWardrobeItem(itemId: number) {
 }
 
 export async function uploadWardrobeItemImage(itemId: number, file: File) {
+  try {
+    const plan = await apiRequest<ApiImageUploadPlan>(`/api/v1/wardrobe/items/${itemId}/prepare-image-upload`, {
+      method: "POST",
+      body: JSON.stringify({
+        filename: file.name,
+        content_type: file.type || null
+      })
+    });
+
+    const uploadHeaders = new Headers(plan.headers ?? {});
+    if (file.type && !uploadHeaders.has("Content-Type")) {
+      uploadHeaders.set("Content-Type", file.type);
+    }
+
+    const uploadResponse = await fetch(plan.upload_url, {
+      method: plan.method || "PUT",
+      headers: uploadHeaders,
+      body: file
+    });
+
+    if (!uploadResponse.ok) {
+      const text = await uploadResponse.text();
+      throw new ApiError(text || "Cloud upload failed.", uploadResponse.status, text);
+    }
+
+    const item = await apiRequest<ApiWardrobeItem>(`/api/v1/wardrobe/items/${itemId}/confirm-image-upload`, {
+      method: "POST",
+      body: JSON.stringify({
+        public_url: plan.public_url
+      })
+    });
+
+    return mapApiWardrobeItem(item);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      throw error;
+    }
+  }
+
   const formData = new FormData();
   formData.append("image", file);
 

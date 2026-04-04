@@ -6,6 +6,7 @@ import json
 import re
 from pathlib import Path
 from typing import Any
+from fastapi import UploadFile
 
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
@@ -27,7 +28,7 @@ from app.schemas.experience import (
     ExperienceWardrobeBulkPayload,
     ExperienceWardrobeItemPayload,
 )
-from app.schemas.wardrobe import ClothingItemCreate, ClothingItemUpdate
+from app.schemas.wardrobe import ClothingItemCreate, ClothingItemUpdate, ImageUploadFinalizeRequest, ImageUploadPrepareRequest
 from services import assistant_service, wardrobe_service
 
 DEMO_USER_EMAIL = "guest@wenwen-wardrobe.local"
@@ -638,6 +639,36 @@ def update_wardrobe_item_from_experience(db: Session, user: User, item_id: int, 
         ),
         user,
     )
+    return {"status": "updated", "item": _map_wardrobe_item(item)}
+
+
+def prepare_wardrobe_item_image_upload(
+    db: Session,
+    user: User,
+    item_id: int,
+    payload: ImageUploadPrepareRequest,
+) -> dict[str, Any]:
+    prepared = wardrobe_service.prepare_item_image_upload(db, item_id, payload.filename, payload.content_type, user)
+    return {
+        "upload_url": prepared.upload_url,
+        "public_url": prepared.public_url,
+        "method": prepared.method,
+        "headers": prepared.headers,
+    }
+
+
+def confirm_wardrobe_item_image_upload(
+    db: Session,
+    user: User,
+    item_id: int,
+    payload: ImageUploadFinalizeRequest,
+) -> dict[str, Any]:
+    item = wardrobe_service.finalize_item_image_upload(db, item_id, payload.public_url, user)
+    return {"status": "updated", "item": _map_wardrobe_item(item)}
+
+
+def upload_wardrobe_item_image(db: Session, user: User, item_id: int, upload_file: UploadFile) -> dict[str, Any]:
+    item = wardrobe_service.attach_item_image(db, item_id, upload_file, user)
     return {"status": "updated", "item": _map_wardrobe_item(item)}
 
 

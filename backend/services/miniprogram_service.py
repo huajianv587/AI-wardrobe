@@ -29,7 +29,7 @@ def build_home_payload(db: Session, user: User) -> MiniProgramHomeResponse:
             MiniProgramShortcut(id="assistant", title="Assistant", subtitle="Tomorrow planner and low-thought modes", route="/pages/assistant/index", badge="Smart"),
             MiniProgramShortcut(id="recommend", title="AI Looks", subtitle="Call the API-first recommendation flow", route="/pages/recommend/index", badge="API"),
             MiniProgramShortcut(id="tryon", title="Try-On", subtitle="2.5D preview and future generated try-on", route="/pages/try-on/index", badge="2.5D"),
-            MiniProgramShortcut(id="account", title="Sync", subtitle="Check cloud status and account session", route="/pages/account/index", badge="Supabase"),
+            MiniProgramShortcut(id="account", title="Sync", subtitle="Check cloud status and account session", route="/pages/account/index", badge="R2"),
         ],
         workflow_preview=[
             MiniProgramWorkflowPreview(id=workflow.id, title=workflow.title, priority=workflow.priority, stage=workflow.stage)

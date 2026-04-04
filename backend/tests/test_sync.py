@@ -6,7 +6,7 @@ def test_sync_status_endpoint(client):
     payload = response.json()
 
     assert response.status_code == 200
-    assert payload["mode"] == "local-first"
+    assert payload["mode"] == "local filesystem + metadata-local-only"
     assert payload["cloud_enabled"] is False
     assert payload["user_id"] == 1
     assert payload["items_total"] == 0

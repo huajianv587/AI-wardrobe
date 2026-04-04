@@ -79,12 +79,12 @@ export function SyncStatusCard() {
 
   if (!isAuthenticated) {
     return (
-      <article className="section-card rounded-[34px] p-6">
-        <p className="pill mb-3">Account sync</p>
-        <h2 className="text-2xl font-semibold tracking-[-0.04em] text-[var(--ink-strong)]">Sync status appears after sign-in</h2>
-        <p className="mt-3 text-sm leading-7 text-[var(--muted)]">Once you authenticate, this panel will show cloud mode, per-user item counts, and the latest time your wardrobe metadata was mirrored to Supabase.</p>
-      </article>
-    );
+        <article className="section-card rounded-[34px] p-6">
+          <p className="pill mb-3">Account sync</p>
+          <h2 className="text-2xl font-semibold tracking-[-0.04em] text-[var(--ink-strong)]">Sync status appears after sign-in</h2>
+        <p className="mt-3 text-sm leading-7 text-[var(--muted)]">Once you authenticate, this panel will show cloud asset mode, per-user item counts, and the latest time your wardrobe metadata was mirrored to Supabase.</p>
+        </article>
+      );
   }
 
   return (
@@ -131,7 +131,7 @@ export function SyncStatusCard() {
 
       {status ? (
         <div className="mt-5 space-y-3 rounded-[24px] border border-[var(--line)] bg-white/80 p-4">
-          <p className="text-sm text-[var(--ink)]">Supabase bucket: <span className="font-medium">{status.storage_bucket ?? "not configured"}</span></p>
+          <p className="text-sm text-[var(--ink)]">Cloud asset bucket: <span className="font-medium">{status.storage_bucket ?? "not configured"}</span></p>
           <p className="text-sm text-[var(--ink)]">Metadata table: <span className="font-medium">{status.sync_table ?? "not configured"}</span></p>
           <p className="text-sm text-[var(--ink)]">Source images: <span className="font-medium">{status.items_with_source_image}</span> | Processed images: <span className="font-medium">{status.items_with_processed_image}</span></p>
           <p className="text-sm text-[var(--ink)]">Latest cloud sync: <span className="font-medium">{status.latest_cloud_sync_at ? new Date(status.latest_cloud_sync_at).toLocaleString() : "No successful cloud sync yet"}</span></p>

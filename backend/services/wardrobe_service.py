@@ -47,8 +47,8 @@ def _sync_item(
         item,
         owner_supabase_user_id=owner_supabase_user_id,
         owner_email=owner_email,
-        image_backup_url=image_backup_url,
-        processed_backup_url=processed_backup_url,
+        image_backup_url=image_backup_url or storage_service.public_backup_url_for_asset(item.image_url),
+        processed_backup_url=processed_backup_url or storage_service.public_backup_url_for_asset(item.processed_image_url),
     )
 
     if synced:
@@ -97,6 +97,65 @@ def _serialize_item(item: ClothingItem) -> dict:
     }
 
 
+def _apply_source_image(
+    db: Session,
+    item: ClothingItem,
+    user: User,
+    image_url: str,
+    *,
+    image_backup_url: str | None = None,
+) -> ClothingItem:
+    previous_image_url = item.image_url if item.image_url != image_url else None
+    previous_processed_image_url = item.processed_image_url
+
+    item.image_url = image_url
+    item.processed_image_url = None
+    item.tags = _dedupe_tokens([*_without_tags(item.tags, CLEANUP_TAGS), "source-image"])
+    item.style_notes = _append_note(item.style_notes, "Source image uploaded for cleanup and recommendation preview.")
+    db.commit()
+    db.refresh(item)
+    item = _auto_enrich(db, item, user)
+    _sync_item(
+        db,
+        item,
+        owner_supabase_user_id=user.supabase_user_id,
+        owner_email=user.email,
+        image_backup_url=image_backup_url or storage_service.public_backup_url_for_asset(image_url),
+    )
+    storage_service.delete_asset(previous_image_url)
+    storage_service.delete_asset(previous_processed_image_url)
+    return _attach_memory_card(db, item, user.id)
+
+
+def _apply_processed_image(
+    db: Session,
+    item: ClothingItem,
+    user: User,
+    processed_image_url: str,
+    *,
+    processed_backup_url: str | None = None,
+    cleanup_note: str,
+    cleanup_tag: str,
+) -> ClothingItem:
+    previous_processed_image_url = item.processed_image_url if item.processed_image_url != processed_image_url else None
+
+    item.processed_image_url = processed_image_url
+    item.tags = _dedupe_tokens([*_without_tags(item.tags, CLEANUP_TAGS), "processed", "white-background", cleanup_tag])
+    item.style_notes = _append_note(item.style_notes, cleanup_note)
+    db.commit()
+    db.refresh(item)
+    item = _auto_enrich(db, item, user)
+    _sync_item(
+        db,
+        item,
+        owner_supabase_user_id=user.supabase_user_id,
+        owner_email=user.email,
+        processed_backup_url=processed_backup_url or storage_service.public_backup_url_for_asset(processed_image_url),
+    )
+    storage_service.delete_asset(previous_processed_image_url)
+    return _attach_memory_card(db, item, user.id)
+
+
 def list_items(db: Session, user_id: int, category: str | None = None, query: str | None = None) -> list[ClothingItem]:
     statement = select(ClothingItem).order_by(ClothingItem.created_at.desc())
     statement = statement.where(ClothingItem.user_id == user_id)
@@ -140,40 +199,58 @@ def create_item(db: Session, payload: ClothingItemCreate, user: User) -> Clothin
 
 def update_item(db: Session, item_id: int, payload: ClothingItemUpdate, user: User) -> ClothingItem:
     item = get_item(db, item_id, user.id)
+    previous_image_url = item.image_url
+    previous_processed_image_url = item.processed_image_url
+    image_url_changed = False
 
     for field, value in payload.model_dump(exclude_unset=True).items():
         if field in {"tags", "occasions"} and value is not None:
             setattr(item, field, _dedupe_tokens(value))
             continue
 
+        if field == "image_url":
+            image_url_changed = value != item.image_url
+
         setattr(item, field, value)
+
+    if image_url_changed:
+        item.processed_image_url = None
+        refreshed_tags = _without_tags(item.tags, CLEANUP_TAGS)
+        item.tags = _dedupe_tokens([*refreshed_tags, "source-image"] if item.image_url else refreshed_tags)
+        if item.image_url:
+            item.style_notes = _append_note(item.style_notes, "Source image uploaded for cleanup and recommendation preview.")
 
     db.commit()
     db.refresh(item)
     item = _auto_enrich(db, item, user)
     _sync_item(db, item, owner_supabase_user_id=user.supabase_user_id, owner_email=user.email)
+    if image_url_changed:
+        storage_service.delete_asset(previous_image_url)
+        storage_service.delete_asset(previous_processed_image_url)
     return _attach_memory_card(db, item, user.id)
+
+
+def prepare_item_image_upload(db: Session, item_id: int, filename: str, content_type: str | None, user: User):
+    item = get_item(db, item_id, user.id)
+    return storage_service.prepare_client_upload(
+        "wardrobe/source",
+        filename,
+        content_type,
+        user_id=user.id,
+        item_id=item.id,
+    )
+
+
+def finalize_item_image_upload(db: Session, item_id: int, public_url: str, user: User) -> ClothingItem:
+    item = get_item(db, item_id, user.id)
+    image_url = storage_service.ensure_managed_upload(public_url)
+    return _apply_source_image(db, item, user, image_url, image_backup_url=image_url)
 
 
 def attach_item_image(db: Session, item_id: int, upload_file: UploadFile, user: User) -> ClothingItem:
     item = get_item(db, item_id, user.id)
-    asset = storage_service.save_upload("wardrobe/source", upload_file)
-
-    item.image_url = asset.local_url
-    item.processed_image_url = None
-    item.tags = _dedupe_tokens([*_without_tags(item.tags, CLEANUP_TAGS), "source-image"])
-    item.style_notes = _append_note(item.style_notes, "Source image uploaded for cleanup and recommendation preview.")
-    db.commit()
-    db.refresh(item)
-    item = _auto_enrich(db, item, user)
-    _sync_item(
-        db,
-        item,
-        owner_supabase_user_id=user.supabase_user_id,
-        owner_email=user.email,
-        image_backup_url=asset.backup_url,
-    )
-    return _attach_memory_card(db, item, user.id)
+    asset = storage_service.save_upload("wardrobe/source", upload_file, user_id=user.id, item_id=item.id)
+    return _apply_source_image(db, item, user, asset.url, image_backup_url=asset.backup_url)
 
 
 def process_item_image(db: Session, item_id: int, user: User) -> ClothingItem:
@@ -182,25 +259,20 @@ def process_item_image(db: Session, item_id: int, user: User) -> ClothingItem:
     if item.image_url:
         cleanup = image_pipeline_service.process_item_image(item.id, item.image_url)
         processed_asset = storage_service.save_generated_asset(
-            "wardrobe/processed",
+            f"wardrobe/processed/user-{user.id}/item-{item.id}",
             cleanup.filename,
             cleanup.payload,
             cleanup.content_type,
         )
-        item.processed_image_url = processed_asset.local_url
-        item.tags = _dedupe_tokens([*_without_tags(item.tags, CLEANUP_TAGS), "processed", "white-background", cleanup.tag])
-        item.style_notes = _append_note(item.style_notes, cleanup.note)
-        db.commit()
-        db.refresh(item)
-        item = _auto_enrich(db, item, user)
-        _sync_item(
+        return _apply_processed_image(
             db,
             item,
-            owner_supabase_user_id=user.supabase_user_id,
-            owner_email=user.email,
+            user,
+            processed_asset.url,
             processed_backup_url=processed_asset.backup_url,
+            cleanup_note=cleanup.note,
+            cleanup_tag=cleanup.tag,
         )
-        return _attach_memory_card(db, item, user.id)
 
     item.style_notes = _append_note(item.style_notes, "Upload an image before running the cleanup pipeline.")
     db.commit()

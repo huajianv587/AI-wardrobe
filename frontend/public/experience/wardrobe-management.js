@@ -72,10 +72,9 @@
   function scrollToPanel() {
     var panel = document.getElementById("panel");
     if (!panel) return;
-    var top = panel.getBoundingClientRect().top + window.pageYOffset - 68;
-    window.scrollTo({
-      top: Math.max(0, top),
-      behavior: "smooth"
+    panel.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
     });
   }
 

@@ -34,7 +34,7 @@ def _asset_path_from_local_url(asset_url: str | None) -> str | None:
 
 
 def describe_mode() -> str:
-    return f"local-first + Supabase({settings.supabase_storage_bucket})" if is_enabled() else "local-first"
+    return f"Supabase metadata sync({settings.supabase_sync_table})" if is_enabled() else "metadata-local-only"
 
 
 def ensure_bucket() -> bool:
@@ -133,8 +133,8 @@ def _clothing_item_payload(
         "brand": item.brand,
         "image_url": item.image_url,
         "processed_image_url": item.processed_image_url,
-        "image_backup_url": image_backup_url or public_url_for_local_asset(item.image_url),
-        "processed_image_backup_url": processed_backup_url or public_url_for_local_asset(item.processed_image_url),
+        "image_backup_url": image_backup_url or (item.image_url if item.image_url and item.image_url.startswith(("http://", "https://")) else public_url_for_local_asset(item.image_url)),
+        "processed_image_backup_url": processed_backup_url or (item.processed_image_url if item.processed_image_url and item.processed_image_url.startswith(("http://", "https://")) else public_url_for_local_asset(item.processed_image_url)),
         "tags": item.tags,
         "occasions": item.occasions,
         "style_notes": item.style_notes,

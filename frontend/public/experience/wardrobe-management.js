@@ -69,6 +69,65 @@
     return W.request(API_ROOT + path, options);
   }
 
+  function parseUploadResponse(response) {
+    return response.text().then(function (text) {
+      var data = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch (error) {
+        data = { message: text || "请求失败" };
+      }
+      if (!response.ok) {
+        throw new Error(data.detail || data.message || "请求失败");
+      }
+      return data;
+    });
+  }
+
+  function uploadAssetForItemLegacy(itemId, file) {
+    var formData = new FormData();
+    formData.append("image", file);
+    return fetch((W.apiBase || "") + API_ROOT + "/items/" + itemId + "/upload-image", {
+      method: "POST",
+      body: formData,
+      credentials: "include"
+    }).then(parseUploadResponse);
+  }
+
+  function uploadAssetForItem(itemId, file) {
+    return api("/items/" + itemId + "/prepare-image-upload", {
+      method: "POST",
+      body: JSON.stringify({
+        filename: file.name,
+        content_type: file.type || null
+      })
+    }).then(function (plan) {
+      var headers = Object.assign({}, plan.headers || {});
+      if (file.type && !headers["Content-Type"] && !headers["content-type"]) {
+        headers["Content-Type"] = file.type;
+      }
+      return fetch(plan.upload_url, {
+        method: plan.method || "PUT",
+        headers: headers,
+        body: file
+      }).then(function (response) {
+        if (!response.ok) {
+          return response.text().then(function (text) {
+            throw new Error(text || "云端上传失败");
+          });
+        }
+        return api("/items/" + itemId + "/confirm-image-upload", {
+          method: "POST",
+          body: JSON.stringify({
+            public_url: plan.public_url
+          })
+        });
+      });
+    }).catch(function () {
+      return uploadAssetForItemLegacy(itemId, file);
+    });
+  }
+
   function sortItems(items) {
     var sorted = items.slice();
     if (state.sort === "name") {
@@ -353,21 +412,8 @@
     uploadInput.onchange = function () {
       var file = uploadInput.files && uploadInput.files[0];
       if (!file) return;
-      var item = state.items.find(function (entry) { return entry.id === itemId; });
-      if (!item) return;
-      var payload = {
-        name: item.name,
-        category: item.category,
-        slot: (categoryMap[item.category] || categoryMap.tops).slot,
-        color: item.color,
-        brand: item.brand || "文文的衣橱",
-        image_url: "local-upload://" + file.name,
-        tags: item.tags || [],
-        occasions: item.occasions || [],
-        style_notes: item.note || ""
-      };
-      api("/items/" + itemId, { method: "PUT", body: JSON.stringify(payload) }).then(function () {
-        W.toast("图片来源已替换并保留原图地址", "soft");
+      uploadAssetForItem(itemId, file).then(function () {
+        W.toast("图片已上传并绑定到这件单品", "soft");
         fetchOverview(false);
       }).catch(function (error) {
         W.toast(error.message || "替换失败");
@@ -392,15 +438,17 @@
           slot: (categoryMap[category] || categoryMap.tops).slot,
           color: "米白",
           brand: "本地上传",
-          image_url: "local-upload://" + file.name,
+          image_url: null,
           tags: ["本地上传"],
           occasions: [],
           style_notes: "从本地上传入口加入衣橱。"
         })
+      }).then(function (result) {
+        return result && result.item ? uploadAssetForItem(result.item.id, file) : null;
       });
     });
     Promise.all(queue).then(function () {
-      W.toast("本地图片已加入衣橱并完成记录", "soft");
+      W.toast("图片已上传到云端并加入衣橱", "soft");
       fetchOverview(false);
     }).catch(function (error) {
       W.toast(error.message || "上传失败");

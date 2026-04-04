@@ -117,6 +117,6 @@ export const FEATURE_PLACEHOLDERS: FeaturePlaceholder[] = [
     description: "网页、小程序和未来的移动端会共用一套衣橱与搭配记录，不再重复整理与上传。",
     accent: "#FFD9A8",
     tone: "peach",
-    bullets: ["Supabase 云同步", "多端登录", "实时状态保持"]
+    bullets: ["R2 图片存储", "多端登录", "元数据同步"]
   }
 ];

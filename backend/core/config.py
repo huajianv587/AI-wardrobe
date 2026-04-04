@@ -1,7 +1,8 @@
 from pathlib import Path
+from typing import Annotated
 
 from pydantic import AliasChoices, Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 ROOT_ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
 
@@ -17,7 +18,7 @@ class Settings(BaseSettings):
     app_env: str = "development"
     api_v1_prefix: str = "/api/v1"
     database_url: str = "sqlite:///./data/ai_wardrobe.db"
-    cors_origins: list[str] = Field(
+    cors_origins: Annotated[list[str], NoDecode] = Field(
         default_factory=lambda: ["http://localhost:3000", "http://127.0.0.1:3000"],
         validation_alias=AliasChoices("CORS_ORIGINS", "BACKEND_CORS_ORIGINS"),
     )
@@ -28,6 +29,14 @@ class Settings(BaseSettings):
     supabase_service_role_key: str = ""
     supabase_storage_bucket: str = "wardrobe-assets"
     supabase_sync_table: str = "clothing_items"
+    r2_account_id: str = ""
+    r2_bucket: str = ""
+    r2_access_key_id: str = ""
+    r2_secret_access_key: str = ""
+    r2_endpoint_url: str = ""
+    r2_public_base_url: str = ""
+    r2_region: str = "auto"
+    r2_presign_expires_seconds: int = 900
     redis_url: str = "redis://localhost:6379/0"
     ai_cleanup_api_url: str = ""
     ai_cleanup_api_key: str = ""

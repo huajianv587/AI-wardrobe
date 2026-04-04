@@ -123,7 +123,9 @@ svg {
 .scroll-section {
   position: relative;
   height: 100vh;
+  height: 100svh;
   min-height: 100vh;
+  min-height: 100svh;
   overflow: hidden;
 }
 
@@ -2027,6 +2029,12 @@ svg {
 }
 
 @media (max-width: 767px) {
+  .scroll-section {
+    height: auto;
+    min-height: 100svh;
+    overflow: visible;
+  }
+
   body::before {
     opacity: 0.16;
   }
@@ -2036,7 +2044,7 @@ svg {
   }
 
   .hero-stage-wrap {
-    padding: 6.25rem 1rem 1.6rem;
+    padding: 5.8rem 1rem 2rem;
   }
 
   .hero-stage {
@@ -2082,8 +2090,8 @@ svg {
   }
 
   .hero-media-shell {
-    width: min(78vw, 410px);
-    height: min(64vh, 690px);
+    width: min(82vw, 420px);
+    height: min(58svh, 640px);
   }
 
   .hero-video {
@@ -2111,6 +2119,10 @@ svg {
     padding-inline: 1.1rem;
   }
 
+  .glow-button__label {
+    letter-spacing: 0.12em;
+  }
+
   .navbar-logo__mark {
     width: 2.35rem;
     height: 2.35rem;
@@ -2118,6 +2130,31 @@ svg {
 
   .navbar-logo__title {
     font-size: 1.38rem;
+  }
+
+  .category-shell {
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+    padding: 0.65rem;
+    border-radius: 30px;
+  }
+
+  .tab-pill {
+    width: 100%;
+    min-width: 0;
+    padding: 0.82rem 0.9rem 0.72rem;
+  }
+
+  .action-chip {
+    min-height: 2.75rem;
+  }
+
+  .avatar-fallback {
+    width: min(100%, 240px);
+    height: min(44vh, 300px);
   }
 }
 

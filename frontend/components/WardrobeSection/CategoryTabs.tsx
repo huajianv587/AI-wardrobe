@@ -13,7 +13,7 @@ export function CategoryTabs({ selectedCategory, onSelect }: CategoryTabsProps) 
   const [hoveredCategory, setHoveredCategory] = useState<ClothingCategory | null>(null);
 
   return (
-    <div className="scrollbar-hide overflow-x-auto overflow-y-visible">
+    <div className="scrollbar-hide overflow-visible md:overflow-x-auto md:overflow-y-visible">
       <div className="category-shell">
         {CATEGORIES.map((category) => {
           const isActive = selectedCategory === category;
@@ -48,8 +48,8 @@ export function CategoryTabs({ selectedCategory, onSelect }: CategoryTabsProps) 
                 />
               ) : null}
               <span className="relative z-10 flex flex-col items-center gap-1">
-                <span className={`text-sm ${isActive ? "text-white" : "text-[var(--text-secondary)]"}`}>{category}</span>
-                <span className={`text-[0.62rem] tracking-[0.22em] ${isActive ? "text-white/76" : "text-[rgba(var(--text-secondary-rgb),0.64)]"}`}>
+                <span className={`text-[0.96rem] md:text-sm ${isActive ? "text-white" : "text-[var(--text-secondary)]"}`}>{category}</span>
+                <span className={`text-[0.58rem] tracking-[0.18em] md:text-[0.62rem] md:tracking-[0.22em] ${isActive ? "text-white/76" : "text-[rgba(var(--text-secondary-rgb),0.64)]"}`}>
                   {CATEGORY_LABELS_EN[category]}
                 </span>
               </span>

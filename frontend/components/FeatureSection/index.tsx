@@ -17,7 +17,7 @@ export function FeatureSection() {
 
   return (
     <section
-      className="feature-surface relative flex h-screen items-center overflow-hidden px-4 py-16 md:px-8"
+      className="feature-surface relative flex min-h-[100svh] items-start overflow-hidden px-4 py-24 md:h-screen md:items-center md:px-8 md:py-16"
       aria-label="产品功能入口"
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_22%,rgba(var(--accent-gold-rgb),0.18),transparent_22%),radial-gradient(circle_at_82%_18%,rgba(var(--accent-rose-rgb),0.14),transparent_24%)]" />

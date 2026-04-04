@@ -114,7 +114,7 @@ export function HeroSection({
   );
 
   return (
-    <div ref={rootRef} className="hero-surface relative flex h-screen flex-col overflow-hidden">
+    <div ref={rootRef} className="hero-surface relative flex min-h-[100svh] flex-col overflow-hidden md:h-screen">
       <NavBar onNavigateHome={onNavigateHome} />
       <FloatingPetals />
 

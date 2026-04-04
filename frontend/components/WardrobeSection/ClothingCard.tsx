@@ -79,7 +79,7 @@ export function ClothingCard({ index, isSelected, item, onSelect }: ClothingCard
       tabIndex={0}
       data-cursor="click"
       data-selected={isSelected}
-      className="wardrobe-card group min-h-[250px] cursor-pointer outline-none"
+      className="wardrobe-card group min-h-[220px] cursor-pointer outline-none md:min-h-[250px]"
       style={{ boxShadow: "0 4px 20px rgba(180,120,140,0.08)" }}
       onClick={handleSelect}
       onKeyDown={(event) => {
@@ -91,21 +91,21 @@ export function ClothingCard({ index, isSelected, item, onSelect }: ClothingCard
       aria-label={`选择 ${item.name}`}
     >
       <div
-        className="relative flex h-[65%] items-center justify-center overflow-hidden"
+        className="relative flex h-[62%] items-center justify-center overflow-hidden md:h-[65%]"
         style={{
           background: `linear-gradient(160deg, ${hexToRgba(item.color, 0.96)} 0%, ${item.secondaryColor ?? hexToRgba(item.color, 0.24)} 58%, rgba(255,255,255,0.92) 100%)`
         }}
       >
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.72),transparent_42%)]" />
-        <div className="relative flex h-20 w-20 items-center justify-center rounded-full border border-white/65 bg-white/42 text-[2.5rem] shadow-[0_18px_32px_rgba(255,255,255,0.18)] backdrop-blur-md">
+        <div className="relative flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-full border border-white/65 bg-white/42 text-[2.25rem] shadow-[0_18px_32px_rgba(255,255,255,0.18)] backdrop-blur-md md:h-20 md:w-20 md:text-[2.5rem]">
           {item.emoji}
         </div>
       </div>
 
-      <div className="flex h-[35%] items-center justify-between gap-3 px-4 py-3">
+      <div className="flex h-[38%] items-center justify-between gap-3 px-3.5 py-3 md:h-[35%] md:px-4">
         <div className="min-w-0">
           <p className="truncate text-[0.92rem] font-medium text-[var(--text-primary)]">{item.name}</p>
-          <span className="mt-2 inline-flex rounded-full bg-[rgba(var(--accent-rose-rgb),0.92)] px-2.5 py-1 text-[0.62rem] text-white">
+          <span className="mt-2 inline-flex rounded-full bg-[rgba(var(--accent-rose-rgb),0.92)] px-2.5 py-1 text-[0.58rem] text-white md:text-[0.62rem]">
             {item.tag}
           </span>
         </div>

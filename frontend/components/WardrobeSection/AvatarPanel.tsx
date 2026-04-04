@@ -37,10 +37,10 @@ export function AvatarPanel({ selectedItem }: AvatarPanelProps) {
       className="relative flex h-full flex-col overflow-hidden bg-[var(--bg-avatar)]"
       style={{ boxShadow: "inset -20px 0 40px rgba(var(--accent-rose-rgb), 0.08)" }}
     >
-      <div className="relative z-10 flex items-center justify-between px-5 pb-4 pt-20 md:px-8 md:pb-5 md:pt-24">
-        <span className="font-mono text-[0.62rem] tracking-[0.28em] text-[var(--text-secondary)]">MODEL / 2.5D</span>
+      <div className="relative z-10 flex items-center justify-between gap-3 px-4 pb-3 pt-4 md:px-8 md:pb-5 md:pt-24">
+        <span className="font-mono text-[0.58rem] tracking-[0.18em] text-[var(--text-secondary)] md:text-[0.62rem] md:tracking-[0.28em]">MODEL / 2.5D</span>
         <GlowButton
-          className="px-4 py-2 text-[0.64rem]"
+          className="shrink-0 px-3 py-2 text-[0.58rem] md:px-4 md:py-2 md:text-[0.64rem]"
           variant="ghost"
           onClick={() => setManualPulseKey((value) => value + 1)}
         >
@@ -48,11 +48,11 @@ export function AvatarPanel({ selectedItem }: AvatarPanelProps) {
         </GlowButton>
       </div>
 
-      <div className="relative flex flex-1 items-center justify-center px-4 pb-6 md:px-8">
+      <div className="relative flex flex-1 items-center justify-center px-3 pb-4 md:px-8 md:pb-6">
         <motion.div
           whileHover={{ y: -6, boxShadow: "0 22px 60px rgba(180,120,140,0.16)" }}
           transition={{ type: "spring", stiffness: 180, damping: 20 }}
-          className="avatar-stage avatar-stage--interactive relative h-full w-full max-w-[460px] overflow-hidden rounded-[36px]"
+          className="avatar-stage avatar-stage--interactive relative h-full w-full max-w-none overflow-hidden rounded-[30px] md:max-w-[460px] md:rounded-[36px]"
           data-cursor="hover"
         >
           <AnimatePresence mode="wait">
@@ -70,8 +70,7 @@ export function AvatarPanel({ selectedItem }: AvatarPanelProps) {
                 <img
                   src="/avatar.jpg"
                   alt={selectedItem ? `模特展示 ${selectedItem.name}` : "模特待机展示"}
-                  className="relative z-10 mx-auto w-auto max-w-full object-contain"
-                  style={{ height: "70vh", maxHeight: "70vh", objectFit: "contain" }}
+                  className="relative z-10 mx-auto h-[46vh] max-h-[360px] w-auto max-w-full object-contain md:h-[70vh] md:max-h-[70vh]"
                   onError={() => setImageFailed(true)}
                 />
               )}
@@ -96,7 +95,7 @@ export function AvatarPanel({ selectedItem }: AvatarPanelProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.24 }}
-              className="absolute left-1/2 top-5 z-20 -translate-x-1/2 rounded-full border border-[rgba(var(--accent-rose-rgb),0.22)] bg-white/72 px-4 py-2 text-[0.65rem] tracking-[0.22em] text-[var(--text-secondary)] backdrop-blur"
+              className="absolute left-1/2 top-4 z-20 w-max max-w-[calc(100%-1.5rem)] -translate-x-1/2 truncate rounded-full border border-[rgba(var(--accent-rose-rgb),0.22)] bg-white/72 px-3 py-2 text-[0.58rem] tracking-[0.16em] text-[var(--text-secondary)] backdrop-blur md:top-5 md:max-w-[calc(100%-2rem)] md:px-4 md:text-[0.65rem] md:tracking-[0.22em]"
             >
               已试穿 · {selectedItem?.tag ?? "待机展示"}
             </motion.div>
@@ -104,14 +103,14 @@ export function AvatarPanel({ selectedItem }: AvatarPanelProps) {
         </motion.div>
       </div>
 
-      <div className="relative z-10 px-5 pb-6 md:px-8 md:pb-8">
+      <div className="relative z-10 px-4 pb-4 md:px-8 md:pb-8">
         <motion.div
           whileHover={{ y: -4, boxShadow: "0 18px 42px rgba(180,120,140,0.12)" }}
           transition={{ type: "spring", stiffness: 180, damping: 20 }}
-          className="rounded-[24px] border border-[var(--surface-border)] bg-white/76 p-4 shadow-[var(--shadow-card)] backdrop-blur-md"
+          className="rounded-[22px] border border-[var(--surface-border)] bg-white/76 p-3.5 shadow-[var(--shadow-card)] backdrop-blur-md md:rounded-[24px] md:p-4"
           data-cursor="hover"
         >
-          <p className="text-[0.65rem] tracking-[0.28em] text-[var(--text-secondary)]">CURRENT LOOK</p>
+          <p className="text-[0.6rem] tracking-[0.22em] text-[var(--text-secondary)] md:text-[0.65rem] md:tracking-[0.28em]">CURRENT LOOK</p>
           <AnimatePresence mode="wait">
             <motion.div
               key={`label-${selectedItem?.id ?? 0}`}
@@ -120,10 +119,10 @@ export function AvatarPanel({ selectedItem }: AvatarPanelProps) {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
             >
-              <p className="mt-2 text-lg font-medium text-[var(--text-primary)]">
+              <p className="mt-2 text-base font-medium text-[var(--text-primary)] md:text-lg">
                 {selectedItem?.name ?? "挑选一件单品开始试穿"}
               </p>
-              <p className="mt-1 text-sm text-[var(--text-secondary)]">
+              <p className="mt-1 text-[0.82rem] text-[var(--text-secondary)] md:text-sm">
                 {selectedItem ? `${selectedItem.category} · ${selectedItem.tag}` : "系统会在这里显示当前穿搭反馈"}
               </p>
             </motion.div>

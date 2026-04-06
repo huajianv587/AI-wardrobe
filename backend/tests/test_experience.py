@@ -1,4 +1,5 @@
 import io
+import re
 
 from core.config import settings
 from services import experience_service, r2_storage_service
@@ -169,7 +170,10 @@ def test_experience_wardrobe_management_assets_filters_and_bulk_flow(client, mon
     legacy_upload_payload = legacy_upload_response.json()
 
     assert legacy_upload_response.status_code == 200
-    assert legacy_upload_payload["item"]["image_url"].startswith("/api/v1/assets/wardrobe/source/user-")
+    assert re.fullmatch(
+        r"/api/v1/assets/wardrobe/source/\d+/[0-9a-f-]+\.png",
+        legacy_upload_payload["item"]["image_url"],
+    )
 
     monkeypatch.setattr(settings, "r2_account_id", "cloudflare-account", raising=False)
     monkeypatch.setattr(settings, "r2_bucket", "wardrobe-assets", raising=False)
@@ -188,7 +192,7 @@ def test_experience_wardrobe_management_assets_filters_and_bulk_flow(client, mon
             headers={"Content-Type": content_type or "application/octet-stream"},
         ),
     )
-    monkeypatch.setattr(r2_storage_service, "object_exists", lambda asset_url: True)
+    monkeypatch.setattr(r2_storage_service, "object_exists_for_path", lambda asset_path: True)
 
     prepare_response = client.post(
         f"/api/v1/experience/wardrobe-management/items/{second_item['id']}/prepare-image-upload",
@@ -198,7 +202,10 @@ def test_experience_wardrobe_management_assets_filters_and_bulk_flow(client, mon
 
     assert prepare_response.status_code == 200
     assert prepare_payload["upload_url"] == "https://upload.example.com/presigned"
-    assert prepare_payload["public_url"].startswith("https://images.example.com/wardrobe/source/user-")
+    assert re.fullmatch(
+        r"/api/v1/assets/wardrobe/source/\d+/[0-9a-f-]+\.png",
+        prepare_payload["public_url"],
+    )
 
     confirm_response = client.post(
         f"/api/v1/experience/wardrobe-management/items/{second_item['id']}/confirm-image-upload",

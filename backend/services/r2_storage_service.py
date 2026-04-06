@@ -58,7 +58,6 @@ def is_enabled() -> bool:
         and settings.r2_access_key_id
         and settings.r2_secret_access_key
         and _endpoint_url()
-        and public_base_url()
     )
 
 
@@ -151,9 +150,30 @@ def prepare_presigned_upload(asset_path: str, content_type: str | None = None) -
 
     return PreparedUpload(
         upload_url=upload_url,
-        public_url=build_public_url(asset_path),
+        public_url=build_public_url(asset_path) if public_base_url() else asset_path.strip("/"),
         headers=headers,
     )
+
+
+def generate_presigned_url(asset_path: str, expires_seconds: int | None = None) -> str | None:
+    client = get_client()
+    bucket = configured_bucket()
+    if client is None or not bucket:
+        return None
+
+    normalized_path = asset_path.strip("/")
+    ttl = expires_seconds if expires_seconds is not None else settings.r2_presign_expires_seconds
+
+    try:
+        return client.generate_presigned_url(
+            ClientMethod="get_object",
+            Params={"Bucket": bucket, "Key": normalized_path},
+            ExpiresIn=max(1, min(int(ttl), 604800)),
+            HttpMethod="GET",
+        )
+    except (ClientError, BotoCoreError, ValueError) as exc:
+        logger.warning("R2 presigned download generation failed for %s: %s", normalized_path, exc)
+        return None
 
 
 def upload_bytes(asset_path: str, payload: bytes, content_type: str) -> str | None:
@@ -169,36 +189,63 @@ def upload_bytes(asset_path: str, payload: bytes, content_type: str) -> str | No
         logger.warning("R2 upload failed for %s: %s", normalized_path, exc)
         return None
 
-    return build_public_url(normalized_path)
+    return build_public_url(normalized_path) if public_base_url() else normalized_path
 
 
-def object_exists(asset_url: str) -> bool:
+def load_bytes(asset_path: str) -> tuple[bytes, str, str] | None:
     client = get_client()
     bucket = configured_bucket()
-    asset_path = asset_path_from_public_url(asset_url)
-    if client is None or not bucket or not asset_path:
+    normalized_path = asset_path.strip("/")
+    if client is None or not bucket or not normalized_path:
+        return None
+
+    try:
+        response = client.get_object(Bucket=bucket, Key=normalized_path)
+        payload = response["Body"].read()
+        content_type = str(response.get("ContentType") or "application/octet-stream")
+        filename = normalized_path.rsplit("/", 1)[-1] or "asset.bin"
+    except (ClientError, BotoCoreError, ValueError) as exc:
+        logger.warning("R2 asset GET failed for %s: %s", normalized_path, exc)
+        return None
+
+    return payload, content_type, filename
+
+
+def object_exists_for_path(asset_path: str | None) -> bool:
+    client = get_client()
+    bucket = configured_bucket()
+    normalized_path = (asset_path or "").strip("/")
+    if client is None or not bucket or not normalized_path:
         return False
 
     try:
-        client.head_object(Bucket=bucket, Key=asset_path)
+        client.head_object(Bucket=bucket, Key=normalized_path)
     except ClientError as exc:
-        logger.warning("R2 asset HEAD failed for %s: %s", asset_path, exc)
+        logger.warning("R2 asset HEAD failed for %s: %s", normalized_path, exc)
         return False
     except (BotoCoreError, ValueError) as exc:
-        logger.warning("R2 asset HEAD failed for %s: %s", asset_path, exc)
+        logger.warning("R2 asset HEAD failed for %s: %s", normalized_path, exc)
         return False
 
     return True
 
 
-def delete_asset(asset_url: str | None) -> None:
+def object_exists(asset_url: str) -> bool:
+    return object_exists_for_path(asset_path_from_public_url(asset_url))
+
+
+def delete_asset_path(asset_path: str | None) -> None:
     client = get_client()
     bucket = configured_bucket()
-    asset_path = asset_path_from_public_url(asset_url)
-    if client is None or not bucket or not asset_path:
+    normalized_path = (asset_path or "").strip("/")
+    if client is None or not bucket or not normalized_path:
         return
 
     try:
-        client.delete_object(Bucket=bucket, Key=asset_path)
+        client.delete_object(Bucket=bucket, Key=normalized_path)
     except (ClientError, BotoCoreError, ValueError) as exc:
-        logger.warning("R2 asset deletion failed for %s: %s", asset_path, exc)
+        logger.warning("R2 asset deletion failed for %s: %s", normalized_path, exc)
+
+
+def delete_asset(asset_url: str | None) -> None:
+    delete_asset_path(asset_path_from_public_url(asset_url))

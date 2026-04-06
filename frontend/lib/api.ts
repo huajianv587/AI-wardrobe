@@ -712,16 +712,30 @@ export function mapApiWardrobeItem(item: ApiWardrobeItem): WardrobeItem {
   };
 }
 
+function buildResolvedAssetUrl(path: string): string {
+  const normalized = path.startsWith("/") ? `${API_BASE_URL}${path}` : path;
+  const params = new URLSearchParams({ asset_url: normalized });
+  const accessToken = getStoredAccessToken();
+  if (accessToken) {
+    params.set("access_token", accessToken);
+  }
+  return `${API_BASE_URL}/api/v1/assets/resolve?${params.toString()}`;
+}
+
 export function resolveAssetUrl(path: string | null | undefined): string | null {
   if (!path) {
     return null;
   }
 
-  if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("blob:") || path.startsWith("data:")) {
+  if (path.startsWith("blob:") || path.startsWith("data:")) {
     return path;
   }
 
-  return path.startsWith("/") ? `${API_BASE_URL}${path}` : `${API_BASE_URL}/${path}`;
+  if (path.includes("/api/v1/assets/resolve?")) {
+    return path.startsWith("/") ? `${API_BASE_URL}${path}` : path;
+  }
+
+  return buildResolvedAssetUrl(path.startsWith("/") ? `${API_BASE_URL}${path}` : path);
 }
 
 export async function fetchWardrobeItems(params?: { category?: FilterCategory; query?: string }) {

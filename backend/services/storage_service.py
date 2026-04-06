@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 from dataclasses import dataclass
 import mimetypes
 from pathlib import Path
@@ -138,6 +139,25 @@ def load_asset_bytes(asset_url: str) -> LoadedAsset:
             content_type=_guess_content_type(local_path.name),
             filename=local_path.name,
             source="local",
+        )
+
+    if asset_url.startswith("data:"):
+        header, _, encoded = asset_url.partition(",")
+        if not encoded:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid data URL.")
+
+        mime_part = header.removeprefix("data:").split(";")[0].strip() or "application/octet-stream"
+        try:
+            payload = base64.b64decode(encoded) if ";base64" in header else unquote(encoded).encode("utf-8")
+        except Exception as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid data URL payload.") from exc
+
+        guessed_extension = mimetypes.guess_extension(mime_part) or ".bin"
+        return LoadedAsset(
+            payload=payload,
+            content_type=mime_part,
+            filename=f"inline-upload{guessed_extension}",
+            source="inline-data",
         )
 
     parsed = urlparse(asset_url)

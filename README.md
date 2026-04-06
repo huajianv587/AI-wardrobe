@@ -81,13 +81,37 @@ postgresql+psycopg://postgres:[YOUR_DB_PASSWORD]@db.<project-ref>.supabase.co:54
 
 3. Fill `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`.
 4. Run [`infra/supabase/productized_schema.sql`](infra/supabase/productized_schema.sql) inside the Supabase SQL Editor.
-5. If you have a real image cleanup service, set `AI_CLEANUP_API_URL`. If not, the app will use the local placeholder cleanup path.
+5. If you have a real image cleanup service, set `AI_CLEANUP_API_URL`. If not, the app now prefers the local segmentation stack (`SAM2 + SCHP + YOLO + FashionCLIP`) and only falls back to a simple white-background preview when the local weights are missing.
 6. Start the backend and frontend:
 
 ```bash
 cd backend && .venv/Scripts/python.exe -m uvicorn app.main:app --reload
 cd frontend && npm run dev
 ```
+
+## Model Bootstrap
+
+Before first real AI use, install the optional model dependencies and download the local assets:
+
+```bash
+pip install -r backend/requirements-fashion.txt
+python backend/scripts/download_fashion_models.py
+```
+
+For virtual try-on, the web app and mini program now call `/api/v1/try-on/render`. The backend can:
+
+- render a local try-on composite immediately
+- proxy to your remote try-on worker through `VIRTUAL_TRYON_API_URL`
+- fall back to the local composite if the remote worker is unavailable
+
+To stage a base try-on model snapshot locally:
+
+```bash
+pip install -r backend/requirements-tryon.txt
+python backend/scripts/download_virtual_tryon_models.py
+```
+
+When you are ready to use your own 5090 fine-tuned checkpoints, place them under `model_training/checkpoints/virtual-tryon/` or deploy your own worker and fill `VIRTUAL_TRYON_API_URL`.
 
 ## Supabase Product Schema
 

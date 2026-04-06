@@ -22,6 +22,8 @@ env_mini.*
 
 # Data / models
 backend/data/
+data/models/
+yolo26n.pt
 model_training/datasets/**
 !model_training/datasets/
 !model_training/datasets/**/
@@ -34,3 +36,10 @@ model_training/outputs/
 .DS_Store
 Thumbs.db
 .claude/
+
+# Paper drafting
+paper.py
+paper*.docx
+paper*.pdf
+paper*.txt
+tmp_make_paper_docx.py

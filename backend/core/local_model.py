@@ -6,10 +6,10 @@ LOCAL_MODEL_DEFAULT = True
 
 LOCAL_MODEL_SWITCHES: dict[str, bool] = {
     "llm_recommender": False,
-    "image_cleanup": False,
+    "image_cleanup": True,
     "classifier": False,
     "multimodal_reader": False,
-    "virtual_tryon": False,
+    "virtual_tryon": True,
     "product_renderer": False,
     "avatar_builder": False,
 }

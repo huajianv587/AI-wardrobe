@@ -26,7 +26,7 @@ export function RecommendationLookCard({ recommendation, items, prompt, scene, p
   const [actionEcho, setActionEcho] = useState<string>("");
 
   function buildModeAwareMessage(message: string) {
-    return previewMode ? `${message} 当前记录写入的是公开体验空间，登录后会自动切到你的私人账号。` : message;
+    return previewMode ? `${message} 当前记录写入的是演示衣橱账号，登录后会自动切到你的私人账号。` : message;
   }
 
   async function handleFeedback(action: string, successMessage: string) {
@@ -68,7 +68,7 @@ export function RecommendationLookCard({ recommendation, items, prompt, scene, p
         item_ids: recommendation.itemIds,
         reasoning: recommendation.rationale
       });
-      const message = buildModeAwareMessage(previewMode ? "这套已经存进公开体验搭配夹啦。" : "这套已经存进你的私人搭配夹啦。");
+      const message = buildModeAwareMessage(previewMode ? "这套已经存进演示账号的搭配夹啦。" : "这套已经存进你的私人搭配夹啦。");
       setActionEcho(message);
       onActionComplete?.(message);
     } catch (error) {
@@ -91,7 +91,7 @@ export function RecommendationLookCard({ recommendation, items, prompt, scene, p
         period: "all-day",
         feedback_note: "Marked as worn from the recommendation card."
       });
-      const message = buildModeAwareMessage(previewMode ? "已记成公开体验穿搭记录，后续会继续更新演示时间线。" : "已记成穿过记录，后续会帮你避开太像的重复搭配。");
+      const message = buildModeAwareMessage(previewMode ? "已记成演示账号的穿搭记录，后续会继续更新体验时间线。" : "已记成穿过记录，后续会帮你避开太像的重复搭配。");
       setActionEcho(message);
       onActionComplete?.(message);
     } catch (error) {

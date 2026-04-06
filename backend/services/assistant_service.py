@@ -312,19 +312,6 @@ def _call_multimodal_enrich_chain(
     elif local_model.get_remote_worker_url("multimodal_reader"):
         providers.append((f"本地识别 · {local_label}", lambda: _call_remote_worker_multimodal_enrich(item)))
 
-    if settings.openai_api_key.strip():
-        providers.append(
-            (
-                f"OpenAI · {openai_label}",
-                lambda: _call_openai_compatible_multimodal_enrich(
-                    base_url=settings.openai_base_url,
-                    model_name=openai_model_name,
-                    api_key=settings.openai_api_key,
-                    item=item,
-                ),
-            )
-        )
-
     if settings.deepseek_api_key.strip():
         providers.append(
             (
@@ -333,6 +320,19 @@ def _call_multimodal_enrich_chain(
                     base_url=settings.deepseek_base_url,
                     model_name=deepseek_model_name,
                     api_key=settings.deepseek_api_key,
+                    item=item,
+                ),
+            )
+        )
+
+    if settings.openai_api_key.strip():
+        providers.append(
+            (
+                f"OpenAI · {openai_label}",
+                lambda: _call_openai_compatible_multimodal_enrich(
+                    base_url=settings.openai_base_url,
+                    model_name=openai_model_name,
+                    api_key=settings.openai_api_key,
                     item=item,
                 ),
             )

@@ -10,7 +10,7 @@ import { useAuthSession } from "@/hooks/use-auth-session";
 import { PanelSkeleton } from "@/components/ui/panel-skeleton";
 import { StateCard } from "@/components/ui/state-card";
 import { StoryCluster } from "@/components/ui/story-cluster";
-import { fetchWardrobeItems } from "@/lib/api";
+import { fetchWardrobeItems, renderVirtualTryOn, TryOnRenderResult } from "@/lib/api";
 import { seedWardrobeItems, useWardrobeStore } from "@/store/wardrobe-store";
 
 const TRY_ON_FOCUS_KEY = "wenwen:try-on-focus";
@@ -119,6 +119,8 @@ export function TryOnStudio() {
   const [seasonFilter, setSeasonFilter] = useState<SeasonFilter>("all");
   const [sortMode, setSortMode] = useState<SortMode>("focus");
   const [avatarPhotoUrl, setAvatarPhotoUrl] = useState<string | null>(null);
+  const [renderingPreview, setRenderingPreview] = useState(false);
+  const [serverPreview, setServerPreview] = useState<TryOnRenderResult | null>(null);
   const previewMode = !isAuthenticated;
   const displayItems = items.length > 0 ? items : seedWardrobeItems;
 
@@ -319,6 +321,31 @@ export function TryOnStudio() {
       avatarUploadRef.current.value = "";
     }
     setStatusText("已切回 2.5D avatar 舞台。");
+  }
+
+  async function handleRenderPreview() {
+    if (!selectedTryOnIds.length) {
+      setStatusText("先选中至少 1 件单品，再生成试衣图。");
+      return;
+    }
+
+    setRenderingPreview(true);
+    setStatusText(avatarPhotoUrl ? "正在把选中的衣物贴到你的全身照上..." : "正在根据当前选中单品生成试衣预览...");
+
+    try {
+      const result = await renderVirtualTryOn({
+        item_ids: selectedTryOnIds,
+        person_image_url: avatarPhotoUrl,
+        scene: avatarPhotoUrl ? "photo try-on" : "studio try-on",
+        prompt: "Generate a polished wardrobe try-on preview."
+      });
+      setServerPreview(result);
+      setStatusText(result.message);
+    } catch (error) {
+      setStatusText(error instanceof Error ? error.message : "试衣图生成失败，请稍后再试。");
+    } finally {
+      setRenderingPreview(false);
+    }
   }
 
   function getStageRect() {
@@ -532,6 +559,25 @@ export function TryOnStudio() {
           magneticVector={dragTelemetry?.vector ?? null}
           dragHint={draggingItem ? `Drop ${draggingItem.name} onto the avatar to wear or remove it` : undefined}
         />
+        {serverPreview ? (
+          <div className="section-card subtle-card mt-4 rounded-[28px] p-4 sm:p-5">
+            <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div className="pill mb-2">Server Try-On</div>
+                <h4 className="text-lg font-semibold text-[var(--ink-strong)]">生成试衣图</h4>
+                <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
+                  {serverPreview.providerMode === "remote" ? "远端模型结果" : serverPreview.providerMode === "remote-fallback-local" ? "远端失败后已切到本地生成" : "本地试衣合成结果"}
+                </p>
+              </div>
+              <div className="rounded-[20px] border border-[var(--line)] bg-white/80 px-4 py-3 text-xs leading-5 text-[var(--muted)]">
+                {serverPreview.provider}
+              </div>
+            </div>
+            <div className="overflow-hidden rounded-[24px] border border-[var(--line)] bg-white/75">
+              <img src={serverPreview.previewUrl} alt="Generated try-on preview" className="h-auto w-full object-cover" />
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <div className="tryon-panel section-card subtle-card rounded-[32px] p-4 sm:p-5">
@@ -567,6 +613,15 @@ export function TryOnStudio() {
                 清除照片
               </button>
             ) : null}
+            <button
+              type="button"
+              onClick={() => void handleRenderPreview()}
+              disabled={renderingPreview || !selectedTryOnIds.length}
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/85 px-4 py-2 text-sm text-[var(--ink)] transition hover:border-[var(--accent)] hover:bg-[var(--accent-soft)] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Sparkles className="size-4" />
+              {renderingPreview ? "生成中..." : "生成试衣图"}
+            </button>
             <button
               type="button"
               onClick={resetTryOn}

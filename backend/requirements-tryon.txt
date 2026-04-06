@@ -1,0 +1,9 @@
+diffusers
+accelerate
+transformers
+torch
+torchvision
+opencv-python-headless
+numpy
+huggingface-hub
+safetensors

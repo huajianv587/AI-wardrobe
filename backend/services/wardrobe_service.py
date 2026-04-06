@@ -13,7 +13,7 @@ from app.models.wardrobe import ClothingItem
 from app.schemas.wardrobe import ClothingItemCreate, ClothingItemUpdate
 from services import image_pipeline_service, storage_service, supabase_service
 
-CLEANUP_TAGS = {"processed", "white-background", "cleanup-placeholder", "cleanup-fallback", "cleanup-remote"}
+CLEANUP_TAGS = {"processed", "white-background", "cleanup-placeholder", "cleanup-fallback", "cleanup-remote", "cleanup-local"}
 
 
 def _dedupe_tokens(values: list[str] | None) -> list[str]:

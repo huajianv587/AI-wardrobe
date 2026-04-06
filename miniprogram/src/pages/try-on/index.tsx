@@ -1,42 +1,45 @@
 import { useState } from "react";
 import Taro, { useDidShow } from "@tarojs/taro";
-import { Button, Text, View } from "@tarojs/components";
+import { Button, Image, Text, View } from "@tarojs/components";
 
-import { fetchAiDemoWorkflows, runAiDemoWorkflow } from "../../services/ai";
+import { renderTryOn } from "../../services/tryon";
 import { hasStoredSession } from "../../services/session";
+import { fetchMiniProgramWardrobe } from "../../services/wardrobe";
 
 export default function TryOnPage() {
-  const [workflow, setWorkflow] = useState(null);
-  const [summary, setSummary] = useState("Loading virtual try-on adapter...");
+  const [summary, setSummary] = useState("Loading virtual try-on preview...");
+  const [previewUrl, setPreviewUrl] = useState("");
   const [signedIn, setSignedIn] = useState(hasStoredSession());
 
   async function loadTryOn() {
     if (!hasStoredSession()) {
       setSignedIn(false);
-      setWorkflow(null);
-      setSummary("请先登录，再让试衣区读取你的账户与 AI workflow。");
+      setPreviewUrl("");
+      setSummary("请先登录，再让试衣区读取你的账户与试衣衣物。");
       return;
     }
 
     try {
-      const workflows = await fetchAiDemoWorkflows();
-      const target = workflows.find((item) => item.id === "ootdiffusion-virtual-tryon") ?? null;
-      setWorkflow(target);
+      const wardrobe = await fetchMiniProgramWardrobe();
+      const itemIds = (wardrobe?.cards ?? []).slice(0, 3).map((item) => Number(item.id)).filter(Boolean);
       setSignedIn(true);
 
-      if (!target) {
-        setSummary("Virtual try-on workflow is not available yet.");
+      if (!itemIds.length) {
+        setPreviewUrl("");
+        setSummary("你的衣橱里还没有可试穿的单品，先去上传几件衣服吧。");
         return;
       }
 
-      const payload = await runAiDemoWorkflow({
-        workflow_id: target.id,
-        prompt: "Generate a polished try-on preview for a weekend look",
+      const payload = await renderTryOn({
+        item_ids: itemIds,
+        scene: "mini try-on",
+        prompt: "Generate a polished mini-program try-on preview.",
       });
-      setSummary(payload.summary);
+      setPreviewUrl(payload.preview_url ?? "");
+      setSummary(payload.message ?? "试衣图已经生成。");
     } catch (nextError) {
-      setSignedIn(false);
-      setSummary(nextError instanceof Error ? nextError.message : "Could not load try-on adapter.");
+      setPreviewUrl("");
+      setSummary(nextError instanceof Error ? nextError.message : "Could not load try-on preview.");
     }
   }
 
@@ -47,15 +50,22 @@ export default function TryOnPage() {
   return (
     <View className="page-shell">
       <View className="hero-card">
-        <Text className="eyebrow">2.5D Try-On</Text>
-        <Text className="title">{workflow?.title ?? "Mini try-on preview"}</Text>
-        <Text className="copy">The mini program can already call the shared AI workflow list plus the unified try-on demo route.</Text>
+        <Text className="eyebrow">Virtual Try-On</Text>
+        <Text className="title">Mini try-on preview</Text>
+        <Text className="copy">The mini program now calls the shared production try-on route instead of the older demo workflow adapter.</Text>
       </View>
 
       <View className="stack">
         <View className="card">
-          <Text className="mini-title">Adapter response</Text>
+          <Text className="mini-title">Try-on response</Text>
           <Text className="mini-copy">{summary}</Text>
+          {previewUrl ? (
+            <Image
+              src={previewUrl}
+              mode="widthFix"
+              style={{ width: "100%", borderRadius: "18px", marginTop: "16px" }}
+            />
+          ) : null}
           {!signedIn ? (
             <Button className="primary-button" onClick={() => Taro.navigateTo({ url: "/pages/account/index" })}>
               去登录中心

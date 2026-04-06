@@ -62,10 +62,17 @@ class Settings(BaseSettings):
     next_public_app_url: str = "http://localhost:3000"
     backend_public_base_url: str = "http://localhost:8000"
     llm_recommender_api_url: str = ""
+    llm_recommender_api_key: str = ""
+    llm_recommender_model_name: str = ""
     image_processor_api_url: str = ""
     classifier_api_url: str = ""
     multimodal_reader_api_url: str = ""
     virtual_tryon_api_url: str = ""
+    virtual_tryon_api_key: str = ""
+    virtual_tryon_replicate_version: str = ""
+    virtual_tryon_replicate_input_template: str = ""
+    virtual_tryon_poll_timeout_seconds: float = 300.0
+    virtual_tryon_poll_interval_seconds: float = 2.0
     product_renderer_api_url: str = ""
     avatar_builder_api_url: str = ""
     model_use_local_default: bool = True

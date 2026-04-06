@@ -109,19 +109,72 @@ function parseListInput(value: string) {
     .filter(Boolean);
 }
 
-function buildRadarPoints(dna: ExperienceStyleDnaEntry[]) {
-  const values = dna.slice(0, 5).map((entry) => entry.value);
-  while (values.length < 5) {
-    values.push(18);
+function buildMiniRadarPoints(dna: ExperienceStyleDnaEntry[]) {
+  const values = dna.slice(0, 6).map((entry) => entry.value);
+  while (values.length < 6) {
+    values.push(16);
   }
 
   return values.map((value, index) => {
-    const angle = (-90 + index * 72) * (Math.PI / 180);
+    const angle = (-90 + index * 60) * (Math.PI / 180);
     const radius = 18 + (Math.max(0, Math.min(value, 100)) / 100) * 26;
     const x = 50 + radius * Math.cos(angle);
     const y = 50 + radius * Math.sin(angle);
     return `${x},${y}`;
   }).join(" ");
+}
+
+function buildRadarPoints(dna: ExperienceStyleDnaEntry[]) {
+  const values = dna.slice(0, 6).map((entry) => entry.value);
+  while (values.length < 6) {
+    values.push(16);
+  }
+
+  return values.map((value, index) => {
+    const angle = (-90 + index * 60) * (Math.PI / 180);
+    const radius = 30 + (Math.max(0, Math.min(value, 100)) / 100) * 42;
+    const x = 100 + radius * Math.cos(angle);
+    const y = 100 + radius * Math.sin(angle);
+    return `${x},${y}`;
+  }).join(" ");
+}
+
+function buildRadarPolygonPoints(radius: number) {
+  return Array.from({ length: 6 }, (_, index) => {
+    const angle = (-90 + index * 60) * (Math.PI / 180);
+    const x = 100 + radius * Math.cos(angle);
+    const y = 100 + radius * Math.sin(angle);
+    return `${x},${y}`;
+  }).join(" ");
+}
+
+function buildRadarNodes(dna: ExperienceStyleDnaEntry[]) {
+  const entries = dna.slice(0, 6);
+  while (entries.length < 6) {
+    entries.push({
+      label: "风格",
+      value: 16,
+      color: "#D7C4AE"
+    });
+  }
+
+  return entries.map((entry, index) => {
+    const angle = (-90 + index * 60) * (Math.PI / 180);
+    const radius = 30 + (Math.max(0, Math.min(entry.value, 100)) / 100) * 42;
+    const x = 100 + radius * Math.cos(angle);
+    const y = 100 + radius * Math.sin(angle);
+    const labelRadius = 86;
+    const labelX = 100 + labelRadius * Math.cos(angle);
+    const labelY = 100 + labelRadius * Math.sin(angle);
+
+    return {
+      ...entry,
+      x,
+      y,
+      labelX,
+      labelY
+    };
+  });
 }
 
 function cloneDraft(draft: ExperienceStyleProfileDraft): ExperienceStyleProfileDraft {
@@ -230,11 +283,12 @@ function mapColorEntry(name: string) {
 
 function buildDemoDna(profile: ExperienceStyleProfileDraft): ExperienceStyleDnaEntry[] {
   const metrics = [
-    { label: "甜感", weight: 3 + Math.min(profile.style_keywords.length, 4), color: "#D8A299" },
-    { label: "轻盈", weight: 2 + Math.min(profile.favorite_silhouettes.length, 4), color: "#DDBB8C" },
-    { label: "通勤", weight: 2 + Math.min(profile.wardrobe_rules.length, 4), color: "#B7A7D8" },
-    { label: "柔和", weight: 2 + Math.min(profile.favorite_colors.length, 4), color: "#9EBBCB" },
-    { label: "舒适", weight: 2 + Math.min(profile.comfort_priorities.length, 4), color: "#94B9A0" }
+    { label: "甜美可爱", weight: 3 + Math.min(profile.favorite_colors.length, 4), color: "#F0A6C1" },
+    { label: "优雅知性", weight: 2 + Math.min(profile.wardrobe_rules.length, 4), color: "#C7A07B" },
+    { label: "街头潮酷", weight: 1 + Math.min(profile.dislike_keywords.length, 2), color: "#A794C9" },
+    { label: "轻熟商务", weight: 2 + Math.min(profile.style_keywords.length, 4), color: "#8EA6BD" },
+    { label: "性感魅惑", weight: 1 + Math.min(profile.favorite_silhouettes.length, 3), color: "#D68D8D" },
+    { label: "独家慵懒", weight: 2 + Math.min(profile.comfort_priorities.length, 4), color: "#9CB792" }
   ];
   const total = metrics.reduce((sum, entry) => sum + entry.weight, 0);
 
@@ -275,7 +329,10 @@ function buildDemoSilhouettes(profile: ExperienceStyleProfileDraft) {
       name,
       desc: STYLE_PROFILE_SILHOUETTE_DESC[name] ?? "作为演示态的轮廓标签，可继续手动调整偏好。",
       preferred,
-      badge: preferred ? "偏爱" : avoided ? "少穿" : ""
+      badge: preferred ? "偏爱" : avoided ? "少穿" : "观察中",
+      item_count: preferred ? 3 : avoided ? 1 : 2,
+      wear_count: preferred ? 8 : avoided ? 1 : 4,
+      examples: preferred ? ["奶油白衬衫", "香草奶白半裙"] : avoided ? ["修身针织裙"] : ["草绿针织衫", "深蓝直筒牛仔裤"]
     };
   });
 }
@@ -659,6 +716,15 @@ export function StyleProfileExperience() {
   }
 
   const radarPoints = buildRadarPoints(overview.dna);
+  const miniRadarPoints = buildMiniRadarPoints(overview.dna);
+  const radarNodes = buildRadarNodes(overview.dna);
+  const dominantDna = overview.dna.reduce<ExperienceStyleDnaEntry>(
+    (best, entry) => (entry.value > best.value ? entry : best),
+    overview.dna[0] ?? { label: "风格", value: 0, color: "#D7C4AE" }
+  );
+  const averageDna = Math.round(
+    overview.dna.reduce((sum, entry) => sum + entry.value, 0) / Math.max(1, overview.dna.length)
+  );
 
   return (
     <div
@@ -667,14 +733,15 @@ export function StyleProfileExperience() {
     >
       <section className={styles.hero}>
         <svg className={styles.radarMini} viewBox="0 0 100 100" aria-hidden="true">
-          <polygon points="50,15 80,35 75,70 25,70 20,35" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1" />
-          <polygon points="50,25 70,38 67,62 33,62 30,38" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
-          <polygon points={radarPoints} fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" />
-          <circle cx="50" cy="20" r="3" fill="#fff" />
-          <circle cx="76" cy="36" r="3" fill="#fff" />
-          <circle cx="72" cy="68" r="3" fill="#fff" />
-          <circle cx="28" cy="68" r="3" fill="#fff" />
-          <circle cx="24" cy="36" r="3" fill="#fff" />
+          <polygon points="50,14 80,32 80,68 50,86 20,68 20,32" fill="none" stroke="rgba(192,139,92,0.2)" strokeWidth="1" />
+          <polygon points="50,26 69,37 69,63 50,74 31,63 31,37" fill="none" stroke="rgba(192,139,92,0.15)" strokeWidth="1" />
+          <polygon points={miniRadarPoints} fill="rgba(192,139,92,0.1)" stroke="rgba(192,139,92,0.5)" strokeWidth="1.5" />
+          <circle cx="50" cy="14" r="3" fill="var(--accent, #c08b5c)" />
+          <circle cx="80" cy="32" r="3" fill="var(--accent, #c08b5c)" />
+          <circle cx="80" cy="68" r="3" fill="var(--accent, #c08b5c)" />
+          <circle cx="50" cy="86" r="3" fill="var(--accent, #c08b5c)" />
+          <circle cx="20" cy="68" r="3" fill="var(--accent, #c08b5c)" />
+          <circle cx="20" cy="32" r="3" fill="var(--accent, #c08b5c)" />
         </svg>
         <div className={styles.heroContent}>
           <div className={styles.heroLabel}>Style Profile</div>
@@ -698,22 +765,94 @@ export function StyleProfileExperience() {
             <div className={styles.sectionIcon} style={{ background: "#F0E5D8" }}>🧬</div>
             <div className={styles.sectionTitle}>风格 DNA</div>
           </div>
-          <div className={styles.dnaBar}>
-            {overview.dna.map((entry) => (
-              <div
-                key={entry.label}
-                className={styles.dnaSeg}
-                style={{ width: `${entry.value}%`, background: entry.color }}
-              />
-            ))}
-          </div>
-          <div className={styles.dnaLegend}>
-            {overview.dna.map((entry) => (
-              <div key={entry.label} className={styles.dnaLegendItem}>
-                <div className={styles.dnaLegendDot} style={{ background: entry.color }} />
-                {entry.label} {entry.value}%
+          <div className={styles.dnaContent}>
+            <div className={styles.dnaRadarShell}>
+              <div className={`${styles.dnaAura} ${styles.dnaAuraA}`} />
+              <div className={`${styles.dnaAura} ${styles.dnaAuraB}`} />
+              <div className={styles.dnaRadar}>
+                <svg viewBox="0 0 200 200" className={styles.dnaRadarSvg}>
+                  <defs>
+                    <linearGradient id="styleProfileDnaStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#F0A6C1" />
+                      <stop offset="45%" stopColor="#C08B5C" />
+                      <stop offset="100%" stopColor="#8EA6BD" />
+                    </linearGradient>
+                    <radialGradient id="styleProfileDnaFill" cx="50%" cy="45%" r="72%">
+                      <stop offset="0%" stopColor="rgba(255,255,255,0.68)" />
+                      <stop offset="65%" stopColor="rgba(192,139,92,0.18)" />
+                      <stop offset="100%" stopColor="rgba(142,166,189,0.04)" />
+                    </radialGradient>
+                    <filter id="styleProfileDnaGlow" x="-50%" y="-50%" width="200%" height="200%">
+                      <feGaussianBlur stdDeviation="4.5" result="blur" />
+                      <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  </defs>
+                  {[84, 64, 44, 24].map((radius) => (
+                    <polygon
+                      key={radius}
+                      points={buildRadarPolygonPoints(radius)}
+                      className={styles.dnaRing}
+                    />
+                  ))}
+                  {radarNodes.map((entry) => (
+                    <line
+                      key={`${entry.label}-axis`}
+                      x1="100"
+                      y1="100"
+                      x2={entry.labelX}
+                      y2={entry.labelY}
+                      className={styles.dnaAxis}
+                    />
+                  ))}
+                  <polygon points={radarPoints} className={styles.dnaArea} />
+                  <polygon points={radarPoints} className={styles.dnaOutline} />
+                  {radarNodes.map((entry) => (
+                    <g key={entry.label}>
+                      <circle cx={entry.x} cy={entry.y} r="7" className={styles.dnaNodePulse} style={{ fill: entry.color }} />
+                      <circle cx={entry.x} cy={entry.y} r="4.2" className={styles.dnaNodeDot} style={{ fill: entry.color }} />
+                      <text x={entry.labelX} y={entry.labelY} textAnchor="middle" dominantBaseline="middle" className={styles.dnaAxisText}>
+                        {entry.label}
+                      </text>
+                    </g>
+                  ))}
+                </svg>
+                <div className={styles.dnaCenterBadge}>
+                  <span>Dominant Style</span>
+                  <strong>{dominantDna.label}</strong>
+                  <em>{dominantDna.value}%</em>
+                </div>
               </div>
-            ))}
+            </div>
+            <div className={styles.dnaRight}>
+              <div className={styles.dnaHeadline}>
+                <div className={styles.dnaHeadlineLabel}>风格主轴</div>
+                <div className={styles.dnaHeadlineValue}>{dominantDna.label}</div>
+                <p className={styles.dnaHeadlineCopy}>综合色块平均强度 {averageDna}% ，当前更偏向有质感、可落地、不过分刻板的穿搭表达。</p>
+              </div>
+              <div className={styles.dnaBar}>
+                {overview.dna.map((entry) => (
+                  <div
+                    key={entry.label}
+                    className={styles.dnaSeg}
+                    style={{ width: `${entry.value}%`, background: entry.color }}
+                  />
+                ))}
+              </div>
+              <div className={styles.dnaLegend}>
+                {overview.dna.map((entry) => (
+                  <div key={entry.label} className={styles.dnaLegendItem}>
+                    <div className={styles.dnaLegendDot} style={{ background: entry.color }} />
+                    <div className={styles.dnaLegendCopy}>
+                      <strong>{entry.label}</strong>
+                      <span>{entry.value}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
@@ -766,6 +905,7 @@ export function StyleProfileExperience() {
             <div className={styles.sectionTitle}>偏好轮廓</div>
             <button type="button" className={styles.editBtn} onClick={openSilhouettesEditor}>编辑</button>
           </div>
+          <p className={styles.sectionHint}>根据当前账号已识别的衣物与穿搭记录自动统计，穿得越多、权重越高。</p>
           <div className={styles.silhouetteGrid}>
             {overview.silhouettes.map((entry) => (
               <article
@@ -775,6 +915,12 @@ export function StyleProfileExperience() {
                 <div className={styles.silIcon}>{SILHOUETTE_ICON_MAP[entry.name] ?? "✨"}</div>
                 <div className={styles.silName}>{entry.name}</div>
                 <div className={styles.silDesc}>{entry.desc}</div>
+                <div className={styles.silStats}>
+                  {entry.item_count ?? 0} 件 · {entry.wear_count ?? 0} 次
+                </div>
+                {entry.examples?.length ? (
+                  <div className={styles.silExamples}>{entry.examples.join(" · ")}</div>
+                ) : null}
                 {entry.badge ? <span className={styles.silPref}>{entry.badge}</span> : null}
               </article>
             ))}

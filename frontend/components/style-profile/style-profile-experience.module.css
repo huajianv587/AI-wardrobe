@@ -32,7 +32,7 @@
   position: relative;
   overflow: hidden;
   padding: 34px 24px 32px;
-  background: linear-gradient(160deg, #e8d8c4 0%, #d4bfa8 40%, #c8a888 100%);
+  background: transparent;
 }
 
 .hero::before {
@@ -69,7 +69,7 @@
   font-size: 11px;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--accent);
 }
 
 .heroTitle {
@@ -77,15 +77,15 @@
   font-size: 38px;
   font-weight: 700;
   line-height: 1.1;
-  color: #fff;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  color: var(--text);
+  text-shadow: none;
 }
 
 .heroSub {
   margin-top: 8px;
   font-size: 13px;
   font-weight: 300;
-  color: rgba(255, 255, 255, 0.82);
+  color: var(--text-mid);
 }
 
 .radarMini {
@@ -210,40 +210,244 @@
   margin-top: 10px;
   font-size: 11px;
   line-height: 1.55;
+  color: var(--text-mid);
+}
+
+.dnaContent {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+  gap: 28px;
+  align-items: stretch;
+}
+
+.dnaRadarShell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 380px;
+  padding: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(234, 226, 216, 0.88);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(240, 166, 193, 0.16), transparent 26%),
+    radial-gradient(circle at 78% 22%, rgba(192, 139, 92, 0.14), transparent 28%),
+    radial-gradient(circle at 70% 78%, rgba(142, 166, 189, 0.16), transparent 24%),
+    linear-gradient(145deg, rgba(255, 252, 249, 0.96), rgba(248, 244, 239, 0.88));
+  box-shadow: 0 28px 64px rgba(96, 74, 58, 0.12);
+}
+
+.dnaAura {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(20px);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.dnaAuraA {
+  top: 10%;
+  left: 8%;
+  width: 140px;
+  height: 140px;
+  background: rgba(240, 166, 193, 0.22);
+  animation: dnaAuraFloat 9s ease-in-out infinite;
+}
+
+.dnaAuraB {
+  right: 10%;
+  bottom: 12%;
+  width: 160px;
+  height: 160px;
+  background: rgba(142, 166, 189, 0.2);
+  animation: dnaAuraFloat 10s ease-in-out infinite reverse;
+}
+
+.dnaRadar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 12px;
+}
+
+.dnaRadarSvg {
+  width: 100%;
+  max-width: 420px;
+  overflow: visible;
+  filter: drop-shadow(0 18px 36px rgba(115, 84, 62, 0.14));
+}
+
+.dnaRing {
+  fill: none;
+  stroke: rgba(192, 139, 92, 0.12);
+  stroke-width: 1;
+}
+
+.dnaAxis {
+  stroke: rgba(192, 139, 92, 0.14);
+  stroke-width: 1;
+}
+
+.dnaArea {
+  fill: url(#styleProfileDnaFill);
+  animation: dnaAreaPulse 6.2s ease-in-out infinite;
+}
+
+.dnaOutline {
+  fill: none;
+  stroke: url(#styleProfileDnaStroke);
+  stroke-width: 2.4;
+  filter: url(#styleProfileDnaGlow);
+}
+
+.dnaNodePulse {
+  opacity: 0.22;
+  animation: dnaNodePulse 3.8s ease-in-out infinite;
+}
+
+.dnaNodeDot {
+  stroke: rgba(255, 255, 255, 0.9);
+  stroke-width: 1.4;
+  filter: url(#styleProfileDnaGlow);
+}
+
+.dnaAxisText {
+  font-size: 8px;
+  font-weight: 600;
+  fill: #6d6054;
+  letter-spacing: 0.04em;
+}
+
+.dnaCenterBadge {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  gap: 4px;
+  min-width: 132px;
+  padding: 16px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 18px;
+  background: rgba(255, 252, 248, 0.76);
+  box-shadow: 0 18px 34px rgba(111, 83, 61, 0.12);
+  backdrop-filter: blur(14px);
+  text-align: center;
+  transform: translate(-50%, -50%);
+}
+
+.dnaCenterBadge span {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: var(--text-light);
+}
+
+.dnaCenterBadge strong {
+  font-size: 20px;
+  line-height: 1.15;
+  color: var(--text);
+}
+
+.dnaCenterBadge em {
+  font-size: 12px;
+  font-style: normal;
+  color: var(--accent-deep);
+}
+
+.dnaRight {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+}
+
+.dnaHeadline {
+  display: grid;
+  gap: 6px;
+}
+
+.dnaHeadlineLabel {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.dnaHeadlineValue {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.dnaHeadlineCopy {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text-mid);
 }
 
 .dnaBar {
   display: flex;
-  height: 6px;
-  margin: 16px 0 10px;
+  height: 12px;
+  padding: 3px;
   overflow: hidden;
-  border-radius: 3px;
+  border-radius: 999px;
+  background: rgba(234, 226, 216, 0.75);
+  box-shadow: inset 0 0 0 1px rgba(224, 213, 203, 0.68);
 }
 
 .dnaSeg {
   height: 100%;
-  transition: width 0.8s ease;
+  border-radius: 999px;
+  transition: width 0.8s ease, transform 0.3s ease;
+}
+
+.dnaSeg:hover {
+  transform: scaleY(1.06);
 }
 
 .dnaLegend {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
 .dnaLegendItem {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  color: var(--text-mid);
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba(234, 226, 216, 0.9);
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(255, 253, 250, 0.98), rgba(248, 244, 239, 0.9));
+  box-shadow: 0 10px 22px rgba(96, 74, 58, 0.06);
 }
 
 .dnaLegendDot {
-  width: 8px;
-  height: 8px;
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
   border-radius: 50%;
+  box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.82);
+}
+
+.dnaLegendCopy {
+  display: grid;
+  gap: 2px;
+}
+
+.dnaLegendCopy strong {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.dnaLegendCopy span {
+  font-size: 11px;
+  color: var(--text-mid);
 }
 
 .colorGrid {
@@ -333,6 +537,21 @@
 .silDesc {
   margin-top: 2px;
   font-size: 10px;
+  color: var(--text-light);
+}
+
+.silStats {
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-deep);
+}
+
+.silExamples {
+  margin-top: 8px;
+  min-height: 34px;
+  font-size: 10px;
+  line-height: 1.7;
   color: var(--text-light);
 }
 
@@ -654,6 +873,41 @@
   }
 }
 
+@keyframes dnaAuraFloat {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(8px, -10px, 0) scale(1.08);
+  }
+}
+
+@keyframes dnaAreaPulse {
+  0%,
+  100% {
+    opacity: 0.92;
+  }
+
+  50% {
+    opacity: 0.74;
+  }
+}
+
+@keyframes dnaNodePulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.2;
+  }
+
+  50% {
+    transform: scale(1.24);
+    opacity: 0.38;
+  }
+}
+
 @media (max-width: 860px) {
   .content {
     padding-inline: 16px;
@@ -665,6 +919,14 @@
 
   .heroTitle {
     font-size: 34px;
+  }
+
+  .dnaContent {
+    grid-template-columns: 1fr;
+  }
+
+  .dnaRadarShell {
+    min-height: 340px;
   }
 
   .silhouetteGrid {
@@ -684,6 +946,24 @@
 
   .sectionBlock {
     padding: 18px;
+  }
+
+  .dnaRadarShell {
+    min-height: 300px;
+    padding: 18px;
+  }
+
+  .dnaCenterBadge {
+    min-width: 118px;
+    padding: 14px 16px;
+  }
+
+  .dnaHeadlineValue {
+    font-size: 24px;
+  }
+
+  .dnaLegend {
+    grid-template-columns: 1fr;
   }
 
   .silhouetteGrid {

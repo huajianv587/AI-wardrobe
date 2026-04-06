@@ -123,7 +123,7 @@ export function AuthPanel({ defaultMode = "login" }: AuthPanelProps) {
         <div>
           <div className="pill mb-3">
             <ShieldCheck className="size-4" />
-            Supabase Auth
+            邮箱账号体系
           </div>
           <h2 className="text-2xl font-semibold tracking-[-0.04em] text-[var(--ink-strong)]">
             {isAuthenticated ? "账号已连接" : "私人账号入口"}
@@ -237,7 +237,7 @@ export function AuthPanel({ defaultMode = "login" }: AuthPanelProps) {
         </div>
       ) : (
         <p className="mt-5 text-sm leading-6 text-[var(--muted)]">
-          邮箱和密码会先发到 FastAPI，再代理给 Supabase Auth，并把认证后的用户镜像到本地 SQLite 数据库里，用来实现衣橱数据的用户隔离。
+          邮箱登录会先走 FastAPI；如果当前环境配置了 Supabase 就继续复用云认证，否则会自动回退到本地 SQLite 用户体系，保证每个账号的数据彼此隔离。
         </p>
       )}
     </article>

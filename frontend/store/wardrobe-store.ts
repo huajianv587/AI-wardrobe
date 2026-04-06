@@ -31,6 +31,9 @@ export interface WardrobeItem {
   imageUrl?: string | null;
   processedImageUrl?: string | null;
   memoryCard?: ClothingMemoryCard | null;
+  createdAt?: string | null;
+  seasonTags?: string[];
+  isNewArrival?: boolean;
 }
 
 const COLOR_HEX_MAP: Record<string, string> = {
@@ -89,15 +92,15 @@ function deriveDefaultTryOnIds(items: WardrobeItem[]) {
 }
 
 export const seedWardrobeItems: WardrobeItem[] = [
-  { id: 1, name: "Ivory Fluid Shirt", category: "tops", slot: "top", color: "Ivory", colorHex: "#f7f3e8", brand: "Aerial", tags: ["clean", "soft-formal", "layering"], occasions: ["office", "meeting", "date"], note: "Gentle drape that works for polished weekday looks.", imageLabel: "Silk shirt" },
-  { id: 2, name: "Mint Cloud Knit", category: "tops", slot: "top", color: "Mint", colorHex: "#c9eddc", brand: "Morning Dew", tags: ["soft", "cozy", "weekend"], occasions: ["weekend", "travel", "coffee"], note: "A soft knit for relaxed layering and spring color balance.", imageLabel: "Soft knit" },
-  { id: 3, name: "Charcoal Wide Trouser", category: "bottoms", slot: "bottom", color: "Charcoal", colorHex: "#566170", brand: "Mode Form", tags: ["formal", "minimal", "versatile"], occasions: ["office", "meeting", "city"], note: "Anchors recommendation sets with a stable professional shape.", imageLabel: "Tailored pants" },
-  { id: 4, name: "Cream Pleated Skirt", category: "bottoms", slot: "bottom", color: "Cream", colorHex: "#f3ead4", brand: "Lune", tags: ["feminine", "airy", "date"], occasions: ["date", "weekend", "gallery"], note: "Adds movement and a softer silhouette for warm scenes.", imageLabel: "Pleated skirt" },
-  { id: 5, name: "Dusty Rose Wrap Coat", category: "outerwear", slot: "outerwear", color: "Dusty Rose", colorHex: "#e7bcb1", brand: "Cocoon", tags: ["hero", "elegant", "city"], occasions: ["date", "dinner", "meeting"], note: "Works as the hero layer in photo-friendly looks.", imageLabel: "Wrap coat" },
-  { id: 6, name: "Navy Soft Blazer", category: "outerwear", slot: "outerwear", color: "Navy", colorHex: "#355172", brand: "Shift", tags: ["smart", "office", "structured"], occasions: ["office", "meeting", "travel"], note: "Creates soft-formal balance without feeling too rigid.", imageLabel: "Soft blazer" },
-  { id: 7, name: "Ivory Line Loafer", category: "shoes", slot: "shoes", color: "Ivory", colorHex: "#f5efe0", brand: "Halo", tags: ["clean", "office", "smart-casual"], occasions: ["office", "meeting", "city"], note: "Keeps office looks light and elegant.", imageLabel: "Loafers" },
-  { id: 8, name: "White Breeze Sneaker", category: "shoes", slot: "shoes", color: "White", colorHex: "#ffffff", brand: "Pulse", tags: ["casual", "travel", "weekend"], occasions: ["weekend", "travel", "errands"], note: "Easy fallback for relaxed daily styling.", imageLabel: "Sneakers" },
-  { id: 9, name: "Pearl Mini Bucket Bag", category: "accessories", slot: "accessory", color: "Pearl", colorHex: "#f7f0ea", brand: "Muse", tags: ["accent", "date", "soft"], occasions: ["date", "gallery", "dinner"], note: "Softens recommendations and adds a refined finish.", imageLabel: "Bucket bag" }
+  { id: 1, name: "Ivory Fluid Shirt", category: "tops", slot: "top", color: "Ivory", colorHex: "#f7f3e8", brand: "Aerial", tags: ["clean", "soft-formal", "layering"], occasions: ["office", "meeting", "date"], note: "Gentle drape that works for polished weekday looks.", imageLabel: "Silk shirt", createdAt: "2026-04-01T09:30:00Z", seasonTags: ["spring", "summer"] },
+  { id: 2, name: "Mint Cloud Knit", category: "tops", slot: "top", color: "Mint", colorHex: "#c9eddc", brand: "Morning Dew", tags: ["soft", "cozy", "weekend"], occasions: ["weekend", "travel", "coffee"], note: "A soft knit for relaxed layering and spring color balance.", imageLabel: "Soft knit", createdAt: "2026-04-02T09:30:00Z", seasonTags: ["spring", "autumn"] },
+  { id: 3, name: "Charcoal Wide Trouser", category: "bottoms", slot: "bottom", color: "Charcoal", colorHex: "#566170", brand: "Mode Form", tags: ["formal", "minimal", "versatile"], occasions: ["office", "meeting", "city"], note: "Anchors recommendation sets with a stable professional shape.", imageLabel: "Tailored pants", createdAt: "2026-03-28T09:30:00Z", seasonTags: ["spring", "autumn", "winter"] },
+  { id: 4, name: "Cream Pleated Skirt", category: "bottoms", slot: "bottom", color: "Cream", colorHex: "#f3ead4", brand: "Lune", tags: ["feminine", "airy", "date"], occasions: ["date", "weekend", "gallery"], note: "Adds movement and a softer silhouette for warm scenes.", imageLabel: "Pleated skirt", createdAt: "2026-04-03T09:30:00Z", seasonTags: ["spring", "summer"] },
+  { id: 5, name: "Dusty Rose Wrap Coat", category: "outerwear", slot: "outerwear", color: "Dusty Rose", colorHex: "#e7bcb1", brand: "Cocoon", tags: ["hero", "elegant", "city"], occasions: ["date", "dinner", "meeting"], note: "Works as the hero layer in photo-friendly looks.", imageLabel: "Wrap coat", createdAt: "2026-03-18T09:30:00Z", seasonTags: ["autumn", "winter"] },
+  { id: 6, name: "Navy Soft Blazer", category: "outerwear", slot: "outerwear", color: "Navy", colorHex: "#355172", brand: "Shift", tags: ["smart", "office", "structured"], occasions: ["office", "meeting", "travel"], note: "Creates soft-formal balance without feeling too rigid.", imageLabel: "Soft blazer", createdAt: "2026-03-24T09:30:00Z", seasonTags: ["spring", "autumn"] },
+  { id: 7, name: "Ivory Line Loafer", category: "shoes", slot: "shoes", color: "Ivory", colorHex: "#f5efe0", brand: "Halo", tags: ["clean", "office", "smart-casual"], occasions: ["office", "meeting", "city"], note: "Keeps office looks light and elegant.", imageLabel: "Loafers", createdAt: "2026-03-30T09:30:00Z", seasonTags: ["spring", "autumn"] },
+  { id: 8, name: "White Breeze Sneaker", category: "shoes", slot: "shoes", color: "White", colorHex: "#ffffff", brand: "Pulse", tags: ["casual", "travel", "weekend"], occasions: ["weekend", "travel", "errands"], note: "Easy fallback for relaxed daily styling.", imageLabel: "Sneakers", createdAt: "2026-04-04T09:30:00Z", seasonTags: ["spring", "summer", "autumn"] },
+  { id: 9, name: "Pearl Mini Bucket Bag", category: "accessories", slot: "accessory", color: "Pearl", colorHex: "#f7f0ea", brand: "Muse", tags: ["accent", "date", "soft"], occasions: ["date", "gallery", "dinner"], note: "Softens recommendations and adds a refined finish.", imageLabel: "Bucket bag", createdAt: "2026-04-04T12:30:00Z", seasonTags: ["spring", "summer", "autumn", "winter"] }
 ];
 
 interface WardrobeStore {
@@ -113,6 +116,7 @@ interface WardrobeStore {
   toggleTryOnItem: (itemId: number) => void;
   resetTryOn: () => void;
   setActivePrompt: (prompt: string) => void;
+  setTryOnItems: (itemIds: number[]) => void;
   replaceItems: (items: WardrobeItem[]) => void;
   prependItem: (item: WardrobeItem) => void;
   upsertItem: (item: WardrobeItem) => void;
@@ -132,6 +136,12 @@ export const useWardrobeStore = create<WardrobeStore>((set) => ({
   toggleTryOnItem: (itemId) => set((state) => ({ selectedTryOnIds: state.selectedTryOnIds.includes(itemId) ? state.selectedTryOnIds.filter((id) => id !== itemId) : [...state.selectedTryOnIds, itemId] })),
   resetTryOn: () => set((state) => ({ selectedTryOnIds: deriveDefaultTryOnIds(state.items) })),
   setActivePrompt: (prompt) => set({ activePrompt: prompt }),
+  setTryOnItems: (itemIds) => set((state) => {
+    const normalized = Array.from(new Set((itemIds || []).filter((itemId) => state.items.some((item) => item.id === itemId))));
+    return {
+      selectedTryOnIds: normalized.length > 0 ? normalized : deriveDefaultTryOnIds(state.items)
+    };
+  }),
   replaceItems: (items) => set((state) => {
     const preservedTryOnIds = state.selectedTryOnIds.filter((id) => items.some((item) => item.id === id));
 

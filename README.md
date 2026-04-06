@@ -5,7 +5,7 @@ AI Wardrobe is a monorepo for a personal styling platform that combines:
 - digital wardrobe management
 - 2.5D avatar-based virtual try-on
 - AI outfit recommendation
-- local-first data storage with optional cloud sync
+- private account-based wardrobe data with Supabase-backed persistence
 
 ## Product Vision
 
@@ -24,8 +24,10 @@ Modern users often own many clothes but still feel they have nothing to wear. AI
 ### Backend
 
 - FastAPI
-- SQLAlchemy + SQLite
-- Supabase for cloud sync and auth integration
+- SQLAlchemy
+- Supabase Postgres as the primary product database
+- SQLite as a local development fallback only
+- Supabase Auth and Storage integration
 - Redis for cache/session extension
 - MinIO or Supabase Storage for assets
 
@@ -54,7 +56,7 @@ Modern users often own many clothes but still feel they have nothing to wear. AI
 2. Add clothing with AI background cleanup flow
 3. Wardrobe browse, search, and filtering
 4. AI outfit recommendation with "change another look"
-5. Local-first SQLite persistence with optional Supabase sync
+5. Supabase-backed persistence with per-account data isolation
 6. Polished web UI for dashboard, wardrobe, recommendation, and try-on
 
 ## Current Status
@@ -63,25 +65,51 @@ This step scaffolds:
 
 - a runnable Next.js frontend foundation
 - a FastAPI backend foundation
-- SQLite models and demo data
+- Supabase-ready SQLAlchemy models
+- re-runnable Supabase SQL schema for product tables, auth/session tables, AI task tables, and experience state tables
 - local recommendation heuristics that can later be replaced by your trained checkpoints
 - Docker and environment placeholders
 
 ## Local Run
 
 1. Copy `.env.example` to `.env`.
-2. If you want cloud backup, fill in the Supabase keys and run `infra/supabase/schema.sql` inside the Supabase SQL editor.
-3. If you have a real image cleanup service, set `AI_CLEANUP_API_URL`. If not, the app will use the local placeholder cleanup path.
-4. Start the backend and frontend:
+2. Fill `DATABASE_URL` with your Supabase Postgres connection string:
+
+```bash
+postgresql+psycopg://postgres:[YOUR_DB_PASSWORD]@db.<project-ref>.supabase.co:5432/postgres?sslmode=require
+```
+
+3. Fill `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`.
+4. Run [`infra/supabase/productized_schema.sql`](infra/supabase/productized_schema.sql) inside the Supabase SQL Editor.
+5. If you have a real image cleanup service, set `AI_CLEANUP_API_URL`. If not, the app will use the local placeholder cleanup path.
+6. Start the backend and frontend:
 
 ```bash
 cd backend && .venv/Scripts/python.exe -m uvicorn app.main:app --reload
 cd frontend && npm run dev
 ```
 
+## Supabase Product Schema
+
+Use [`infra/supabase/productized_schema.sql`](infra/supabase/productized_schema.sql) as the only SQL Editor script. It is written to be re-runnable and aligned with the current backend models.
+
+It covers:
+
+- `users`, `auth_session_tokens`, `password_reset_tokens`
+- `clothing_items`, `categories`, `tags`, `outfits`, `wear_logs`
+- `assistant_tasks`, `style_profiles`, `recommendation_signals`
+- `experience_user_states` for the previously local experience-page state
+- `storage.buckets` initialization for `wardrobe-assets`
+
+Important:
+
+- The script uses `auth.users.raw_user_meta_data`, not `app_metadata`.
+- API keys should stay in `.env` or Supabase project secrets, not in public tables.
+- Demo wardrobe seed data now runs only when `DATABASE_URL` points to SQLite.
+
 ## Storage Flow
 
-- SQLite remains the local source of truth for MVP work.
-- Uploaded source images and processed images are always stored locally first.
-- When Supabase is configured, the backend also backs those assets up to Supabase Storage and mirrors clothing item metadata into the `clothing_items` table.
+- When `DATABASE_URL` points to Supabase Postgres, Supabase becomes the source of truth for users, clothing items, AI task states, wear logs, and experience states.
+- Uploaded source images and processed images can be backed up to Supabase Storage through the `wardrobe-assets` bucket.
+- SQLite is now only a local fallback mode for development or offline experiments.
 - If the external AI cleanup service is configured, the process endpoint calls it directly; otherwise the flow falls back to a local placeholder result so the wardrobe UI stays usable.

@@ -5,6 +5,9 @@ import { motion } from "framer-motion";
 import { Canvas } from "@react-three/fiber";
 import { Float, OrbitControls } from "@react-three/drei";
 import { Sparkles } from "lucide-react";
+import type { WardrobeItem } from "@/store/wardrobe-store";
+
+type AvatarLayer = Pick<WardrobeItem, "id" | "slot" | "name" | "colorHex" | "processedImageUrl" | "imageUrl" | "isNewArrival">;
 
 interface AvatarStageProps {
   palette: string[];
@@ -17,6 +20,8 @@ interface AvatarStageProps {
   absorbActive?: boolean;
   magneticStrength?: number;
   magneticVector?: { x: number; y: number } | null;
+  wearingItems?: AvatarLayer[];
+  avatarPhotoUrl?: string | null;
 }
 
 function AvatarFigure({ palette }: Pick<AvatarStageProps, "palette">) {
@@ -56,9 +61,28 @@ export function AvatarStage({
   absorbLabel,
   absorbActive = false,
   magneticStrength = 0,
-  magneticVector = null
+  magneticVector = null,
+  wearingItems = [],
+  avatarPhotoUrl = null,
 }: AvatarStageProps) {
   const visiblePalette = palette.length > 0 ? palette : ["#c9eddc", "#f3ead4", "#355172"];
+  const canvasOpacity = avatarPhotoUrl ? 0.28 : 1;
+
+  function layerFrame(slot: AvatarLayer["slot"], index: number) {
+    if (slot === "top") {
+      return { top: "19%", left: "50%", width: avatarPhotoUrl ? "38%" : "34%", transform: "translateX(-50%)" };
+    }
+    if (slot === "outerwear") {
+      return { top: "14%", left: "50%", width: avatarPhotoUrl ? "42%" : "38%", transform: "translateX(-50%)" };
+    }
+    if (slot === "bottom") {
+      return { top: "43%", left: "50%", width: avatarPhotoUrl ? "34%" : "30%", transform: "translateX(-50%)" };
+    }
+    if (slot === "shoes") {
+      return { top: "77%", left: index % 2 === 0 ? "41%" : "58%", width: "18%", transform: "translateX(-50%)" };
+    }
+    return { top: avatarPhotoUrl ? "36%" : "32%", left: "72%", width: "18%", transform: "translateX(-50%)" };
+  }
 
   return (
     <motion.div
@@ -71,7 +95,7 @@ export function AvatarStage({
         rotateY: magneticVector ? magneticVector.x * (1.8 + magneticStrength * 7) : 0
       }}
       transition={{ type: "spring", stiffness: 220, damping: 24, mass: 0.7 }}
-      className={`section-card story-gradient magnetic-stage relative h-[520px] overflow-hidden rounded-[34px] p-4 transition ${dropActive ? "shadow-[var(--shadow-glow)]" : ""}`}
+      className={`tryon-stage section-card story-gradient magnetic-stage relative h-[460px] overflow-hidden rounded-[28px] p-3 transition sm:h-[520px] sm:rounded-[34px] sm:p-4 ${dropActive ? "shadow-[var(--shadow-glow)]" : ""}`}
       style={{
         transformPerspective: 1400,
         transformStyle: "preserve-3d",
@@ -79,6 +103,58 @@ export function AvatarStage({
       }}
     >
       <div className="hero-glow absolute inset-0 opacity-80" />
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        {avatarPhotoUrl ? (
+          <motion.div
+            initial={false}
+            animate={{
+              rotateY: magneticVector ? magneticVector.x * (3 + magneticStrength * 10) : 0,
+              rotateX: magneticVector ? -magneticVector.y * (2 + magneticStrength * 6) : 0,
+              scale: dropHovered ? 1.02 : 1
+            }}
+            transition={{ type: "spring", stiffness: 220, damping: 24, mass: 0.72 }}
+            className="tryon-stage-photo absolute inset-[11%_15%_12%] z-[4] overflow-hidden rounded-[24px] border border-white/55 bg-white/40 shadow-[0_30px_80px_rgba(54,35,24,0.16)] sm:inset-[10%_17%_10%] sm:rounded-[28px]"
+          >
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_14%,rgba(255,255,255,0.58),transparent_42%)]" />
+            <img src={avatarPhotoUrl} alt="Avatar upload" className="h-full w-full object-cover" />
+          </motion.div>
+        ) : null}
+
+        {wearingItems.map((item, index) => {
+          const src = item.processedImageUrl || item.imageUrl;
+          const frame = layerFrame(item.slot, index);
+          return (
+            <motion.div
+              key={item.id}
+              initial={false}
+              animate={{
+                y: dropHovered ? -4 - index : -index * 2,
+                rotate: item.slot === "accessory" ? 2 : 0,
+                scale: dropHovered ? 1.03 : 1
+              }}
+              transition={{ type: "spring", stiffness: 260, damping: 24, mass: 0.66 }}
+              className="tryon-stage-layer absolute z-[6] overflow-hidden rounded-[18px] border border-white/60 bg-white/55 shadow-[0_22px_42px_rgba(41,27,21,0.14)] backdrop-blur-md sm:rounded-[22px]"
+              style={{
+                ...frame,
+                boxShadow: `0 22px 40px color-mix(in srgb, ${item.colorHex} 16%, rgba(41,27,21,0.12))`
+              }}
+            >
+              {src ? (
+                <img src={src} alt={item.name} className="h-full w-full object-contain p-2" />
+              ) : (
+                <div className="flex h-full min-h-[120px] items-center justify-center px-4 py-6 text-center text-xs text-[var(--ink)]" style={{ background: `linear-gradient(145deg, ${item.colorHex}20, rgba(255,255,255,0.96))` }}>
+                  {item.name}
+                </div>
+              )}
+              {item.isNewArrival ? (
+                <div className="absolute left-2 top-2 rounded-full bg-[var(--accent)] px-2 py-1 text-[10px] font-medium tracking-[0.16em] text-white">
+                  NEW
+                </div>
+              ) : null}
+            </motion.div>
+          );
+        })}
+      </div>
       {dropActive ? (
         <>
           <motion.div
@@ -117,7 +193,7 @@ export function AvatarStage({
           className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
         >
           <div
-            className={`rounded-full px-5 py-3 text-sm shadow-[var(--shadow-float)] ${dropHovered ? "text-white" : "bg-white/88 text-[var(--ink)]"}`}
+            className={`rounded-full px-4 py-2 text-xs shadow-[var(--shadow-float)] sm:px-5 sm:py-3 sm:text-sm ${dropHovered ? "text-white" : "bg-white/88 text-[var(--ink)]"}`}
             style={dropHovered ? { backgroundColor: dropTone } : undefined}
           >
             {dropHovered ? "Release and let the stage absorb it" : magneticStrength > 0.45 ? "The stage is starting to lock on" : "Bring it into the avatar's magnetic field"}
@@ -132,7 +208,7 @@ export function AvatarStage({
           className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
         >
           <div
-            className="snap-hint rounded-full px-5 py-3 text-sm"
+            className="snap-hint rounded-full px-4 py-2 text-xs sm:px-5 sm:py-3 sm:text-sm"
             style={{ borderColor: `color-mix(in srgb, ${dropTone} 42%, rgba(255,255,255,0.8))` }}
           >
             <Sparkles className="size-4" />
@@ -140,10 +216,10 @@ export function AvatarStage({
           </div>
         </motion.div>
       ) : null}
-      <div className="pointer-events-none absolute inset-x-4 top-4 z-10 flex items-center justify-between gap-3">
+      <div className="tryon-stage-topline pointer-events-none absolute inset-x-3 top-3 z-10 flex items-center justify-between gap-2 sm:inset-x-4 sm:top-4 sm:gap-3">
         <div className="pill bg-white/85">
           <Sparkles className="size-4" />
-          {dragHint ?? "Drag garments here or tap on the right to preview layers"}
+          {dragHint ?? (avatarPhotoUrl ? "拖入右侧单品，直接预览到你的全身照舞台" : "Drag garments here or tap on the right to preview layers")}
         </div>
         <div
           className={`rounded-full px-3 py-1 text-xs ${dropActive ? "text-white" : "bg-white/80 text-[var(--ink)]"}`}
@@ -152,11 +228,13 @@ export function AvatarStage({
           {dropActive ? `${Math.round((0.35 + magneticStrength * 0.65) * 100)}% locked` : `${palette.length} active layers`}
         </div>
       </div>
-      <div className="pointer-events-none absolute inset-x-6 bottom-5 z-10">
+      <div className="tryon-stage-note pointer-events-none absolute inset-x-3 bottom-3 z-10 sm:inset-x-6 sm:bottom-5">
         <div className="mx-auto max-w-md rounded-full border border-white/70 bg-white/72 px-4 py-3 text-center text-xs leading-5 text-[var(--muted)] shadow-[var(--shadow-soft)]">
-          Drag from the wardrobe rail to layer pieces onto the 2.5D avatar. This keeps the MVP playful now and ready for generated try-on later.
+          {avatarPhotoUrl
+            ? "当前是用户照片舞台模式，选中的单品会优先贴到你的全身照上形成伪 3D 试衣层。"
+            : "Drag from the wardrobe rail to layer pieces onto the 2.5D avatar. This keeps the MVP playful now and ready for generated try-on later."}
         </div>
-        <div className="mt-4 flex items-center justify-center gap-2">
+        <div className="tryon-stage-swatches mt-3 flex items-center justify-center gap-2 sm:mt-4">
           {visiblePalette.slice(0, 5).map((color, index) => (
             <motion.span
               key={`${color}-${index}`}
@@ -168,17 +246,19 @@ export function AvatarStage({
           ))}
         </div>
       </div>
-      <Canvas camera={{ position: [0, 0.2, 5.2], fov: 34 }}>
-        <ambientLight intensity={1.4} />
-        <directionalLight position={[3, 4, 4]} intensity={2.2} />
-        <directionalLight position={[-3, 2, 2]} intensity={1.2} color="#ffe2d5" />
-        <AvatarFigure palette={palette} />
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -2.25, 0]}>
-          <circleGeometry args={[2.1, 50]} />
-          <meshStandardMaterial color="#e6eef8" transparent opacity={0.55} />
-        </mesh>
-        <OrbitControls enablePan={false} enableZoom={false} minAzimuthAngle={-0.5} maxAzimuthAngle={0.5} />
-      </Canvas>
+      <div className="absolute inset-0" style={{ opacity: canvasOpacity }}>
+        <Canvas camera={{ position: [0, 0.2, 5.2], fov: 34 }}>
+          <ambientLight intensity={1.4} />
+          <directionalLight position={[3, 4, 4]} intensity={2.2} />
+          <directionalLight position={[-3, 2, 2]} intensity={1.2} color="#ffe2d5" />
+          <AvatarFigure palette={palette} />
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -2.25, 0]}>
+            <circleGeometry args={[2.1, 50]} />
+            <meshStandardMaterial color="#e6eef8" transparent opacity={0.55} />
+          </mesh>
+          <OrbitControls enablePan={false} enableZoom={false} minAzimuthAngle={-0.5} maxAzimuthAngle={0.5} />
+        </Canvas>
+      </div>
     </motion.div>
   );
 }

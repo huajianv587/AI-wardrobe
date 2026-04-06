@@ -17,6 +17,8 @@ interface AuthTemplatePageProps {
   mode: AuthTemplateMode;
 }
 
+const INTERNAL_TEST_EMAIL_DOMAINS = ["ai-wardrobe.dev", "mini.ai-wardrobe.dev"];
+
 const serifCn = Noto_Serif_SC({
   weight: ["200", "300", "400"],
   subsets: ["latin"],
@@ -124,6 +126,11 @@ function cn(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(" ");
 }
 
+function isInternalTestEmail(email: string) {
+  const normalizedEmail = email.trim().toLowerCase();
+  return INTERNAL_TEST_EMAIL_DOMAINS.some((domain) => normalizedEmail.endsWith(`@${domain}`));
+}
+
 function createDateStamp() {
   const months = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"];
   const days = ["日", "一", "二", "三", "四", "五", "六"];
@@ -182,6 +189,8 @@ export function AuthTemplatePage({ mode }: AuthTemplatePageProps) {
   const [loginMessage, setLoginMessage] = useState("");
   const [loginMessageTone, setLoginMessageTone] = useState<"success" | "error">("success");
   const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotActionUrl, setForgotActionUrl] = useState("");
+  const [forgotActionLabel, setForgotActionLabel] = useState("打开重置密码页面");
 
   const [nickname, setNickname] = useState("");
   const [gender, setGender] = useState("");
@@ -371,7 +380,8 @@ export function AuthTemplatePage({ mode }: AuthTemplatePageProps) {
     try {
       const payload = await signUpWithPassword({
         email: registerEmail.trim(),
-        password: registerPassword
+        password: registerPassword,
+        display_name: nickname.trim() || undefined
       });
 
       if (payload.access_token) {
@@ -395,21 +405,30 @@ export function AuthTemplatePage({ mode }: AuthTemplatePageProps) {
   }
 
   async function handleForgotPassword() {
-    const email = (forgotEmail || loginEmail).trim();
+    const email = forgotEmail.trim();
+    setForgotActionUrl("");
+    setForgotActionLabel("打开重置密码页面");
     if (!email || !email.includes("@")) {
-      showLoginFeedback("先输入一个有效邮箱，我们再帮你发送重置链接。", "error");
+      showLoginFeedback("请先在重置面板里确认接收邮件的邮箱地址。", "error");
+      return;
+    }
+
+    if (isInternalTestEmail(email)) {
+      showLoginFeedback("这个邮箱看起来是内部测试地址，不能接收真实邮件。请改成你自己的注册邮箱。", "error");
       return;
     }
 
     setForgotLoading(true);
 
     try {
-      const redirectTo = typeof window !== "undefined" ? `${window.location.origin}/login` : undefined;
+      const redirectTo = typeof window !== "undefined" ? `${window.location.origin}/reset-password` : undefined;
       const response = await requestPasswordReset({
         email,
         redirect_to: redirectTo
       });
       showLoginFeedback(response.message ?? `密码重置邮件已发送到 ${email}。`);
+      setForgotActionUrl(response.action_url ?? "");
+      setForgotActionLabel(response.action_label ?? "打开重置密码页面");
       setForgotEmail("");
       setShowForgot(false);
     } catch (error) {
@@ -417,6 +436,24 @@ export function AuthTemplatePage({ mode }: AuthTemplatePageProps) {
     } finally {
       setForgotLoading(false);
     }
+  }
+
+  function toggleForgotPassword() {
+    setShowForgot((current) => {
+      const next = !current;
+      if (next) {
+        setForgotEmail((existing) => {
+          const trimmedExisting = existing.trim();
+          if (trimmedExisting) {
+            return trimmedExisting;
+          }
+          return loginEmail.trim();
+        });
+        setForgotActionUrl("");
+        setForgotActionLabel("打开重置密码页面");
+      }
+      return next;
+    });
   }
 
   async function handleSocialContinue(provider: "Google" | "Facebook") {
@@ -645,7 +682,7 @@ export function AuthTemplatePage({ mode }: AuthTemplatePageProps) {
                 <div className={styles.formHeader}>
                   <span className={styles.formTag}>Sign in</span>
                   <div className={styles.formTitle}>欢迎回来</div>
-                  <div className={styles.formDesc}>登录后继续管理你的专属云端衣橱</div>
+                  <div className={styles.formDesc}>游客态只展示演示记录，登录后会回到这个邮箱专属的独立衣橱。</div>
                 </div>
 
                 <div className={styles.formTabs}>
@@ -655,6 +692,12 @@ export function AuthTemplatePage({ mode }: AuthTemplatePageProps) {
                   <Link className={cn(styles.tabBtn, styles.tabBtnActive)} href="/login" aria-current="page">
                     登录
                   </Link>
+                </div>
+
+                <div className={styles.accountNotice}>
+                  未登录前这里展示的是游客预览数据。
+                  <br />
+                  登录后会进入当前邮箱对应的独立账号，数据不会和别的邮箱互通。
                 </div>
 
                 <div className={styles.field}>
@@ -675,7 +718,7 @@ export function AuthTemplatePage({ mode }: AuthTemplatePageProps) {
                 <div className={styles.field}>
                   <div className={styles.fieldLabel}>
                     <span>密码</span>
-                    <button type="button" className={styles.fieldLabelLink} onClick={() => setShowForgot((current) => !current)}>
+                    <button type="button" className={styles.fieldLabelLink} onClick={toggleForgotPassword}>
                       忘记密码？
                     </button>
                   </div>
@@ -735,8 +778,15 @@ export function AuthTemplatePage({ mode }: AuthTemplatePageProps) {
                 </div>
 
                 <div className={cn(styles.forgotPanel, showForgot && styles.forgotPanelOpen)}>
-                  <div className={styles.forgotText}>输入注册邮箱，我们会为你准备一封重置邮件</div>
-                  <input className={styles.fieldInput} type="email" value={forgotEmail} onChange={(event) => setForgotEmail(event.target.value)} placeholder="your@email.com" />
+                  <div className={styles.forgotText}>重置邮件会发送到下面这个邮箱，请先确认再发送</div>
+                  <input
+                    className={styles.fieldInput}
+                    type="email"
+                    value={forgotEmail}
+                    onChange={(event) => setForgotEmail(event.target.value)}
+                    placeholder="your@email.com"
+                    autoComplete="email"
+                  />
                   <button className={styles.forgotSubmit} type="button" onClick={() => void handleForgotPassword()} disabled={forgotLoading}>
                     {forgotLoading ? "发 送 中…" : "发 送 重 置 邮 件"}
                   </button>
@@ -748,6 +798,12 @@ export function AuthTemplatePage({ mode }: AuthTemplatePageProps) {
                   </div>
                 ) : null}
 
+                {forgotActionUrl ? (
+                  <a className={styles.messageAction} href={forgotActionUrl}>
+                    {forgotActionLabel}
+                  </a>
+                ) : null}
+
                 <div className={styles.formFooter}>
                   还没有账号？ <Link href="/register">立即注册 →</Link>
                 </div>
@@ -757,7 +813,7 @@ export function AuthTemplatePage({ mode }: AuthTemplatePageProps) {
                 <div className={styles.formHeader}>
                   <span className={styles.formTag}>Welcome</span>
                   <div className={styles.formTitle}>创建账号</div>
-                  <div className={styles.formDesc}>几步即可开始，之后可随时完善资料</div>
+                  <div className={styles.formDesc}>注册后会为这个邮箱创建一间全新的独立衣橱，初始记录为 0。</div>
                 </div>
 
                 <div className={styles.formTabs}>
@@ -767,6 +823,12 @@ export function AuthTemplatePage({ mode }: AuthTemplatePageProps) {
                   <Link className={styles.tabBtn} href="/login">
                     登录
                   </Link>
+                </div>
+
+                <div className={styles.accountNotice}>
+                  注册前页面里的内容属于游客演示。
+                  <br />
+                  注册成功后，你会进入当前邮箱自己的全新账号，等待上传你的第一批衣物数据。
                 </div>
 
                 <div className={styles.fieldRow}>

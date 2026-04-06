@@ -46,7 +46,7 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
   const { user, isAuthenticated } = useAuthSession();
 
   return (
-    <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-28 pt-5 md:px-6 md:pb-10">
+    <div className="app-shell-root relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-28 pt-5 md:px-6 md:pb-10">
       <AuthSessionBootstrap />
 
       <motion.span
@@ -69,16 +69,16 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
         initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
         animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
         transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-        className="section-card soft-panel sticky top-4 z-30 mb-6 rounded-[32px] px-4 py-4 md:px-6"
+        className="app-shell-header section-card soft-panel sticky top-4 z-30 mb-6 rounded-[32px] px-4 py-4 md:px-6"
       >
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <div className="pill mb-3">文文的衣橱 · 分页面工作台</div>
-              <h1 className="display-title text-[2.2rem] font-semibold leading-[0.96] tracking-[-0.04em] text-[var(--ink-strong)] md:text-[3.45rem]">
+              <h1 className="app-shell-title display-title text-[2.2rem] font-semibold leading-[0.96] tracking-[-0.04em] text-[var(--ink-strong)] md:text-[3.45rem]">
                 {title}
               </h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)] md:text-base">{subtitle}</p>
+              <p className="app-shell-subtitle mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)] md:text-base">{subtitle}</p>
               {isAuthenticated && user ? (
                 <p className="mt-3 text-xs leading-5 text-[var(--muted)]">
                   当前账号 <span className="font-medium text-[var(--ink)]">{user.email}</span>
@@ -115,7 +115,7 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
                 }
               }
             }}
-            className="flex gap-2 overflow-x-auto pb-1 md:flex-wrap"
+            className="app-shell-nav flex gap-2 overflow-x-auto pb-1 md:flex-wrap"
           >
             {navItems.map(({ href, label, shortLabel, icon: Icon }) => {
               const active = isActivePath(pathname, href);
@@ -155,7 +155,7 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
           </motion.nav>
 
           {isMobile ? (
-            <div className="flex items-center gap-3 md:hidden">
+            <div className="app-shell-mobile-auth flex items-center gap-3 md:hidden">
               <Link
                 href="/register"
                 className="inline-flex items-center rounded-full border border-[var(--line)] bg-white/88 px-4 py-2 text-xs text-[var(--ink)]"
@@ -201,7 +201,7 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
       </AnimatePresence>
 
       {isMobile ? (
-        <nav className="mobile-dock md:hidden">
+        <nav className="mobile-dock app-shell-dock md:hidden">
           {mobileDockItems.map(({ href, label, icon: Icon }) => {
             const active = isActivePath(pathname, href);
 

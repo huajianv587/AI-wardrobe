@@ -1,6 +1,9 @@
 .shell {
   position: relative;
   height: 100vh;
+  min-height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
   overflow: hidden;
   background:
     radial-gradient(circle at 12% 18%, rgba(245, 207, 198, 0.18), transparent 22%),
@@ -14,10 +17,11 @@
 }
 
 .pageViewport {
-  height: calc(100vh - 92px);
+  height: calc(100dvh - 92px);
   overflow-y: auto;
   overscroll-behavior-y: contain;
   scrollbar-gutter: stable both-edges;
+  -webkit-overflow-scrolling: touch;
 }
 
 @media (max-width: 1180px) {
@@ -26,16 +30,27 @@
   }
 
   .pageViewport {
-    height: calc(100vh - 130px);
+    height: calc(100dvh - 130px);
   }
 }
 
 @media (max-width: 780px) {
+  .shell {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
   .pageWrap {
-    padding-top: 182px;
+    min-height: 100dvh;
+    padding-top: calc(112px + env(safe-area-inset-top, 0px));
   }
 
   .pageViewport {
-    height: calc(100vh - 182px);
+    height: auto;
+    min-height: calc(100dvh - 112px - env(safe-area-inset-top, 0px));
+    overflow: visible;
+    overscroll-behavior-y: auto;
+    scrollbar-gutter: auto;
   }
 }

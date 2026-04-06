@@ -2040,7 +2040,21 @@ svg {
   }
 
   .navbar-shell {
-    padding: 18px 20px;
+    padding: calc(12px + env(safe-area-inset-top, 0px)) 12px 0;
+  }
+
+  .navbar-shell__inner {
+    gap: 0.72rem;
+    border-radius: 24px;
+    padding-inline: 0.9rem;
+  }
+
+  .navbar-logo {
+    min-width: 0;
+  }
+
+  .navbar-logo__copy {
+    min-width: 0;
   }
 
   .hero-stage-wrap {
@@ -2132,6 +2146,11 @@ svg {
     font-size: 1.38rem;
   }
 
+  .navbar-logo__subtitle {
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+  }
+
   .category-shell {
     display: grid;
     width: 100%;
@@ -2155,6 +2174,342 @@ svg {
   .avatar-fallback {
     width: min(100%, 240px);
     height: min(44vh, 300px);
+  }
+
+  body::after {
+    height: 12vh;
+  }
+}
+
+@media (max-width: 430px) {
+  .app-shell-root {
+    padding: 0.9rem 0.75rem calc(6.9rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .app-shell-header {
+    top: 0.75rem;
+    margin-bottom: 1rem;
+    border-radius: 1.75rem;
+    padding: 0.9rem 0.9rem 1rem;
+  }
+
+  .app-shell-title {
+    font-size: 1.95rem;
+    line-height: 0.98;
+    letter-spacing: -0.05em;
+  }
+
+  .app-shell-subtitle {
+    max-width: none;
+    font-size: 0.82rem;
+    line-height: 1.62;
+  }
+
+  .app-shell-nav {
+    gap: 0.42rem;
+    padding-bottom: 0;
+  }
+
+  .app-shell-nav a {
+    padding: 0.52rem 0.78rem;
+    font-size: 0.76rem;
+  }
+
+  .app-shell-mobile-auth {
+    gap: 0.65rem;
+  }
+
+  .app-shell-mobile-auth a {
+    min-height: 2.4rem;
+    padding-inline: 0.95rem;
+    font-size: 0.74rem;
+  }
+
+  .mobile-dock {
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: calc(0.7rem + env(safe-area-inset-bottom, 0px));
+    padding: 0.65rem 0.75rem;
+    border-radius: 1.5rem;
+  }
+
+  .mobile-dock-item {
+    min-width: 0;
+    gap: 0.3rem;
+    padding: 0.52rem 0;
+    font-size: 0.62rem;
+  }
+
+  .tryon-stage {
+    height: 446px !important;
+    border-radius: 28px !important;
+    padding: 12px !important;
+  }
+
+  .tryon-stage-photo {
+    inset: 12% 14% 12% !important;
+    border-radius: 24px !important;
+  }
+
+  .tryon-stage-topline {
+    inset-inline: 12px !important;
+    top: 12px !important;
+    gap: 8px !important;
+  }
+
+  .tryon-stage-topline .pill {
+    min-height: auto;
+    max-width: 72%;
+    padding: 0.55rem 0.78rem;
+    font-size: 0.68rem;
+    line-height: 1.5;
+  }
+
+  .tryon-stage-topline > div:last-child {
+    padding: 0.42rem 0.72rem !important;
+    font-size: 0.68rem !important;
+  }
+
+  .tryon-stage-note {
+    inset-inline: 12px !important;
+    bottom: 12px !important;
+  }
+
+  .tryon-stage-note > div {
+    padding: 0.62rem 0.78rem;
+    font-size: 0.68rem;
+    line-height: 1.58;
+  }
+
+  .tryon-stage-swatches {
+    margin-top: 0.7rem !important;
+    gap: 0.38rem !important;
+  }
+
+  .tryon-stage-layer {
+    border-radius: 18px !important;
+  }
+
+  .tryon-panel {
+    border-radius: 28px !important;
+    padding: 16px !important;
+  }
+
+  .tryon-panel-head {
+    gap: 12px !important;
+  }
+
+  .tryon-panel-copy h3 {
+    font-size: 1.05rem;
+  }
+
+  .tryon-panel-copy p {
+    font-size: 0.82rem;
+    line-height: 1.6;
+  }
+
+  .tryon-status-text {
+    font-size: 0.7rem !important;
+    line-height: 1.58 !important;
+  }
+
+  .tryon-stage-actions {
+    width: 100%;
+  }
+
+  .tryon-stage-actions > button {
+    flex: 1 1 calc(50% - 0.25rem);
+    justify-content: center;
+  }
+
+  .tryon-filter-block {
+    padding: 12px !important;
+    border-radius: 24px !important;
+  }
+
+  .tryon-filter-row {
+    gap: 8px !important;
+  }
+
+  .tryon-chip {
+    min-height: 2.35rem;
+  }
+
+  .tryon-season-row .tryon-chip,
+  .tryon-sort-row .tryon-chip {
+    padding-inline: 0.72rem !important;
+    font-size: 0.68rem !important;
+  }
+
+  .tryon-item-card {
+    border-radius: 20px !important;
+    padding: 12px !important;
+  }
+
+  .tryon-item-main {
+    gap: 12px !important;
+    align-items: flex-start !important;
+  }
+
+  .tryon-item-thumb {
+    width: 58px !important;
+    height: 74px !important;
+    border-radius: 16px !important;
+  }
+
+  .tryon-item-copy {
+    min-width: 0;
+  }
+
+  .tryon-item-title {
+    font-size: 0.9rem !important;
+    line-height: 1.35 !important;
+  }
+
+  .tryon-item-meta {
+    font-size: 0.76rem !important;
+    line-height: 1.45 !important;
+  }
+
+  .tryon-item-hint {
+    margin-top: 0.35rem !important;
+    font-size: 0.68rem !important;
+    line-height: 1.58 !important;
+  }
+
+  .tryon-item-tail {
+    align-self: flex-start !important;
+    padding-top: 0.35rem;
+  }
+}
+
+@media (max-width: 390px) {
+  .app-shell-root {
+    padding-inline: 0.62rem;
+    padding-top: 0.75rem;
+  }
+
+  .app-shell-header {
+    top: 0.62rem;
+    padding: 0.82rem 0.75rem 0.9rem;
+    border-radius: 1.5rem;
+  }
+
+  .app-shell-title {
+    font-size: 1.72rem;
+  }
+
+  .app-shell-subtitle {
+    font-size: 0.76rem;
+    line-height: 1.56;
+  }
+
+  .app-shell-nav {
+    gap: 0.36rem;
+  }
+
+  .app-shell-nav a {
+    padding: 0.48rem 0.68rem;
+    font-size: 0.72rem;
+  }
+
+  .app-shell-mobile-auth {
+    flex-wrap: wrap;
+  }
+
+  .app-shell-mobile-auth a {
+    flex: 1 1 calc(50% - 0.325rem);
+    justify-content: center;
+  }
+
+  .mobile-dock {
+    left: 0.62rem;
+    right: 0.62rem;
+    padding: 0.58rem 0.65rem;
+  }
+
+  .mobile-dock-item {
+    font-size: 0.58rem;
+  }
+
+  .tryon-stage {
+    height: 418px !important;
+    border-radius: 24px !important;
+    padding: 10px !important;
+  }
+
+  .tryon-stage-photo {
+    inset: 12% 12% 13% !important;
+    border-radius: 22px !important;
+  }
+
+  .tryon-stage-topline {
+    inset-inline: 10px !important;
+    top: 10px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .tryon-stage-topline .pill {
+    max-width: none;
+    width: 100%;
+  }
+
+  .tryon-stage-topline > div:last-child {
+    align-self: flex-end;
+  }
+
+  .tryon-stage-note {
+    inset-inline: 10px !important;
+    bottom: 10px !important;
+  }
+
+  .tryon-stage-note > div {
+    padding: 0.56rem 0.68rem;
+    font-size: 0.64rem;
+  }
+
+  .tryon-panel {
+    padding: 14px !important;
+    border-radius: 24px !important;
+  }
+
+  .tryon-stage-actions > button {
+    flex: 1 1 100%;
+  }
+
+  .tryon-filter-row .tryon-chip {
+    flex: 1 1 calc(50% - 0.25rem);
+    justify-content: center;
+  }
+
+  .tryon-sort-row .tryon-chip {
+    flex: 1 1 auto;
+  }
+
+  .tryon-item-card {
+    padding: 11px !important;
+  }
+
+  .tryon-item-main {
+    gap: 10px !important;
+  }
+
+  .tryon-item-thumb {
+    width: 54px !important;
+    height: 70px !important;
+  }
+
+  .tryon-item-title {
+    font-size: 0.84rem !important;
+  }
+
+  .tryon-item-meta {
+    font-size: 0.72rem !important;
+  }
+
+  .tryon-item-hint {
+    font-size: 0.64rem !important;
   }
 }
 

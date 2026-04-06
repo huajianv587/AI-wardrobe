@@ -24,6 +24,14 @@ class Settings(BaseSettings):
     )
     local_storage_root: str = "./data/assets"
     model_training_dir: str = "../model_training"
+    fashion_model_root: str = "./data/models/fashion"
+    fashion_detector_weights: str = ""
+    fashion_sam2_checkpoint: str = ""
+    fashion_sam2_config: str = ""
+    fashion_schp_checkpoint: str = ""
+    fashion_schp_repo: str = ""
+    fashion_clip_model_id: str = "patrickjohncyh/fashion-clip"
+    fashion_multimodal_timeout_seconds: float = 35.0
     supabase_url: str = ""
     supabase_anon_key: str = ""
     supabase_service_role_key: str = ""
@@ -42,8 +50,15 @@ class Settings(BaseSettings):
     ai_cleanup_api_key: str = ""
     ai_cleanup_timeout_seconds: float = 45.0
     ai_demo_adapter_timeout_seconds: float = 8.0
+    multimodal_request_timeout_seconds: float = 20.0
     vllm_base_url: str = ""
     qwen_model_name: str = "Qwen2.5-7B-Instruct"
+    openai_api_key: str = ""
+    openai_base_url: str = "https://api.openai.com/v1"
+    openai_multimodal_model: str = "gpt-4.1-mini"
+    deepseek_api_key: str = ""
+    deepseek_base_url: str = "https://api.deepseek.com/v1"
+    deepseek_multimodal_model: str = "deepseek-chat"
     next_public_app_url: str = "http://localhost:3000"
     backend_public_base_url: str = "http://localhost:8000"
     llm_recommender_api_url: str = ""
@@ -71,6 +86,15 @@ class Settings(BaseSettings):
     wechat_code2session_base_url: str = "https://api.weixin.qq.com"
     local_access_token_ttl_minutes: int = 120
     local_refresh_token_ttl_days: int = 30
+    local_password_reset_ttl_minutes: int = 30
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_from_email: str = ""
+    smtp_from_name: str = "AI Wardrobe"
+    smtp_use_tls: bool = True
+    smtp_use_ssl: bool = False
     expo_public_api_base_url: str = ""
     expo_project_id: str = ""
     ios_bundle_id: str = ""

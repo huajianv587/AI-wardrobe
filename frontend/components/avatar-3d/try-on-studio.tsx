@@ -13,6 +13,70 @@ import { StoryCluster } from "@/components/ui/story-cluster";
 import { fetchWardrobeItems } from "@/lib/api";
 import { seedWardrobeItems, useWardrobeStore } from "@/store/wardrobe-store";
 
+const TRY_ON_FOCUS_KEY = "wenwen:try-on-focus";
+const TRY_ON_AVATAR_KEY = "wenwen:try-on-avatar-photo";
+
+type RailFilter = "all" | "new" | "top" | "bottom" | "outerwear" | "shoes" | "accessory";
+type SeasonFilter = "all" | "spring" | "summer" | "autumn" | "winter";
+type SortMode = "focus" | "newest" | "name";
+
+const railFilters: Array<{ value: RailFilter; label: string }> = [
+  { value: "new", label: "新增" },
+  { value: "all", label: "全部" },
+  { value: "top", label: "上衣" },
+  { value: "bottom", label: "下装" },
+  { value: "outerwear", label: "外套" },
+  { value: "shoes", label: "鞋子" },
+  { value: "accessory", label: "配饰" },
+];
+
+const seasonFilters: Array<{ value: SeasonFilter; label: string }> = [
+  { value: "all", label: "全部季节" },
+  { value: "spring", label: "春" },
+  { value: "summer", label: "夏" },
+  { value: "autumn", label: "秋" },
+  { value: "winter", label: "冬" },
+];
+
+const sortModes: Array<{ value: SortMode; label: string }> = [
+  { value: "focus", label: "最新优先" },
+  { value: "newest", label: "按时间" },
+  { value: "name", label: "按名称" },
+];
+
+function parseStoredFocusIds() {
+  try {
+    const raw = window.localStorage.getItem(TRY_ON_FOCUS_KEY);
+    if (!raw) {
+      return [];
+    }
+    const parsed = JSON.parse(raw) as { itemIds?: number[]; at?: string };
+    const itemIds = Array.isArray(parsed?.itemIds) ? parsed.itemIds.map(Number).filter(Boolean) : [];
+    if (!itemIds.length) {
+      return [];
+    }
+    if (parsed?.at) {
+      const age = Date.now() - new Date(parsed.at).getTime();
+      if (Number.isFinite(age) && age > 1000 * 60 * 60 * 72) {
+        return [];
+      }
+    }
+    return itemIds;
+  } catch {
+    return [];
+  }
+}
+
+function normalizeSeasonTags(tags: string[]) {
+  const joined = tags.join("|").toLowerCase();
+  const normalized: string[] = [];
+  if (/春|spring/.test(joined)) normalized.push("spring");
+  if (/夏|summer/.test(joined)) normalized.push("summer");
+  if (/秋|autumn|fall/.test(joined)) normalized.push("autumn");
+  if (/冬|winter/.test(joined)) normalized.push("winter");
+  return normalized;
+}
+
 interface AbsorbBurst {
   id: number;
   name: string;
@@ -40,6 +104,7 @@ export function TryOnStudio() {
   const selectedTryOnIds = useWardrobeStore((state) => state.selectedTryOnIds);
   const toggleTryOnItem = useWardrobeStore((state) => state.toggleTryOnItem);
   const resetTryOn = useWardrobeStore((state) => state.resetTryOn);
+  const setTryOnItems = useWardrobeStore((state) => state.setTryOnItems);
   const replaceItems = useWardrobeStore((state) => state.replaceItems);
 
   const [hydratingWardrobe, setHydratingWardrobe] = useState(false);
@@ -49,13 +114,18 @@ export function TryOnStudio() {
   const [absorbBurst, setAbsorbBurst] = useState<AbsorbBurst | null>(null);
   const [absorbLabel, setAbsorbLabel] = useState<string | null>(null);
   const [dragTelemetry, setDragTelemetry] = useState<DragTelemetry | null>(null);
+  const [focusItemIds, setFocusItemIds] = useState<number[]>([]);
+  const [railFilter, setRailFilter] = useState<RailFilter>("new");
+  const [seasonFilter, setSeasonFilter] = useState<SeasonFilter>("all");
+  const [sortMode, setSortMode] = useState<SortMode>("focus");
+  const [avatarPhotoUrl, setAvatarPhotoUrl] = useState<string | null>(null);
   const previewMode = !isAuthenticated;
   const displayItems = items.length > 0 ? items : seedWardrobeItems;
 
   const stageRef = useRef<HTMLDivElement | null>(null);
   const dragGuardRef = useRef<{ itemId: number | null; until: number }>({ itemId: null, until: 0 });
-
-  const wearingItems = displayItems.filter((item) => selectedTryOnIds.includes(item.id));
+  const appliedFocusRef = useRef("");
+  const avatarUploadRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (!absorbLabel) {
@@ -84,6 +154,24 @@ export function TryOnStudio() {
       window.clearTimeout(timer);
     };
   }, [absorbBurst, reduceMotion]);
+
+  useEffect(() => {
+    const storedFocusIds = parseStoredFocusIds();
+    if (storedFocusIds.length) {
+      setFocusItemIds(storedFocusIds);
+      setRailFilter("new");
+      setStatusText(`已接入刚解构完成的 ${storedFocusIds.length} 件单品，试衣轨道会优先展示它们。`);
+    }
+
+    try {
+      const storedPhoto = window.localStorage.getItem(TRY_ON_AVATAR_KEY);
+      if (storedPhoto) {
+        setAvatarPhotoUrl(storedPhoto);
+      }
+    } catch {
+      // ignore storage failures
+    }
+  }, []);
 
   useEffect(() => {
     if (!authReady) {
@@ -136,11 +224,102 @@ export function TryOnStudio() {
     };
   }, [authReady, isAuthenticated, replaceItems]);
 
+  useEffect(() => {
+    if (!displayItems.length || !focusItemIds.length) {
+      return;
+    }
+
+    const availableFocusIds = focusItemIds.filter((itemId) => displayItems.some((item) => item.id === itemId));
+    const focusSignature = availableFocusIds.join(",");
+    if (!focusSignature || appliedFocusRef.current === focusSignature) {
+      return;
+    }
+
+    appliedFocusRef.current = focusSignature;
+    startTransition(() => setTryOnItems(availableFocusIds));
+    setRailFilter("new");
+    setSortMode("focus");
+    setStatusText(`已把最新解构的 ${availableFocusIds.length} 件单品放到试衣舞台最前面。`);
+  }, [displayItems, focusItemIds, setTryOnItems]);
+
   if (!authReady) {
     return <PanelSkeleton rows={2} />;
   }
 
-  const draggingItem = displayItems.find((item) => item.id === draggingItemId) ?? null;
+  const focusSet = new Set(focusItemIds);
+  const decoratedItems = displayItems.map((item) => {
+    const seasonTags = normalizeSeasonTags(item.seasonTags ?? []);
+    const isNewArrival = item.isNewArrival || focusSet.has(item.id) || item.tags.includes("新增");
+    return {
+      ...item,
+      seasonTags,
+      isNewArrival,
+    };
+  });
+  const draggingItem = decoratedItems.find((item) => item.id === draggingItemId) ?? null;
+  const wearingItems = decoratedItems.filter((item) => selectedTryOnIds.includes(item.id));
+  const filteredItems = decoratedItems
+    .filter((item) => {
+      if (railFilter === "new") {
+        return item.isNewArrival;
+      }
+      if (railFilter !== "all" && item.slot !== railFilter) {
+        return false;
+      }
+      if (seasonFilter !== "all" && item.seasonTags.indexOf(seasonFilter) < 0) {
+        return false;
+      }
+      return true;
+    })
+    .sort((left, right) => {
+      if (sortMode === "name") {
+        return left.name.localeCompare(right.name, "zh-Hans-CN");
+      }
+      const leftFocusIndex = focusItemIds.indexOf(left.id);
+      const rightFocusIndex = focusItemIds.indexOf(right.id);
+      if (sortMode === "focus" && (leftFocusIndex >= 0 || rightFocusIndex >= 0)) {
+        if (leftFocusIndex < 0) return 1;
+        if (rightFocusIndex < 0) return -1;
+        return leftFocusIndex - rightFocusIndex;
+      }
+      const leftStamp = left.createdAt ? new Date(left.createdAt).getTime() : 0;
+      const rightStamp = right.createdAt ? new Date(right.createdAt).getTime() : 0;
+      return rightStamp - leftStamp;
+    });
+
+  function handleAvatarPhotoUpload(file: File | null) {
+    if (!file) {
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === "string" ? reader.result : "";
+      if (!result) {
+        return;
+      }
+      setAvatarPhotoUrl(result);
+      try {
+        window.localStorage.setItem(TRY_ON_AVATAR_KEY, result);
+      } catch {
+        // ignore storage failures
+      }
+      setStatusText("已载入你的全身照，点击或拖拽单品会直接贴到照片舞台上。");
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearAvatarPhoto() {
+    setAvatarPhotoUrl(null);
+    try {
+      window.localStorage.removeItem(TRY_ON_AVATAR_KEY);
+    } catch {
+      // ignore storage failures
+    }
+    if (avatarUploadRef.current) {
+      avatarUploadRef.current.value = "";
+    }
+    setStatusText("已切回 2.5D avatar 舞台。");
+  }
 
   function getStageRect() {
     return stageRef.current?.getBoundingClientRect() ?? null;
@@ -181,7 +360,7 @@ export function TryOnStudio() {
   }
 
   function triggerAbsorbBurst(itemId: number, point: { x: number; y: number }) {
-    const item = displayItems.find((entry) => entry.id === itemId);
+    const item = decoratedItems.find((entry) => entry.id === itemId);
     const rect = getStageRect();
 
     if (!item || !rect) {
@@ -203,7 +382,7 @@ export function TryOnStudio() {
   function handleDropItem(itemId: number) {
     toggleTryOnItem(itemId);
     setDraggingItemId(null);
-    setStatusText(`Updated avatar layers with ${displayItems.find((item) => item.id === itemId)?.name ?? "the selected garment"}.`);
+    setStatusText(`Updated avatar layers with ${decoratedItems.find((item) => item.id === itemId)?.name ?? "the selected garment"}.`);
   }
 
   function handleRailTap(itemId: number, active: boolean) {
@@ -212,7 +391,7 @@ export function TryOnStudio() {
     }
 
     toggleTryOnItem(itemId);
-    const item = displayItems.find((entry) => entry.id === itemId);
+    const item = decoratedItems.find((entry) => entry.id === itemId);
     setStatusText(
       active
         ? `${item?.name ?? "That piece"} slipped back off the avatar.`
@@ -221,7 +400,7 @@ export function TryOnStudio() {
   }
 
   function handleDrag(itemId: number, info: PanInfo) {
-    const item = displayItems.find((entry) => entry.id === itemId);
+    const item = decoratedItems.find((entry) => entry.id === itemId);
     setDraggingItemId(itemId);
     const telemetry = getMagneticTelemetry(itemId, info.point);
     setDragTelemetry(telemetry);
@@ -241,7 +420,7 @@ export function TryOnStudio() {
   }
 
   function handleDragEnd(itemId: number, info: PanInfo) {
-    const item = displayItems.find((entry) => entry.id === itemId);
+    const item = decoratedItems.find((entry) => entry.id === itemId);
     const telemetry = getMagneticTelemetry(itemId, info.point);
     const snapped = Boolean(telemetry?.engaged);
 
@@ -260,7 +439,7 @@ export function TryOnStudio() {
   }
 
   return (
-    <div className="relative grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+    <div className="tryon-studio-grid relative grid gap-4 sm:gap-6 xl:grid-cols-[1.2fr_0.8fr]">
       {previewMode ? (
         <div className="xl:col-span-2">
           <VisitorPreviewNotice description="当前是公开体验模式。你现在拖拽的是公开体验衣橱单品，但页面仍然优先走真实读取接口；登录后会自动切到你自己的衣橱单品。" />
@@ -338,10 +517,12 @@ export function TryOnStudio() {
         ) : null}
       </AnimatePresence>
 
-      <div>
+      <div className="tryon-stage-wrap">
         <AvatarStage
           stageRef={stageRef}
           palette={wearingItems.map((item) => item.colorHex)}
+          wearingItems={wearingItems}
+          avatarPhotoUrl={avatarPhotoUrl}
           dropActive={draggingItemId !== null}
           dropHovered={dropHovered}
           dropTone={draggingItem?.colorHex ?? "var(--accent)"}
@@ -353,29 +534,55 @@ export function TryOnStudio() {
         />
       </div>
 
-      <div className="section-card subtle-card rounded-[32px] p-5">
-        <div className="mb-5 flex items-center justify-between gap-4">
-          <div>
-            <h3 className="text-xl font-semibold text-[var(--ink-strong)]">2.5D Try-On Studio</h3>
-            <p className="mt-1 text-sm text-[var(--muted)]">Select pieces to preview the layered avatar stage.</p>
-            {statusText ? <p className="mt-2 text-xs leading-5 text-[var(--muted)]">{statusText}</p> : null}
+      <div className="tryon-panel section-card subtle-card rounded-[32px] p-4 sm:p-5">
+        <div className="tryon-panel-head mb-4 flex flex-col gap-3 sm:mb-5 sm:gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="tryon-panel-copy">
+            <h3 className="text-lg font-semibold text-[var(--ink-strong)] sm:text-xl">新增单品试衣工作台</h3>
+            <p className="mt-1 text-sm leading-6 text-[var(--muted)]">新解构出来的衣服会优先排在前面，点一下就能直接贴到舞台或全身照上。</p>
+            {statusText ? <p className="tryon-status-text mt-2 text-xs leading-5 text-[var(--muted)]">{statusText}</p> : null}
           </div>
           <StoryCluster
             emoji="🪄"
-            title={draggingItem ? "magnetic mode" : "tap or toss"}
-            chips={draggingItem ? ["snap ready", "avatar awake", "release softly"] : ["tap to wear", "drag to stage", "low-friction"]}
+            title={draggingItem ? "magnetic mode" : "new drops first"}
+            chips={draggingItem ? ["snap ready", "avatar awake", "release softly"] : ["新增优先", "照片舞台", "直接试穿"]}
             tone={draggingItem ? "sky" : "peach"}
             compact
           />
 
-          <button
-            type="button"
-            onClick={resetTryOn}
-            className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/85 px-4 py-2 text-sm text-[var(--ink)] transition hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
-          >
-            <RefreshCw className="size-4" />
-            {hydratingWardrobe ? "Loading..." : "Reset"}
-          </button>
+          <div className="tryon-stage-actions flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => avatarUploadRef.current?.click()}
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/85 px-4 py-2 text-sm text-[var(--ink)] transition hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
+            >
+              <Sparkles className="size-4" />
+              {avatarPhotoUrl ? "更换全身照" : "上传全身照"}
+            </button>
+            {avatarPhotoUrl ? (
+              <button
+                type="button"
+                onClick={clearAvatarPhoto}
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/85 px-4 py-2 text-sm text-[var(--ink)] transition hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
+              >
+                清除照片
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={resetTryOn}
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/85 px-4 py-2 text-sm text-[var(--ink)] transition hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
+            >
+              <RefreshCw className="size-4" />
+              {hydratingWardrobe ? "Loading..." : "Reset"}
+            </button>
+            <input
+              ref={avatarUploadRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(event) => handleAvatarPhotoUpload(event.target.files?.[0] ?? null)}
+            />
+          </div>
         </div>
 
         {displayItems.length === 0 ? (
@@ -401,8 +608,67 @@ export function TryOnStudio() {
           </motion.div>
         ) : null}
 
+        <div className="tryon-filter-block mb-4 space-y-3 rounded-[28px] border border-[var(--line)] bg-white/72 p-3 sm:p-4">
+          <div className="tryon-filter-row flex flex-wrap gap-2">
+            {railFilters.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setRailFilter(option.value)}
+                className={`tryon-chip rounded-full border px-4 py-2 text-sm transition ${
+                  railFilter === option.value
+                    ? "border-transparent bg-[var(--accent)] text-white shadow-[var(--shadow-float)]"
+                    : "border-[var(--line)] bg-white/85 text-[var(--ink)] hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="tryon-filter-row tryon-season-row flex flex-wrap gap-2">
+            {seasonFilters.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setSeasonFilter(option.value)}
+                className={`tryon-chip rounded-full border px-3 py-1.5 text-xs tracking-[0.14em] transition ${
+                  seasonFilter === option.value
+                    ? "border-transparent bg-[var(--ink-strong)] text-white"
+                    : "border-[var(--line)] bg-white/85 text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--ink)]"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="tryon-filter-row tryon-sort-row flex flex-wrap items-center gap-2">
+            <span className="text-xs uppercase tracking-[0.22em] text-[var(--muted)]">排序</span>
+            {sortModes.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setSortMode(option.value)}
+                className={`tryon-chip rounded-full border px-3 py-1.5 text-xs transition ${
+                  sortMode === option.value
+                    ? "border-transparent bg-[var(--accent-soft)] text-[var(--ink-strong)]"
+                    : "border-[var(--line)] bg-white/85 text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--ink)]"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+            {focusItemIds.length ? (
+              <span className="rounded-full bg-[var(--accent-soft)] px-3 py-1.5 text-xs text-[var(--ink-strong)]">
+                当前有 {focusItemIds.length} 件新解构单品已置顶
+              </span>
+            ) : null}
+          </div>
+        </div>
+
         <div className="space-y-3">
-          {displayItems.map((item) => {
+          {filteredItems.map((item) => {
             const active = selectedTryOnIds.includes(item.id);
             const magneticStrength = draggingItemId === item.id ? dragTelemetry?.strength ?? 0 : 0;
             const dynamicShadow =
@@ -450,7 +716,7 @@ export function TryOnStudio() {
                 onDrag={(_, info) => handleDrag(item.id, info)}
                 onDragEnd={(_, info) => handleDragEnd(item.id, info)}
                 onClick={() => handleRailTap(item.id, active)}
-                className={`tap-card flex w-full items-center justify-between rounded-[24px] border px-4 py-4 text-left transition ${
+                className={`tryon-item-card tap-card flex w-full items-center justify-between rounded-[20px] border px-3 py-3 text-left transition sm:rounded-[24px] sm:px-4 sm:py-4 ${
                   active
                     ? "border-transparent bg-[var(--ink-strong)] text-white shadow-[var(--shadow-float)]"
                     : "border-[var(--line)] bg-white/70 text-[var(--ink)] hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
@@ -462,22 +728,46 @@ export function TryOnStudio() {
                   borderColor: !active && magneticStrength > 0.12 ? `color-mix(in srgb, ${item.colorHex} 38%, rgba(255,154,123,0.26))` : undefined
                 }}
               >
-                <div>
+                <div className="tryon-item-main flex items-center gap-3 sm:gap-4">
+                  <div className="tryon-item-thumb relative h-[72px] w-[58px] shrink-0 overflow-hidden rounded-[16px] border border-white/50 bg-white/70 sm:h-20 sm:w-16 sm:rounded-[18px]">
+                    {item.processedImageUrl || item.imageUrl ? (
+                      <img src={item.processedImageUrl || item.imageUrl || ""} alt={item.name} className="h-full w-full object-contain p-1.5" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-[10px] text-[var(--muted)]" style={{ background: `linear-gradient(145deg, ${item.colorHex}20, rgba(255,255,255,0.94))` }}>
+                        {item.color}
+                      </div>
+                    )}
+                    {item.isNewArrival ? (
+                      <div className="absolute left-1.5 top-1.5 rounded-full bg-[var(--accent)] px-1.5 py-0.5 text-[9px] font-medium tracking-[0.16em] text-white">
+                        NEW
+                      </div>
+                    ) : null}
+                  </div>
                   <div className="flex items-center gap-2">
                     <GripVertical className={`size-4 ${active ? "text-white/65" : "text-[var(--muted)]"}`} />
-                    <p className="font-medium">{item.name}</p>
+                    <div className="tryon-item-copy">
+                      <p className="tryon-item-title text-sm font-medium sm:text-base">{item.name}</p>
+                      <p className={`tryon-item-meta mt-1 text-xs sm:text-sm ${active ? "text-white/75" : "text-[var(--muted)]"}`}>{item.category} - {item.color}</p>
+                      <p className={`tryon-item-hint mt-2 text-[11px] sm:text-xs ${active ? "text-white/65" : "text-[var(--muted)]"}`}>{active ? "Tap or drag again to remove from avatar" : "Tap to wear instantly or drag into the avatar's magnetic field"}</p>
+                    </div>
                   </div>
-                  <p className={`mt-1 text-sm ${active ? "text-white/75" : "text-[var(--muted)]"}`}>{item.category} - {item.color}</p>
-                  <p className={`mt-2 text-xs ${active ? "text-white/65" : "text-[var(--muted)]"}`}>{active ? "Tap or drag again to remove from avatar" : "Tap to wear instantly or drag into the avatar's magnetic field"}</p>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="tryon-item-tail flex items-center gap-3">
                   {active ? <Sparkles className="size-4 text-white/80" /> : null}
                   <span className="size-4 rounded-full border" style={{ backgroundColor: item.colorHex, borderColor: active ? "rgba(255,255,255,0.55)" : "rgba(18,32,51,0.08)" }} />
                 </div>
               </motion.button>
             );
           })}
+
+          {!filteredItems.length && displayItems.length ? (
+            <StateCard
+              variant="empty"
+              title="当前筛选下没有单品"
+              description="换一个分类、季节或排序试试，或者先回到智能衣物页继续解构新的单品。"
+            />
+          ) : null}
         </div>
       </div>
     </div>

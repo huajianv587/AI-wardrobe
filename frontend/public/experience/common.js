@@ -1,5 +1,6 @@
 (function () {
   var apiBase = window.__WENWEN_API_BASE__ || "http://localhost:8000";
+  var AUTH_STORAGE_KEY = "ai-wardrobe.auth.session";
   var reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var revealObserver = null;
   var enhanceTimer = 0;
@@ -109,6 +110,57 @@
       .filter(Boolean);
   }
 
+  function readSessionFromStorage(storage) {
+    try {
+      if (!storage) return null;
+      var raw = storage.getItem(AUTH_STORAGE_KEY);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      return parsed && parsed.access_token ? parsed : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function readStoredSession() {
+    var scopes = [window];
+    try {
+      if (window.parent && scopes.indexOf(window.parent) < 0) scopes.push(window.parent);
+    } catch (error) {}
+    try {
+      if (window.top && scopes.indexOf(window.top) < 0) scopes.push(window.top);
+    } catch (error) {}
+
+    for (var index = 0; index < scopes.length; index += 1) {
+      try {
+        var session = readSessionFromStorage(scopes[index].localStorage);
+        if (session && session.access_token) return session;
+      } catch (error) {}
+    }
+
+    return null;
+  }
+
+  function getAccessToken() {
+    var session = readStoredSession();
+    return session && session.access_token ? session.access_token : null;
+  }
+
+  function buildAuthHeaders(headers, includeJsonContentType) {
+    var nextHeaders = Object.assign({}, headers || {});
+    var accessToken = getAccessToken();
+
+    if (includeJsonContentType !== false && !nextHeaders["Content-Type"] && !nextHeaders["content-type"]) {
+      nextHeaders["Content-Type"] = "application/json";
+    }
+
+    if (accessToken && !nextHeaders.Authorization && !nextHeaders.authorization) {
+      nextHeaders.Authorization = "Bearer " + accessToken;
+    }
+
+    return nextHeaders;
+  }
+
   function normalizeRequestError(error) {
     var message = error && error.message ? String(error.message) : "";
     if (error && error.name === "AbortError") {
@@ -139,10 +191,13 @@
   }
 
   function request(path, options) {
-    return fetch(apiBase + path, Object.assign({
-      headers: { "Content-Type": "application/json" },
+    var requestOptions = Object.assign({
       credentials: "include"
-    }, options || {})).catch(function (error) {
+    }, options || {});
+    var isFormData = typeof FormData !== "undefined" && requestOptions.body instanceof FormData;
+    requestOptions.headers = buildAuthHeaders(options && options.headers, !isFormData);
+
+    return fetch(apiBase + path, requestOptions).catch(function (error) {
       throw normalizeRequestError(error);
     }).then(function (response) {
       return response.text().then(function (text) {
@@ -305,6 +360,7 @@
       ".care-action",
       ".fab",
       ".hang-tag",
+      ".feat-row",
       ".pa",
       ".urlgo",
       ".pg",
@@ -363,6 +419,9 @@
       ".modal",
       ".modal-card",
       ".hang-tag",
+      ".feat-row",
+      ".stage",
+      ".phone",
       ".sbi",
       ".feat-item",
       ".outfitCard",
@@ -398,6 +457,7 @@
       ".silhouette-card",
       ".rule-item",
       ".outfit-item",
+      ".feat-row",
       ".feat-item",
       ".outfitCard",
       ".socialProof",
@@ -606,6 +666,8 @@
     toast: toast,
     escapeHtml: escapeHtml,
     parseList: parseList,
+    getAccessToken: getAccessToken,
+    buildAuthHeaders: buildAuthHeaders,
     silhouetteSvg: silhouetteSvg,
     openFormModal: openFormModal,
     navigateTop: navigateTop,

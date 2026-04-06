@@ -89,6 +89,8 @@ interface ApiAssistantOverview {
 interface ApiStatusMessageResponse {
   status: string;
   message: string;
+  action_url?: string | null;
+  action_label?: string | null;
 }
 
 interface ApiAiDemoArtifact {
@@ -124,11 +126,18 @@ interface ApiImageUploadPlan {
 export interface EmailPasswordAuthPayload {
   email: string;
   password: string;
+  display_name?: string;
 }
 
 export interface PasswordResetPayload {
   email: string;
   redirect_to?: string;
+}
+
+export interface PasswordResetConfirmPayload {
+  token?: string;
+  access_token?: string;
+  new_password: string;
 }
 
 export interface OAuthStartResponse {
@@ -265,6 +274,9 @@ export interface ExperienceStyleSilhouetteEntry {
   desc: string;
   preferred: boolean;
   badge: string;
+  item_count?: number;
+  wear_count?: number;
+  examples?: string[];
 }
 
 export interface ExperienceStyleKeywordEntry {
@@ -616,6 +628,9 @@ async function apiRequest<T>(path: string, init?: RequestInit, options?: ApiRequ
 
 export function mapApiWardrobeItem(item: ApiWardrobeItem): WardrobeItem {
   const category = normalizeCategory(item.category);
+  const seasonTags = item.memory_card?.season_tags?.length
+    ? item.memory_card.season_tags
+    : (item.tags ?? []).filter((tag) => /春|夏|秋|冬|spring|summer|autumn|fall|winter/i.test(tag));
 
   return {
     id: item.id,
@@ -629,9 +644,11 @@ export function mapApiWardrobeItem(item: ApiWardrobeItem): WardrobeItem {
     occasions: item.occasions ?? [],
     note: item.style_notes ?? "Ready for recommendation and try-on.",
     imageLabel: item.name,
-    imageUrl: item.image_url,
-    processedImageUrl: item.processed_image_url,
-    memoryCard: mapMemoryCard(item.memory_card)
+    imageUrl: resolveAssetUrl(item.image_url),
+    processedImageUrl: resolveAssetUrl(item.processed_image_url),
+    memoryCard: mapMemoryCard(item.memory_card),
+    createdAt: item.created_at,
+    seasonTags
   };
 }
 
@@ -795,6 +812,13 @@ export async function refreshAuthSession(payload: { refresh_token: string; acces
 
 export async function requestPasswordReset(payload: PasswordResetPayload) {
   return apiRequest<ApiStatusMessageResponse>("/api/v1/auth/password-reset", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  }, { skipAuth: true });
+}
+
+export async function confirmPasswordReset(payload: PasswordResetConfirmPayload) {
+  return apiRequest<ApiStatusMessageResponse>("/api/v1/auth/password-reset/confirm", {
     method: "POST",
     body: JSON.stringify(payload)
   }, { skipAuth: true });

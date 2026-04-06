@@ -10,6 +10,7 @@ from app.schemas.auth import (
     LogoutRequest,
     MiniProgramAuthOptionsResponse,
     OAuthStartResponse,
+    PasswordResetConfirmRequest,
     PasswordResetRequest,
     RefreshSessionRequest,
     StatusMessageResponse,
@@ -24,7 +25,7 @@ bearer_scheme = HTTPBearer(auto_error=False)
 
 @router.post("/sign-up", response_model=AuthSessionResponse)
 def sign_up(payload: EmailPasswordAuthRequest, db: Session = Depends(get_db)) -> AuthSessionResponse:
-    return auth_service.sign_up_with_password(db, payload.email, payload.password)
+    return auth_service.sign_up_with_password(db, payload.email, payload.password, display_name=payload.display_name)
 
 
 @router.post("/login", response_model=AuthSessionResponse)
@@ -33,8 +34,18 @@ def login(payload: EmailPasswordAuthRequest, db: Session = Depends(get_db)) -> A
 
 
 @router.post("/password-reset", response_model=StatusMessageResponse)
-def password_reset(payload: PasswordResetRequest) -> StatusMessageResponse:
-    return auth_service.send_password_reset_email(payload.email, redirect_to=payload.redirect_to)
+def password_reset(payload: PasswordResetRequest, db: Session = Depends(get_db)) -> StatusMessageResponse:
+    return auth_service.send_password_reset_email(db, payload.email, redirect_to=payload.redirect_to)
+
+
+@router.post("/password-reset/confirm", response_model=StatusMessageResponse)
+def confirm_password_reset(payload: PasswordResetConfirmRequest, db: Session = Depends(get_db)) -> StatusMessageResponse:
+    return auth_service.reset_password_with_token(
+        db,
+        token=payload.token,
+        access_token=payload.access_token,
+        new_password=payload.new_password,
+    )
 
 
 @router.get("/oauth/{provider}/start", response_model=OAuthStartResponse)

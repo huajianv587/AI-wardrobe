@@ -165,12 +165,7 @@
 
   function resolvePreviewUrl(item) {
     var raw = (item && (item.thumbnail_url || item.processed_image_url || item.image_url)) || "";
-    if (!raw) return "";
-    if (/^https?:\/\//i.test(raw) || raw.indexOf("data:") === 0) return raw;
-    if (raw.charAt(0) === "/" && W.apiBase) {
-      return W.apiBase.replace(/\/$/, "") + raw;
-    }
-    return raw;
+    return W.resolveAssetUrl ? W.resolveAssetUrl(raw) : raw;
   }
 
   function escapeAttr(value) {

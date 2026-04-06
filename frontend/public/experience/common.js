@@ -161,6 +161,29 @@
     return nextHeaders;
   }
 
+  function resolveAssetUrl(raw) {
+    var value = String(raw || "").trim();
+    if (!value) return "";
+    if (value.indexOf("blob:") === 0 || value.indexOf("data:") === 0) return value;
+    if (value.indexOf("/api/v1/assets/resolve?") >= 0) {
+      if (/^https?:\/\//i.test(value)) return value;
+      return apiBase.replace(/\/$/, "") + (value.charAt(0) === "/" ? value : "/" + value);
+    }
+
+    var normalized = value;
+    if (!/^https?:\/\//i.test(normalized)) {
+      normalized = normalized.charAt(0) === "/" ? apiBase.replace(/\/$/, "") + normalized : apiBase.replace(/\/$/, "") + "/" + normalized;
+    }
+
+    var params = new URLSearchParams();
+    params.set("asset_url", normalized);
+    var accessToken = getAccessToken();
+    if (accessToken) {
+      params.set("access_token", accessToken);
+    }
+    return apiBase.replace(/\/$/, "") + "/api/v1/assets/resolve?" + params.toString();
+  }
+
   function normalizeRequestError(error) {
     var message = error && error.message ? String(error.message) : "";
     if (error && error.name === "AbortError") {
@@ -668,6 +691,7 @@
     parseList: parseList,
     getAccessToken: getAccessToken,
     buildAuthHeaders: buildAuthHeaders,
+    resolveAssetUrl: resolveAssetUrl,
     silhouetteSvg: silhouetteSvg,
     openFormModal: openFormModal,
     navigateTop: navigateTop,

@@ -4,6 +4,7 @@ import base64
 from dataclasses import dataclass
 import mimetypes
 from pathlib import Path
+import re
 from urllib.parse import unquote, urlparse
 from uuid import uuid4
 
@@ -14,6 +15,8 @@ from core.config import settings
 from services import r2_storage_service
 
 ASSET_API_PREFIX = "/api/v1/assets"
+ASSET_RESOLVE_API_PREFIX = f"{ASSET_API_PREFIX}/resolve"
+USER_ASSET_PATH_RE = re.compile(r"(?:^|/)(?:user-)?(\d+)(?:/|$)")
 
 
 @dataclass
@@ -90,18 +93,33 @@ def asset_path_from_url(asset_url: str | None) -> str | None:
 
     if not path.startswith(ASSET_API_PREFIX):
         return None
+    if path == ASSET_RESOLVE_API_PREFIX:
+        return None
 
     return path.removeprefix(ASSET_API_PREFIX).lstrip("/")
+
+
+def managed_asset_path_from_url(asset_url: str | None) -> str | None:
+    asset_path = asset_path_from_url(asset_url)
+    if asset_path:
+        return asset_path
+    return r2_storage_service.asset_path_from_public_url(asset_url)
+
+
+def owner_user_id_from_asset_path(asset_path: str | None) -> int | None:
+    if not asset_path:
+        return None
+    match = USER_ASSET_PATH_RE.search(asset_path.replace("\\", "/"))
+    if not match:
+        return None
+    return int(match.group(1))
 
 
 def public_backup_url_for_asset(asset_url: str | None) -> str | None:
     if not asset_url:
         return None
 
-    if r2_storage_service.is_managed_asset_url(asset_url):
-        return asset_url
-
-    asset_path = asset_path_from_url(asset_url)
+    asset_path = managed_asset_path_from_url(asset_url)
     if asset_path:
         return _public_local_asset_url(asset_path)
 
@@ -140,6 +158,18 @@ def load_asset_bytes(asset_url: str) -> LoadedAsset:
             filename=local_path.name,
             source="local",
         )
+
+    managed_asset_path = managed_asset_path_from_url(asset_url)
+    if managed_asset_path and r2_storage_service.is_enabled():
+        loaded = r2_storage_service.load_bytes(managed_asset_path)
+        if loaded is not None:
+            payload, content_type, filename = loaded
+            return LoadedAsset(
+                payload=payload,
+                content_type=content_type,
+                filename=filename,
+                source="r2",
+            )
 
     if asset_url.startswith("data:"):
         header, _, encoded = asset_url.partition(",")
@@ -180,10 +210,8 @@ def build_upload_path(relative_directory: str, filename: str, *, user_id: int | 
     suffix = safe_suffix_from_filename(filename)
     parts = [normalized_directory]
     if user_id is not None:
-        parts.append(f"user-{user_id}")
-    if item_id is not None:
-        parts.append(f"item-{item_id}")
-    parts.append(f"{uuid4().hex}{suffix}")
+        parts.append(str(user_id))
+    parts.append(f"{uuid4()}{suffix}")
     return "/".join(part.strip("/") for part in parts if part)
 
 
@@ -209,29 +237,48 @@ def prepare_client_upload(
             detail="Could not prepare the Cloudflare R2 upload.",
         )
 
+    prepared.public_url = _local_asset_url(asset_path)
     return prepared
 
 
 def ensure_managed_upload(asset_url: str) -> str:
-    if not r2_storage_service.is_managed_asset_url(asset_url):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Uploaded asset URL is not managed by Cloudflare R2.")
+    asset_path = managed_asset_path_from_url(asset_url)
+    if not asset_path:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Uploaded asset URL is not managed by AI Wardrobe storage.")
 
-    if not r2_storage_service.object_exists(asset_url):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Uploaded asset was not found in Cloudflare R2.")
+    local_path = _assert_inside_root(_root() / asset_path)
+    if local_path.exists() and local_path.is_file():
+        return _local_asset_url(asset_path)
 
-    return asset_url
+    if r2_storage_service.object_exists_for_path(asset_path):
+        return _local_asset_url(asset_path)
+
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Uploaded asset was not found in managed storage.")
+
+
+def generate_presigned_url(asset_reference: str, expires_seconds: int | None = None) -> str | None:
+    asset_path = managed_asset_path_from_url(asset_reference)
+    if not asset_path:
+        parsed = urlparse(asset_reference)
+        if not parsed.scheme and not parsed.netloc:
+            asset_path = asset_reference.replace("\\", "/").strip("/")
+
+    if not asset_path:
+        return None
+
+    return r2_storage_service.generate_presigned_url(asset_path, expires_seconds=expires_seconds)
 
 
 def save_bytes(asset_path: str, payload: bytes, content_type: str) -> StoredAsset:
     normalized_path = asset_path.replace("\\", "/").strip("/")
     if r2_storage_service.is_enabled():
-        public_url = r2_storage_service.upload_bytes(normalized_path, payload, content_type)
-        if not public_url:
+        stored_url = r2_storage_service.upload_bytes(normalized_path, payload, content_type)
+        if not stored_url:
             raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="Could not store the asset in Cloudflare R2.")
         return StoredAsset(
             relative_path=normalized_path,
-            url=public_url,
-            backup_url=public_url,
+            url=_local_asset_url(normalized_path),
+            backup_url=_public_local_asset_url(normalized_path),
         )
 
     destination = _assert_inside_root(_root() / normalized_path)
@@ -252,14 +299,14 @@ def save_upload(relative_directory: str, upload_file: UploadFile, *, user_id: in
 
 
 def save_generated_asset(relative_directory: str, filename: str, payload: bytes, content_type: str) -> StoredAsset:
-    normalized_directory = _normalized_asset_directory(relative_directory)
-    safe_name = _safe_filename(filename)
-    return save_bytes(f"{normalized_directory}/{safe_name}", payload, content_type)
+    generated_path = build_upload_path(relative_directory, filename)
+    return save_bytes(generated_path, payload, content_type)
 
 
 def delete_asset(asset_url: str | None) -> None:
     local_path = try_resolve_local_asset(asset_url)
     if local_path and local_path.exists():
         local_path.unlink(missing_ok=True)
+        return
 
-    r2_storage_service.delete_asset(asset_url)
+    r2_storage_service.delete_asset_path(managed_asset_path_from_url(asset_url))

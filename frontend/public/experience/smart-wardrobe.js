@@ -116,13 +116,7 @@
   }
 
   function resolveAssetUrl(raw) {
-    var value = String(raw || "").trim();
-    if (!value) return "";
-    if (/^https?:\/\//i.test(value) || value.indexOf("data:") === 0) return value;
-    if (value.charAt(0) === "/" && W.apiBase) {
-      return W.apiBase.replace(/\/$/, "") + value;
-    }
-    return value;
+    return W.resolveAssetUrl ? W.resolveAssetUrl(raw) : String(raw || "").trim();
   }
 
   function resolveItemThumb(item) {

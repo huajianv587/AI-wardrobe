@@ -17,6 +17,7 @@ class UserSummary(BaseModel):
 class EmailPasswordAuthRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=6, max_length=128)
+    display_name: str | None = Field(default=None, max_length=255)
 
 
 class RefreshSessionRequest(BaseModel):
@@ -33,9 +34,17 @@ class PasswordResetRequest(BaseModel):
     redirect_to: str | None = None
 
 
+class PasswordResetConfirmRequest(BaseModel):
+    token: str | None = Field(default=None, min_length=8)
+    access_token: str | None = Field(default=None, min_length=8)
+    new_password: str = Field(min_length=6, max_length=128)
+
+
 class StatusMessageResponse(BaseModel):
     status: str
     message: str
+    action_url: str | None = None
+    action_label: str | None = None
 
 
 class OAuthStartResponse(BaseModel):

@@ -773,6 +773,7 @@
 
 .formHeader,
 .formTabs,
+.accountNotice,
 .field,
 .fieldRow,
 .rememberRow,
@@ -814,6 +815,19 @@
   margin-top: 8px;
   font-family: var(--font-auth-serif-cn), serif;
   font-size: 13.5px;
+  line-height: 1.72;
+  color: var(--ink3);
+  letter-spacing: 0.04em;
+}
+
+.accountNotice {
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(190, 123, 111, 0.12);
+  background: linear-gradient(135deg, rgba(255, 250, 246, 0.94), rgba(253, 246, 240, 0.82));
+  font-family: var(--font-auth-serif-cn), serif;
+  font-size: 12.5px;
   line-height: 1.72;
   color: var(--ink3);
   letter-spacing: 0.04em;
@@ -1250,6 +1264,22 @@
   color: var(--ink2);
 }
 
+.messageAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+  color: var(--rose);
+  text-decoration: none;
+  font-family: var(--font-auth-serif-cn), serif;
+  font-size: 12.5px;
+  letter-spacing: 0.08em;
+}
+
+.messageAction:hover {
+  text-decoration: underline;
+}
+
 .formFooter {
   margin-top: 16px;
   text-align: center;
@@ -1395,9 +1425,27 @@
     --nav-offset: 88px;
   }
 
+  .root::before {
+    opacity: 0.18;
+  }
+
   .brandSide,
   .formSide {
     padding: 28px 16px 22px;
+  }
+
+  .brandSide {
+    gap: 18px;
+    padding-bottom: 6px;
+  }
+
+  .brandLead,
+  .brandTail {
+    width: 100%;
+  }
+
+  .brandTail {
+    display: none;
   }
 
   .decoChar {
@@ -1419,21 +1467,102 @@
   }
 
   .metricRow {
-    gap: 10px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 
   .metricPill {
-    min-width: calc(50% - 5px);
-    flex: 1 1 calc(50% - 5px);
+    min-width: 0;
+    min-height: 64px;
+    padding: 10px 12px;
+    border-radius: 18px;
   }
 
   .formCard {
-    padding: 28px 20px 22px;
+    padding: 24px 16px 18px;
+    border-radius: 24px;
+  }
+
+  .formHeader {
+    margin-bottom: 18px;
+  }
+
+  .formTitle {
+    font-size: 26px;
+  }
+
+  .formDesc {
+    font-size: 12.5px;
+  }
+
+  .accountNotice {
+    font-size: 12px;
+    margin-bottom: 16px;
+  }
+
+  .field {
+    margin-bottom: 14px;
+  }
+
+  .fieldInput {
+    min-height: 50px;
+    border-radius: 16px;
+    font-size: 14px;
+  }
+
+  .submitBtn,
+  .forgotSubmit {
+    min-height: 52px;
+    border-radius: 16px;
+    font-size: 13px;
+    letter-spacing: 0.12em;
+  }
+
+  .thirdBtn,
+  .singleThirdBtn {
+    min-height: 48px;
+    border-radius: 16px;
+    font-size: 12.5px;
+  }
+
+  .rememberRow,
+  .agreement {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .formFooter {
+    margin-top: 14px;
+    font-size: 12px;
   }
 
   .fieldRow,
   .thirdGrid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .metricRow {
+    grid-template-columns: 1fr;
+  }
+
+  .formTabs {
+    margin-bottom: 18px;
+  }
+
+  .tabBtn {
+    min-height: 42px;
+  }
+
+  .fieldLabel {
+    font-size: 11.5px;
+  }
+
+  .agreeText,
+  .rememberText {
+    font-size: 11.5px;
   }
 }
 

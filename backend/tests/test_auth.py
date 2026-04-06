@@ -1,7 +1,12 @@
 from datetime import datetime
+from urllib.parse import parse_qs, urlparse
 
+from sqlalchemy import select
+
+from app.models.auth_session import AuthSessionToken
+from app.models.user import User
 from app.schemas.auth import AuthSessionResponse, UserSummary
-from services import auth_service
+from services import auth_service, email_service
 
 
 def _user_summary() -> UserSummary:
@@ -37,9 +42,10 @@ def test_login_endpoint(client, monkeypatch):
 
 
 def test_sign_up_endpoint(client, monkeypatch):
-    def fake_sign_up(db, email, password):
+    def fake_sign_up(db, email, password, *, display_name=None):
         assert email == "new@ai-wardrobe.dev"
         assert password == "secret123"
+        assert display_name is None
         return AuthSessionResponse(
             access_token=None,
             refresh_token=None,
@@ -64,6 +70,147 @@ def test_sign_up_endpoint(client, monkeypatch):
     assert response.status_code == 200
     assert payload["requires_email_confirmation"] is True
     assert payload["user"]["email"] == "new@ai-wardrobe.dev"
+
+
+def test_local_email_sign_up_and_login_flow(client):
+    sign_up_response = client.post(
+        "/api/v1/auth/sign-up",
+        json={
+            "email": "local-user@ai-wardrobe.dev",
+            "password": "secret123",
+            "display_name": "本地测试用户",
+        },
+    )
+    sign_up_payload = sign_up_response.json()
+
+    assert sign_up_response.status_code == 200
+    assert sign_up_payload["access_token"]
+    assert sign_up_payload["refresh_token"]
+    assert sign_up_payload["user"]["email"] == "local-user@ai-wardrobe.dev"
+    assert sign_up_payload["user"]["display_name"] == "本地测试用户"
+    assert sign_up_payload["user"]["auth_provider"] == "local"
+
+    with client.testing_session_local() as db:
+        user = db.scalar(select(User).where(User.email == "local-user@ai-wardrobe.dev"))
+        assert user is not None
+        assert user.password_hash != "secret123"
+        assert user.password_hash.startswith("pbkdf2_sha256$")
+
+    login_response = client.post(
+        "/api/v1/auth/login",
+        json={"email": "LOCAL-USER@AI-WARDROBE.DEV", "password": "secret123"},
+    )
+    login_payload = login_response.json()
+
+    assert login_response.status_code == 200
+    assert login_payload["access_token"]
+    assert login_payload["user"]["email"] == "local-user@ai-wardrobe.dev"
+    assert login_payload["user"]["auth_provider"] == "local"
+
+
+def test_local_email_sign_up_rejects_duplicate_email(client):
+    first_response = client.post(
+        "/api/v1/auth/sign-up",
+        json={"email": "duplicate@ai-wardrobe.dev", "password": "secret123"},
+    )
+    assert first_response.status_code == 200
+
+    duplicate_response = client.post(
+        "/api/v1/auth/sign-up",
+        json={"email": "Duplicate@ai-wardrobe.dev", "password": "secret123"},
+    )
+    duplicate_payload = duplicate_response.json()
+
+    assert duplicate_response.status_code == 409
+    assert duplicate_payload["detail"] == "这个邮箱已经注册过了，请直接登录。"
+
+
+def test_password_reset_endpoint(client, monkeypatch):
+    def fake_reset(db, email, redirect_to=None):
+        assert email == "tester@ai-wardrobe.dev"
+        assert redirect_to == "http://localhost:3000/reset-password"
+        return {
+            "status": "queued",
+            "message": "Password reset prepared.",
+            "action_url": None,
+            "action_label": None,
+        }
+
+    monkeypatch.setattr(auth_service, "send_password_reset_email", fake_reset)
+
+    response = client.post(
+        "/api/v1/auth/password-reset",
+        json={"email": "tester@ai-wardrobe.dev", "redirect_to": "http://localhost:3000/reset-password"},
+    )
+    payload = response.json()
+
+    assert response.status_code == 200
+    assert payload["status"] == "queued"
+    assert payload["message"] == "Password reset prepared."
+
+
+def test_local_password_reset_preview_and_confirm_flow(client, monkeypatch):
+    monkeypatch.setattr(email_service, "is_enabled", lambda: False)
+
+    sign_up_response = client.post(
+        "/api/v1/auth/sign-up",
+        json={"email": "recover@ai-wardrobe.dev", "password": "old-secret-123"},
+    )
+    sign_up_payload = sign_up_response.json()
+
+    assert sign_up_response.status_code == 200
+    assert sign_up_payload["access_token"]
+
+    reset_response = client.post(
+        "/api/v1/auth/password-reset",
+        json={"email": "recover@ai-wardrobe.dev", "redirect_to": "http://localhost:3000/reset-password"},
+    )
+    reset_payload = reset_response.json()
+
+    assert reset_response.status_code == 200
+    assert reset_payload["status"] == "preview"
+    assert reset_payload["action_url"]
+
+    token = parse_qs(urlparse(reset_payload["action_url"]).query)["token"][0]
+
+    confirm_response = client.post(
+        "/api/v1/auth/password-reset/confirm",
+        json={"token": token, "new_password": "new-secret-456"},
+    )
+    confirm_payload = confirm_response.json()
+
+    assert confirm_response.status_code == 200
+    assert confirm_payload["status"] == "updated"
+
+    with client.testing_session_local() as db:
+        user = db.scalar(select(User).where(User.email == "recover@ai-wardrobe.dev"))
+        assert user is not None
+        assert user.password_hash.startswith("pbkdf2_sha256$")
+        sessions = list(db.scalars(select(AuthSessionToken).where(AuthSessionToken.user_id == user.id)).all())
+        assert sessions
+        assert all(session.revoked_at is not None for session in sessions)
+
+    stale_login_response = client.post(
+        "/api/v1/auth/login",
+        json={"email": "recover@ai-wardrobe.dev", "password": "old-secret-123"},
+    )
+    assert stale_login_response.status_code == 401
+
+    fresh_login_response = client.post(
+        "/api/v1/auth/login",
+        json={"email": "recover@ai-wardrobe.dev", "password": "new-secret-456"},
+    )
+    fresh_login_payload = fresh_login_response.json()
+
+    assert fresh_login_response.status_code == 200
+    assert fresh_login_payload["access_token"]
+
+    reused_token_response = client.post(
+        "/api/v1/auth/password-reset/confirm",
+        json={"token": token, "new_password": "another-secret-789"},
+    )
+
+    assert reused_token_response.status_code == 400
 
 
 def test_me_endpoint(client):

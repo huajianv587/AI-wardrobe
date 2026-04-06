@@ -301,6 +301,97 @@ nav{position:fixed;top:0;left:0;right:0;z-index:300;height:62px;display:flex;ali
 
 /* ci colors */
 .ci1{background:linear-gradient(145deg,#f3e0d8,#ebcfc5)}.ci2{background:linear-gradient(145deg,#d8eae6,#c4d8d3)}.ci3{background:linear-gradient(145deg,#eee8de,#e4dcd0)}.ci4{background:linear-gradient(145deg,#e8d8e8,#dcc8dc)}.ci5{background:linear-gradient(145deg,#dde8f2,#c8d8e6)}.ci6{background:linear-gradient(145deg,#f2ead8,#e8e0c4)}.ci7{background:linear-gradient(145deg,#e4f0d8,#d0e4c0)}.ci8{background:linear-gradient(145deg,#f2dde8,#e4c8d8)}
+
+/* decomposition preview */
+.btn-hero{position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,.92),rgba(247,236,231,.94));border:.5px solid rgba(192,122,110,.2);box-shadow:0 14px 34px rgba(192,122,110,.08)}
+.btn-hero::after{content:'';position:absolute;inset:-40%;background:linear-gradient(120deg,transparent 35%,rgba(255,255,255,.58) 50%,transparent 64%);transform:translateX(-130%);transition:transform .86s cubic-bezier(.22,1,.36,1);pointer-events:none}
+.btn-hero:hover::after{transform:translateX(130%)}
+.btn-hero:hover{box-shadow:0 20px 40px rgba(192,122,110,.14)}
+.decomp-shell{display:none;position:relative;overflow:hidden;border:.5px solid rgba(192,122,110,.14);border-radius:20px;padding:22px;background:linear-gradient(145deg,rgba(255,251,247,.96),rgba(252,245,240,.92));box-shadow:0 22px 48px rgba(30,20,16,.08)}
+.decomp-shell.show{display:block}
+.decomp-shell::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 12% 18%,rgba(239,208,196,.34),transparent 34%),radial-gradient(circle at 86% 14%,rgba(204,224,219,.26),transparent 30%),linear-gradient(180deg,rgba(255,255,255,.2),transparent 70%);pointer-events:none}
+.decomp-head,.decomp-grid,.decomp-piece-grid,.decomp-empty,.decomp-actions,.decomp-stage,.decomp-piece{position:relative;z-index:1}
+.decomp-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}
+.decomp-eyebrow{font-family:var(--serif-en);font-size:10px;font-style:italic;letter-spacing:.18em;color:var(--rose);margin-bottom:6px}
+.decomp-title{font-family:var(--serif-jp);font-size:24px;font-weight:200;letter-spacing:.08em;color:var(--ink)}
+.decomp-sub{margin-top:6px;font-family:var(--serif-jp);font-size:12px;line-height:1.8;color:var(--ink3);max-width:640px}
+.decomp-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.decomp-grid{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(320px,.88fr);gap:18px;align-items:stretch}
+.decomp-stage{display:flex;flex-direction:column;gap:12px;min-height:320px}
+.decomp-image-wrap{position:relative;overflow:hidden;border-radius:18px;padding:14px;background:linear-gradient(145deg,rgba(255,255,255,.82),rgba(247,239,233,.94));border:1px solid rgba(192,122,110,.1);min-height:260px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.4)}
+.decomp-image-wrap::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 14%,rgba(255,255,255,.86),transparent 46%),radial-gradient(circle at 50% 110%,rgba(192,122,110,.14),transparent 38%);pointer-events:none}
+.decomp-image-wrap img{position:relative;z-index:1;display:block;width:100%;height:100%;max-height:420px;object-fit:contain;border-radius:14px;filter:drop-shadow(0 18px 28px rgba(107,79,71,.12))}
+.decomp-candidates{display:flex;flex-wrap:wrap;gap:8px}
+.decomp-candidate{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:999px;border:1px solid rgba(192,122,110,.12);background:rgba(255,255,255,.78);font-size:10.5px;color:var(--ink2);letter-spacing:.05em}
+.decomp-summary{display:flex;flex-direction:column;gap:12px}
+.decomp-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.decomp-stat{padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.74);border:1px solid rgba(192,122,110,.08)}
+.decomp-stat-label{font-family:var(--serif-en);font-size:9.5px;font-style:italic;letter-spacing:.16em;color:var(--ink3);margin-bottom:6px}
+.decomp-stat-value{font-family:var(--serif-jp);font-size:14px;font-weight:300;color:var(--ink);line-height:1.5}
+.decomp-notes{display:flex;flex-wrap:wrap;gap:8px}
+.decomp-note{padding:7px 11px;border-radius:999px;background:rgba(122,158,152,.12);color:var(--sage);font-size:10.5px;letter-spacing:.04em}
+.decomp-piece-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:18px}
+.decomp-piece{overflow:hidden;border-radius:18px;border:1px solid rgba(192,122,110,.12);background:rgba(255,255,255,.92);box-shadow:0 14px 26px rgba(49,29,20,.05);cursor:pointer;transition:transform .24s ease,box-shadow .24s ease,border-color .24s ease}
+.decomp-piece:hover{transform:translateY(-3px);box-shadow:0 24px 38px rgba(192,122,110,.12)}
+.decomp-piece.selected{border-color:rgba(192,122,110,.45);box-shadow:0 28px 44px rgba(192,122,110,.16)}
+.decomp-piece-media{position:relative;height:170px;background:linear-gradient(145deg,#fcfaf7,#f5ede7);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.decomp-piece-media img{width:100%;height:100%;object-fit:contain}
+.decomp-piece-badge{position:absolute;top:10px;left:10px;display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:rgba(35,23,18,.72);color:#fff;font-size:10px;letter-spacing:.06em}
+.decomp-piece-check{position:absolute;top:10px;right:10px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.45);background:rgba(255,255,255,.24);backdrop-filter:blur(8px);font-size:12px;color:#fff}
+.decomp-piece.selected .decomp-piece-check{background:var(--rose);border-color:var(--rose)}
+.decomp-piece-body{padding:14px}
+.decomp-piece-name{display:flex;align-items:center;gap:8px;font-family:var(--serif-jp);font-size:14px;font-weight:300;color:var(--ink);margin-bottom:8px}
+.decomp-piece-summary{font-size:11.5px;line-height:1.8;color:var(--ink2);min-height:40px}
+.decomp-piece-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.decomp-piece-tag{padding:4px 9px;border-radius:999px;background:var(--rose-faint);font-size:10px;color:var(--ink2);letter-spacing:.04em}
+.decomp-piece-meta{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:10.5px;color:var(--ink3)}
+.decomp-empty{display:flex;align-items:stretch;gap:18px}
+.decomp-empty-main{flex:1;padding:18px 18px 16px;border-radius:18px;background:linear-gradient(145deg,rgba(255,255,255,.78),rgba(248,241,235,.84));border:1px solid rgba(192,122,110,.08)}
+.decomp-empty-title{font-family:var(--serif-jp);font-size:22px;font-weight:200;color:var(--ink);letter-spacing:.06em;margin-bottom:8px}
+.decomp-empty-copy{font-size:12px;line-height:1.9;color:var(--ink2);max-width:560px}
+.decomp-empty-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:16px}
+.decomp-step{padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.82);border:1px solid rgba(192,122,110,.08)}
+.decomp-step-label{font-family:var(--serif-en);font-size:10px;font-style:italic;letter-spacing:.16em;color:var(--rose);margin-bottom:6px}
+.decomp-step-copy{font-size:11px;line-height:1.7;color:var(--ink2)}
+.decomp-empty-side{width:260px;display:flex;flex-direction:column;gap:10px}
+.decomp-platform{padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.82);border:1px solid rgba(192,122,110,.08)}
+.decomp-platform strong{display:block;font-family:var(--serif-jp);font-size:12px;font-weight:300;color:var(--ink);margin-bottom:4px}
+.decomp-platform span{font-size:11px;line-height:1.7;color:var(--ink2)}
+.url-platforms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.url-platform{padding:12px 13px;border-radius:14px;background:rgba(255,255,255,.78);border:1px solid rgba(192,122,110,.08)}
+.url-platform strong{display:block;font-family:var(--serif-jp);font-size:12px;font-weight:300;color:var(--ink);margin-bottom:4px}
+.url-platform span{font-size:11px;line-height:1.7;color:var(--ink2)}
+.url-input{width:100%;border:.5px solid var(--border);border-radius:14px;padding:14px 16px;font-family:var(--serif-jp);font-size:13px;font-weight:300;letter-spacing:.04em;background:rgba(255,255,255,.92);outline:none;transition:all .2s}
+.url-input:focus{border-color:var(--rose);box-shadow:0 0 0 4px rgba(192,122,110,.08)}
+.url-hints{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.url-hint{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:var(--rose-faint);font-size:10.5px;color:var(--ink2)}
+@media (max-width:980px){
+.decomp-grid{grid-template-columns:1fr}
+.decomp-empty{flex-direction:column}
+.decomp-empty-side{width:auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (max-width:780px){
+.decomp-shell{padding:18px 16px}
+.decomp-head{flex-direction:column}
+.decomp-actions{justify-content:flex-start}
+.decomp-piece-grid,.decomp-empty-steps,.url-platforms,.decomp-stat-grid{grid-template-columns:1fr}
+.decomp-empty-side{grid-template-columns:1fr}
+}
+/* Processing Summary */
+.progress-summary{display:flex;flex-direction:column;gap:10px}
+.ps-item{display:flex;flex-direction:column;gap:4px}
+.ps-bar{height:6px;background:var(--rose-pale);border-radius:3px;overflow:hidden}
+.ps-fill{height:100%;border-radius:3px;transition:width .8s ease}
+.ps-info{display:flex;justify-content:space-between;align-items:center}
+.ps-label{font-family:var(--serif-jp);font-size:11px;font-weight:300;color:var(--ink2);letter-spacing:.04em}
+.ps-val{font-family:var(--serif-en);font-size:14px;font-weight:400;letter-spacing:.04em}
+/* Enrich Stats */
+.enrich-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.es-card{display:flex;align-items:center;gap:10px;padding:14px 16px;background:var(--rose-faint);border:.5px solid var(--border);border-radius:3px;transition:border-color .2s}
+.es-card:hover{border-color:rgba(192,122,110,.28)}
+.es-ico{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.es-val{font-family:var(--serif-jp);font-size:20px;font-weight:200;color:var(--ink);line-height:1.1}
+.es-lbl{font-family:var(--serif-jp);font-size:10px;color:var(--ink3);letter-spacing:.06em;margin-top:2px}
 </style>
 </head>
 <body>
@@ -318,9 +409,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:300;height:62px;display:flex;ali
     <div class="pgh-l">
       <span class="pgh-eyebrow">AI Intelligence · Smart Processing</span>
       <div class="pgh-title">智能衣物处理</div>
-      <div class="pgh-sub">AI 图片处理 · 自动标签补全 · 异步处理队列</div>
+      <div class="pgh-sub">链接解构 · 图片解构 · 批量入库 · 自动打标 · 一键试衣联动</div>
     </div>
     <div class="pgh-r">
+      <button class="btn btn-out btn-hero" onclick="showModal('url')"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>粘贴URL</button>
       <button class="btn btn-out" onclick="showModal('service')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>服务配置</button>
       <button class="btn btn-sage" onclick="runAll()"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>全量处理</button>
       <button class="btn btn-ink" onclick="showModal('upload')"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>批量上传</button>
@@ -371,12 +463,12 @@ nav{position:fixed;top:0;left:0;right:0;z-index:300;height:62px;display:flex;ali
       <div class="lcard">
         <div class="lcard-hd"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span class="lcard-title">Pipeline Status</span></div>
         <div class="lcard-body">
-          <div class="pipe-item"><div class="pi-dot run"></div><span class="pi-label">图片抠图处理</span><span class="pi-count run">运行中</span></div>
-          <div class="pipe-item"><div class="pi-dot run"></div><span class="pi-label">白底图生成</span><span class="pi-count run">运行中</span></div>
-          <div class="pipe-item"><div class="pi-dot wait"></div><span class="pi-label">标签自动补全</span><span class="pi-count" style="background:var(--amber-pale);color:var(--amber)">队列中</span></div>
-          <div class="pipe-item"><div class="pi-dot wait"></div><span class="pi-label">场景风格分析</span><span class="pi-count" style="background:var(--amber-pale);color:var(--amber)">等待</span></div>
-          <div class="pipe-item"><div class="pi-dot done"></div><span class="pi-label">本地 Fallback</span><span class="pi-count" style="background:var(--sage-pale);color:var(--sage)">就绪</span></div>
-          <div class="pipe-item"><div class="pi-dot err"></div><span class="pi-label">外部 AI 写入</span><span class="pi-count err">超时</span></div>
+          <div class="pipe-item"><div class="pi-dot run"></div><span class="pi-label">人像定位</span><span class="pi-count run">运行中</span></div>
+          <div class="pipe-item"><div class="pi-dot run"></div><span class="pi-label">用户锁定</span><span class="pi-count run">运行中</span></div>
+          <div class="pipe-item"><div class="pi-dot wait"></div><span class="pi-label">服饰分割</span><span class="pi-count" style="background:var(--amber-pale);color:var(--amber)">队列中</span></div>
+          <div class="pipe-item"><div class="pi-dot wait"></div><span class="pi-label">白底图输出</span><span class="pi-count" style="background:var(--amber-pale);color:var(--amber)">等待</span></div>
+          <div class="pipe-item"><div class="pi-dot done"></div><span class="pi-label">标签补全</span><span class="pi-count" style="background:var(--sage-pale);color:var(--sage)">就绪</span></div>
+          <div class="pipe-item"><div class="pi-dot err"></div><span class="pi-label">本地 fallback</span><span class="pi-count err">待命</span></div>
           <div class="queue-bar">
             <div class="qb-label"><span>处理进度</span><span id="q-pct">81%</span></div>
             <div class="qb-track"><div class="qb-fill" id="q-fill" style="width:81%"></div></div>
@@ -388,11 +480,11 @@ nav{position:fixed;top:0;left:0;right:0;z-index:300;height:62px;display:flex;ali
       <div class="lcard">
         <div class="lcard-hd"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg><span class="lcard-title">AI Services</span></div>
         <div class="lcard-body">
-          <div class="svc-item"><div class="svc-l"><div class="svc-dot on"></div><span class="svc-name">Remove.bg</span></div><span class="svc-badge sb-on sb-pri" style="background:var(--blue-pale);color:var(--blue)">主服务</span></div>
-          <div class="svc-item"><div class="svc-l"><div class="svc-dot on"></div><span class="svc-name">Clipdrop API</span></div><span class="svc-badge sb-on">备用</span></div>
-          <div class="svc-item"><div class="svc-l"><div class="svc-dot local"></div><span class="svc-name">本地 rembg</span></div><span class="svc-badge sb-local">Fallback</span></div>
-          <div class="svc-item"><div class="svc-l"><div class="svc-dot on"></div><span class="svc-name">GPT-4o Vision</span></div><span class="svc-badge sb-on">标签识别</span></div>
-          <div class="svc-item"><div class="svc-l"><div class="svc-dot off"></div><span class="svc-name">Azure CV</span></div><span class="svc-badge sb-off">未配置</span></div>
+          <div class="svc-item"><div class="svc-l"><div class="svc-dot on"></div><span class="svc-name">用户识别链路</span></div><span class="svc-badge sb-on sb-pri" style="background:var(--blue-pale);color:var(--blue)">人物检测 + 用户锁定</span></div>
+          <div class="svc-item"><div class="svc-l"><div class="svc-dot on"></div><span class="svc-name">服饰分割</span></div><span class="svc-badge sb-on">Garment Worker</span></div>
+          <div class="svc-item"><div class="svc-l"><div class="svc-dot local"></div><span class="svc-name">白底图输出</span></div><span class="svc-badge sb-local">White Background</span></div>
+          <div class="svc-item"><div class="svc-l"><div class="svc-dot on"></div><span class="svc-name">标签补全</span></div><span class="svc-badge sb-on">规则补全引擎</span></div>
+          <div class="svc-item"><div class="svc-l"><div class="svc-dot off"></div><span class="svc-name">本地 fallback</span></div><span class="svc-badge sb-off">待命</span></div>
         </div>
       </div>
 
@@ -426,6 +518,19 @@ nav{position:fixed;top:0;left:0;right:0;z-index:300;height:62px;display:flex;ali
         </div>
       </div>
 
+      <!-- Processing Summary -->
+      <div class="lcard">
+        <div class="lcard-hd"><svg viewBox="0 0 24 24"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg><span class="lcard-title">Processing Overview</span></div>
+        <div class="lcard-body">
+          <div class="progress-summary">
+            <div class="ps-item"><div class="ps-bar"><div class="ps-fill" style="width:81%;background:var(--sage)"></div></div><div class="ps-info"><span class="ps-label">已完成</span><span class="ps-val" style="color:var(--sage)">104</span></div></div>
+            <div class="ps-item"><div class="ps-bar"><div class="ps-fill" style="width:2.3%;background:var(--rose);animation:progrun 1.8s ease-in-out infinite"></div></div><div class="ps-info"><span class="ps-label">处理中</span><span class="ps-val" style="color:var(--rose)">3</span></div></div>
+            <div class="ps-item"><div class="ps-bar"><div class="ps-fill" style="width:16.4%;background:var(--amber)"></div></div><div class="ps-info"><span class="ps-label">待处理</span><span class="ps-val" style="color:var(--amber)">21</span></div></div>
+            <div class="ps-item"><div class="ps-bar"><div class="ps-fill" style="width:0%;background:#d08080"></div></div><div class="ps-info"><span class="ps-label">报错</span><span class="ps-val" style="color:#d08080">0</span></div></div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <!-- RIGHT -->
@@ -436,8 +541,24 @@ nav{position:fixed;top:0;left:0;right:0;z-index:300;height:62px;display:flex;ali
         <div class="tsearch"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="搜索单品名称、标签…" oninput="filt(this.value)"></div>
         <select class="tsort"><option>最近上传</option><option>处理优先级</option><option>置信度排序</option><option>名称排序</option></select>
         <button class="tact tact-out"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>批量确认</button>
-        <button class="tact tact-amber ml-auto" onclick="runEnrich()"><svg viewBox="0 0 24 24"><path d="M12 2l2.09 6.26L21 10l-5.5 4.09L17.18 21 12 17.27 6.82 21l1.68-6.91L3 10l6.91-1.74L12 2z"/></svg>AI 补全全部</button>
-        <button class="tact tact-sage" onclick="runBg()"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>批量抠图</button>
+        <button class="tact tact-amber ml-auto" onclick="runEnrich()"><svg viewBox="0 0 24 24"><path d="M12 2l2.09 6.26L21 10l-5.5 4.09L17.18 21 12 17.27 6.82 21l1.68-6.91L3 10l6.91-1.74L12 2z"/></svg>批量补全标签</button>
+        <button class="tact tact-sage" onclick="runBg()"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>批量识别人像服饰</button>
+      </div>
+
+      <div class="decomp-shell" id="decomposition-shell">
+        <div class="decomp-head">
+          <div>
+            <div class="decomp-eyebrow">Fashion Item Decomposition</div>
+            <div class="decomp-title" id="decomposition-title">任意平台穿搭，自动拆成每一件单品</div>
+            <div class="decomp-sub" id="decomposition-sub">支持淘宝 / 京东 / 小红书 / 其他图片直链。系统会优先用本地检测 + 分割 + 语义识别链路，失败后自动切到远端兜底模型。</div>
+          </div>
+          <div class="decomp-actions">
+            <button class="btn btn-out" type="button" id="decomposition-select-all">全选单品</button>
+            <button class="btn btn-out" type="button" id="decomposition-clear">清空预览</button>
+            <button class="btn btn-ink" type="button" id="decomposition-confirm">一键入库并去试穿</button>
+          </div>
+        </div>
+        <div id="decomposition-content"></div>
       </div>
 
       <!-- ── SECTION 1: IMAGE PROCESSING ── -->
@@ -560,6 +681,14 @@ nav{position:fixed;top:0;left:0;right:0;z-index:300;height:62px;display:flex;ali
           <span class="sec-hd-count">96 件已补全</span>
         </div>
 
+        <!-- Tag Enrichment Stats -->
+        <div class="enrich-stats">
+          <div class="es-card"><div class="es-ico" style="background:var(--sage-pale);color:var(--sage)">✓</div><div><div class="es-val">86</div><div class="es-lbl">已保存</div></div></div>
+          <div class="es-card"><div class="es-ico" style="background:var(--amber-pale);color:var(--amber)">✎</div><div><div class="es-val">10</div><div class="es-lbl">已修改</div></div></div>
+          <div class="es-card"><div class="es-ico" style="background:var(--blue-pale);color:var(--blue)">+</div><div><div class="es-val">8</div><div class="es-lbl">新增</div></div></div>
+          <div class="es-card"><div class="es-ico" style="background:var(--rose-pale);color:var(--rose)">⏳</div><div><div class="es-val">32</div><div class="es-lbl">待补全</div></div></div>
+        </div>
+
         <div class="batch-bar">
           <span class="bb-label">批量操作</span>
           <div class="bb-sep"></div>
@@ -645,11 +774,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:300;height:62px;display:flex;ali
                 <div class="pr-name">紫调百褶裙</div>
                 <div class="pr-tags"><span class="ipc-tag t-gray">下装</span><span class="ipc-tag t-gray">紫色</span><span class="ipc-tag t-amber">待 AI 分析</span></div>
               </div>
-              <div class="pr-status">
-                <div class="pr-progress"><div class="pr-pfill" style="width:0%"></div></div>
-                <span class="pr-pct">队列 #8</span>
-                <button class="btn btn-out" style="padding:5px 12px;font-size:11px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:11px;height:11px"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>优先</button>
-              </div>
+              <button class="ia" style="flex-shrink:0"><svg viewBox="0 0 24 24"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>优先</button>
             </div>
             <div class="pr-item">
               <div class="pr-thumb ci7"><svg style="width:22px;height:28px;opacity:.5" viewBox="0 0 60 80" fill="none" stroke="rgba(90,145,85,.6)" stroke-width="1.5"><path d="M10 5v70h40V5c-5 3-10 5-20 5S15 8 10 5Z"/></svg></div>
@@ -657,11 +782,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:300;height:62px;display:flex;ali
                 <div class="pr-name">草绿针织衫</div>
                 <div class="pr-tags"><span class="ipc-tag t-gray">上衣</span><span class="ipc-tag t-amber" style="background:#fff5e8;color:#9a7030">未标签</span></div>
               </div>
-              <div class="pr-status">
-                <div class="pr-progress"><div class="pr-pfill" style="width:35%;animation:progrun 1.8s ease-in-out infinite"></div></div>
-                <span class="pr-pct" style="color:var(--rose)">分析中</span>
-                <button class="btn btn-out" style="padding:5px 12px;font-size:11px;opacity:.4;pointer-events:none">优先</button>
-              </div>
+              <button class="ia" style="flex-shrink:0"><svg viewBox="0 0 24 24"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>优先</button>
             </div>
             <div class="pr-item">
               <div class="pr-thumb ci8"><svg style="width:22px;height:28px;opacity:.5" viewBox="0 0 60 80" fill="none" stroke="rgba(175,105,140,.6)" stroke-width="1.5"><path d="M20 5C20 5 10 15 10 30L10 75h40V30C50 15 40 5 40 5L30 12Z"/></svg></div>
@@ -669,11 +790,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:300;height:62px;display:flex;ali
                 <div class="pr-name">玫粉吊带裙</div>
                 <div class="pr-tags"><span class="ipc-tag t-rose">连衣裙</span><span class="ipc-tag t-gray">粉色</span><span class="ipc-tag t-amber">待 AI 分析</span></div>
               </div>
-              <div class="pr-status">
-                <div class="pr-progress"><div class="pr-pfill" style="width:0%"></div></div>
-                <span class="pr-pct">队列 #11</span>
-                <button class="btn btn-out" style="padding:5px 12px;font-size:11px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:11px;height:11px"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>优先</button>
-              </div>
+              <button class="ia" style="flex-shrink:0"><svg viewBox="0 0 24 24"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>优先</button>
             </div>
           </div>
         </div>
@@ -693,31 +810,59 @@ nav{position:fixed;top:0;left:0;right:0;z-index:300;height:62px;display:flex;ali
 <!-- MODALS -->
 <div class="modal-bg" id="modal-service">
   <div class="modal">
-    <div class="modal-hd"><div class="modal-title">AI 服务配置</div><button class="modal-x" onclick="closeModal('service')">×</button></div>
+    <div class="modal-hd"><div class="modal-title">AI 解构服务配置</div><button class="modal-x" onclick="closeModal('service')">×</button></div>
     <div class="modal-body">
-      <div class="modal-field"><span class="mf-label">主服务</span><select class="mf-select"><option>Remove.bg API</option><option>Clipdrop API</option><option>本地 rembg</option></select></div>
-      <div class="modal-field"><span class="mf-label">Remove.bg API Key</span><input class="mf-input" type="password" placeholder="rm_xxxxxxxxxxxxxxxx"></div>
-      <div class="modal-field"><span class="mf-label">Fallback 策略</span><select class="mf-select"><option>自动切换本地 rembg</option><option>重试 3 次后放弃</option><option>仅使用本地</option></select></div>
-      <div class="modal-field"><span class="mf-label">标签识别模型</span><select class="mf-select"><option>GPT-4o Vision</option><option>Claude 3.5 Sonnet</option><option>Azure Computer Vision</option></select></div>
+      <div class="modal-field"><span class="mf-label">解构主链</span><select class="mf-select"><option>R2 解构资产输出</option><option>本地视觉解构</option><option>OpenAI 远端补全</option><option>DeepSeek 远端补全</option></select></div>
+      <div class="modal-field"><span class="mf-label">远端 API Key / Token</span><input class="mf-input" type="password" placeholder="OpenAI / DeepSeek / 代理网关"></div>
+      <div class="modal-field"><span class="mf-label">人物检测</span><select class="mf-select"><option>YOLO26 · 人体/配件检测</option><option>GroundingDINO</option><option>Azure Computer Vision</option></select></div>
+      <div class="modal-field"><span class="mf-label">主体锁定</span><select class="mf-select"><option>人物主体锁定</option><option>Face Embedding Match</option><option>手动确认主体</option></select></div>
+      <div class="modal-field"><span class="mf-label">精细分割</span><select class="mf-select"><option>SAM 2.1 / SCHP / 本地抠图</option><option>SAM 2.1</option><option>SCHP</option><option>本地抠图</option></select></div>
+      <div class="modal-field"><span class="mf-label">语义识别链</span><select class="mf-select"><option>FashionCLIP + Vision LLM</option><option>FashionCLIP</option><option>规则补全引擎</option></select></div>
+      <div class="modal-field"><span class="mf-label">本地识别模型</span><input class="mf-input" type="text" value="FashionCLIP + 本地视觉解构" placeholder="本地视觉推理 Worker / 5090"></div>
+      <div class="modal-field"><span class="mf-label">OpenAI 识别模型</span><input class="mf-input" type="text" value="gpt-4.1-mini" placeholder="gpt-4.1-mini"></div>
+      <div class="modal-field"><span class="mf-label">DeepSeek 提取模型</span><input class="mf-input" type="text" value="deepseek-chat" placeholder="deepseek-chat"></div>
+      <div class="modal-field"><span class="mf-label">每层失败后重试次数</span><input class="mf-input" type="number" value="1" min="0" max="3"></div>
+      <div class="modal-field"><span class="mf-label">Fallback 策略</span><select class="mf-select"><option>本地失败后切换 OpenAI / DeepSeek</option><option>仅使用本地</option><option>重试 3 次后放弃</option></select></div>
       <div class="modal-field"><span class="mf-label">队列并发数</span><input class="mf-input" type="number" value="3" min="1" max="10"></div>
     </div>
-    <div class="modal-btns"><button class="mb-main" onclick="toast('服务配置已保存');closeModal('service')">保 存 配 置</button><button class="mb-sub" onclick="closeModal('service')">取消</button></div>
+    <div class="modal-btns"><button class="mb-main" onclick="saveServiceConfig()">保 存 配 置</button><button class="mb-sub" onclick="closeModal('service')">取消</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-url">
+  <div class="modal">
+    <div class="modal-hd"><div class="modal-title">粘贴链接，实时解构单品</div><button class="modal-x" onclick="closeModal('url')">×</button></div>
+    <div class="modal-body">
+      <input class="url-input" id="smart-url-input" type="text" placeholder="粘贴淘宝 / 京东 / 小红书链接，或可直接访问的图片直链">
+      <div class="url-hints">
+        <span class="url-hint">本地优先：YOLO26 / SAM 2.1 / SCHP / FashionCLIP</span>
+        <span class="url-hint">失败兜底：OpenAI → DeepSeek</span>
+        <span class="url-hint">支持确认后直接入库并跳转试衣页</span>
+      </div>
+      <div class="url-platforms" style="margin-top:16px">
+        <div class="url-platform"><strong>淘宝 / 天猫</strong><span>优先抓主图和白底图，平铺单品会更容易被高质量抠出。</span></div>
+        <div class="url-platform"><strong>京东</strong><span>更容易直接拿到高清主图，适合快速拆解单品并补全标签。</span></div>
+        <div class="url-platform"><strong>小红书</strong><span>完整穿搭图会走人物解析和配件检测，把上衣下装鞋包拆开。</span></div>
+        <div class="url-platform"><strong>其他直链</strong><span>系统会先判断是人物图、平铺图还是非服装图，再走对应流程。</span></div>
+      </div>
+    </div>
+    <div class="modal-btns"><button class="mb-main" onclick="submitUrlPreview()">开始解构</button><button class="mb-sub" onclick="closeModal('url')">取消</button></div>
   </div>
 </div>
 
 <div class="modal-bg" id="modal-upload">
   <div class="modal">
-    <div class="modal-hd"><div class="modal-title">批量上传图片</div><button class="modal-x" onclick="closeModal('upload')">×</button></div>
+    <div class="modal-hd"><div class="modal-title">上传图片 / 批量上传</div><button class="modal-x" onclick="closeModal('upload')">×</button></div>
     <div class="modal-body">
       <div style="border:1.5px dashed rgba(192,122,110,.28);border-radius:3px;padding:32px;text-align:center;margin-bottom:16px;cursor:pointer;background:var(--rose-faint);transition:all .2s" onmouseenter="this.style.borderColor='var(--rose)'" onmouseleave="this.style.borderColor='rgba(192,122,110,.28)'">
         <svg style="width:28px;height:28px;fill:none;stroke:var(--rose);stroke-width:1.2;margin:0 auto 10px;display:block" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         <div style="font-family:var(--serif-jp);font-size:13px;color:var(--ink2);letter-spacing:.06em;margin-bottom:4px">拖拽图片或点击上传</div>
-        <div style="font-size:11px;color:var(--ink3)">支持 JPG · PNG · WEBP · 单次最多 50 张</div>
+        <div style="font-size:11px;color:var(--ink3)">支持单张或批量图片，JPG · PNG · WEBP · 单次最多 50 张</div>
       </div>
-      <div class="modal-field"><span class="mf-label">处理选项</span><select class="mf-select"><option>上传后自动抠图 + 补全标签</option><option>仅上传，手动触发处理</option><option>仅抠图，不补全标签</option></select></div>
-      <div class="modal-field"><span class="mf-label">默认品类（选填）</span><select class="mf-select"><option>自动识别</option><option>上衣</option><option>下装</option><option>连衣裙</option><option>外套</option><option>鞋子</option><option>配饰</option></select></div>
+      <div class="modal-field"><span class="mf-label">处理选项</span><select class="mf-select"><option>上传后自动解构单品 + 补全标签</option><option>仅上传原图，稍后再处理</option><option>仅做抠图与单品拆解</option></select></div>
+      <div class="modal-field"><span class="mf-label">默认主品类（选填）</span><select class="mf-select"><option>自动识别</option><option>上衣</option><option>下装</option><option>连衣裙</option><option>外套</option><option>鞋子</option><option>配饰</option></select></div>
     </div>
-    <div class="modal-btns"><button class="mb-main" onclick="toast('已加入处理队列');closeModal('upload')">开 始 上 传</button><button class="mb-sub" onclick="closeModal('upload')">取消</button></div>
+    <div class="modal-btns"><button class="mb-main" onclick="submitUploadBatch()">开 始 解 构</button><button class="mb-sub" onclick="closeModal('upload')">取消</button></div>
   </div>
 </div>
 

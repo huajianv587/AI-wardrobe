@@ -1,8 +1,14 @@
 from __future__ import annotations
 
+import base64
 from collections import Counter
 from datetime import datetime, timedelta
+import json
+import mimetypes
+import re
+from typing import Callable
 
+import httpx
 from fastapi import HTTPException, status
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
@@ -33,7 +39,9 @@ from app.schemas.assistant import (
     WearLogPayload,
 )
 from app.schemas.recommendation import RecommendationRequest, RecommendationResponse
-from services import recommendation_service, weather_service, wardrobe_service
+from core import local_model
+from core.config import settings
+from services import recommendation_service, storage_service, weather_service, wardrobe_service
 
 LOW_THOUGHT_MODES = {
     "上班": "Office commute tomorrow, polished and easy to repeat",
@@ -73,9 +81,280 @@ COLOR_FAMILIES = {
     "blue": "soft-color",
 }
 
+MULTIMODAL_SYSTEM_PROMPT = (
+    "You extract wardrobe metadata from a single garment image. "
+    "Return strict JSON with keys tags, occasions, style_notes. "
+    "tags and occasions must be short arrays of strings. "
+    "style_notes must be a short sentence in Chinese."
+)
+
 
 def _unique_preserve(values: list[str]) -> list[str]:
     return list(dict.fromkeys(value for value in values if value))
+
+
+def _json_from_text(content: str | None) -> dict | None:
+    if not content:
+        return None
+    cleaned = str(content).strip()
+    if cleaned.startswith("```"):
+        cleaned = re.sub(r"^```[a-zA-Z0-9_-]*\s*", "", cleaned)
+        cleaned = re.sub(r"\s*```$", "", cleaned)
+    match = re.search(r"\{[\s\S]*\}", cleaned)
+    if not match:
+        return None
+    try:
+        return json.loads(match.group(0))
+    except json.JSONDecodeError:
+        return None
+
+
+def _normalize_multimodal_payload(payload: dict | None) -> dict[str, list[str] | str] | None:
+    if not isinstance(payload, dict):
+        return None
+    tags = _unique_preserve([str(entry).strip() for entry in payload.get("tags", []) if str(entry).strip()])[:8]
+    occasions = _unique_preserve([str(entry).strip() for entry in payload.get("occasions", []) if str(entry).strip()])[:6]
+    style_notes = str(payload.get("style_notes") or payload.get("note") or "").strip()
+    if not tags and not occasions and not style_notes:
+        return None
+    return {
+        "tags": tags,
+        "occasions": occasions,
+        "style_notes": style_notes,
+    }
+
+
+def _multimodal_image_reference(item: ClothingItem) -> str | None:
+    image_url = item.processed_image_url or item.image_url
+    if not image_url:
+        return None
+
+    try:
+        asset_bytes = storage_service.load_asset_bytes(image_url)
+    except Exception:
+        asset_bytes = None
+
+    if asset_bytes:
+        mime_type = mimetypes.guess_type(image_url)[0] or "image/png"
+        encoded = base64.b64encode(asset_bytes).decode("ascii")
+        return f"data:{mime_type};base64,{encoded}"
+
+    if image_url.startswith("http://") or image_url.startswith("https://") or image_url.startswith("data:"):
+        return image_url
+    return None
+
+
+def _openai_style_messages(item: ClothingItem, image_reference: str) -> list[dict]:
+    item_snapshot = {
+        "name": item.name,
+        "category": item.category,
+        "slot": item.slot,
+        "color": item.color,
+        "brand": item.brand or "",
+        "tags": list(item.tags or []),
+        "occasions": list(item.occasions or []),
+        "style_notes": item.style_notes or "",
+    }
+    return [
+        {"role": "system", "content": MULTIMODAL_SYSTEM_PROMPT},
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": (
+                        "请只输出 JSON。结合图片和已有上下文，为这件衣物补全标签与适合场景。"
+                        f"已有上下文：{json.dumps(item_snapshot, ensure_ascii=False)}"
+                    ),
+                },
+                {
+                    "type": "image_url",
+                    "image_url": {"url": image_reference},
+                },
+            ],
+        },
+    ]
+
+
+def _chat_completions_url(base_url: str) -> str:
+    trimmed = base_url.rstrip("/")
+    if trimmed.endswith("/chat/completions"):
+        return trimmed
+    if trimmed.endswith("/v1"):
+        return trimmed + "/chat/completions"
+    return trimmed + "/v1/chat/completions"
+
+
+def _call_openai_compatible_multimodal_enrich(
+    *,
+    base_url: str,
+    model_name: str,
+    api_key: str,
+    item: ClothingItem,
+) -> dict[str, list[str] | str] | None:
+    image_reference = _multimodal_image_reference(item)
+    if not image_reference or not base_url.strip() or not model_name.strip():
+        return None
+
+    headers = {"Content-Type": "application/json"}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+
+    response = httpx.post(
+        _chat_completions_url(base_url),
+        headers=headers,
+        json={
+            "model": model_name,
+            "temperature": 0.1,
+            "response_format": {"type": "json_object"},
+            "messages": _openai_style_messages(item, image_reference),
+        },
+        timeout=settings.multimodal_request_timeout_seconds,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    content = ""
+    if isinstance(payload, dict):
+        choices = payload.get("choices", [])
+        if choices:
+            message = choices[0].get("message", {})
+            content = message.get("content") or ""
+            if isinstance(content, list):
+                content = "\n".join(
+                    str(part.get("text") or "")
+                    for part in content
+                    if isinstance(part, dict)
+                )
+    return _normalize_multimodal_payload(_json_from_text(content))
+
+
+def _call_remote_worker_multimodal_enrich(item: ClothingItem) -> dict[str, list[str] | str] | None:
+    worker_url = local_model.get_remote_worker_url("multimodal_reader")
+    image_url = item.processed_image_url or item.image_url
+    if not worker_url or not image_url:
+        return None
+
+    response = httpx.post(
+        worker_url,
+        json={
+            "mode": "wardrobe-tag-enrich",
+            "item": {
+                "id": item.id,
+                "name": item.name,
+                "category": item.category,
+                "slot": item.slot,
+                "color": item.color,
+                "brand": item.brand,
+                "tags": list(item.tags or []),
+                "occasions": list(item.occasions or []),
+                "style_notes": item.style_notes,
+                "image_url": image_url,
+            },
+        },
+        timeout=settings.multimodal_request_timeout_seconds,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    return _normalize_multimodal_payload(payload if isinstance(payload, dict) else None)
+
+
+def _configured_multimodal_label(multimodal_config: dict | None, key: str, fallback: str) -> str:
+    value = str((multimodal_config or {}).get(key) or "").strip()
+    return value or fallback
+
+
+def _configured_multimodal_model_name(configured_value: str, fallback: str) -> str:
+    value = str(configured_value or "").strip()
+    if not value:
+        return fallback
+    if re.search(r"[\u4e00-\u9fff]", value):
+        return fallback
+    if " " in value and fallback:
+        return fallback
+    return value
+
+
+def _configured_multimodal_attempts(multimodal_config: dict | None) -> int:
+    try:
+        retries_value = (multimodal_config or {}).get("recognition_retries")
+        retries = int(1 if retries_value is None else retries_value)
+    except (TypeError, ValueError):
+        retries = 1
+    return max(1, min(4, retries + 1))
+
+
+def _call_multimodal_enrich_chain(
+    item: ClothingItem,
+    multimodal_config: dict | None = None,
+) -> dict[str, list[str] | str] | None:
+    providers: list[tuple[str, Callable[[], dict[str, list[str] | str] | None]]] = []
+    attempts = _configured_multimodal_attempts(multimodal_config)
+    local_endpoint = (settings.vllm_base_url or "").strip()
+    local_label = _configured_multimodal_label(multimodal_config, "recognition_local_model", "本地多模态模型")
+    openai_label = _configured_multimodal_label(multimodal_config, "recognition_openai_model", "OpenAI 视觉识别")
+    deepseek_label = _configured_multimodal_label(multimodal_config, "recognition_deepseek_model", "DeepSeek 视觉提取")
+    local_model_name = _configured_multimodal_model_name(local_label, (settings.qwen_model_name or "").strip())
+    openai_model_name = _configured_multimodal_model_name(openai_label, settings.openai_multimodal_model.strip())
+    deepseek_model_name = _configured_multimodal_model_name(deepseek_label, settings.deepseek_multimodal_model.strip())
+
+    if local_endpoint and local_model_name:
+        providers.append(
+            (
+                f"本地识别 · {local_label}",
+                lambda: _call_openai_compatible_multimodal_enrich(
+                    base_url=local_endpoint,
+                    model_name=local_model_name,
+                    api_key="",
+                    item=item,
+                ),
+            )
+        )
+    elif local_model.get_remote_worker_url("multimodal_reader"):
+        providers.append((f"本地识别 · {local_label}", lambda: _call_remote_worker_multimodal_enrich(item)))
+
+    if settings.openai_api_key.strip():
+        providers.append(
+            (
+                f"OpenAI · {openai_label}",
+                lambda: _call_openai_compatible_multimodal_enrich(
+                    base_url=settings.openai_base_url,
+                    model_name=openai_model_name,
+                    api_key=settings.openai_api_key,
+                    item=item,
+                ),
+            )
+        )
+
+    if settings.deepseek_api_key.strip():
+        providers.append(
+            (
+                f"DeepSeek · {deepseek_label}",
+                lambda: _call_openai_compatible_multimodal_enrich(
+                    base_url=settings.deepseek_base_url,
+                    model_name=deepseek_model_name,
+                    api_key=settings.deepseek_api_key,
+                    item=item,
+                ),
+            )
+        )
+
+    for label, runner in providers:
+        for _ in range(attempts):
+            try:
+                payload = runner()
+            except Exception:
+                payload = None
+            if payload:
+                payload["provider"] = label
+                return payload
+    return None
+
+
+def describe_item_image(
+    item: ClothingItem,
+    multimodal_config: dict | None = None,
+) -> dict[str, list[str] | str] | None:
+    return _call_multimodal_enrich_chain(item, multimodal_config)
 
 
 def _item_text(item: ClothingItem) -> str:
@@ -233,7 +512,12 @@ def upsert_memory_card(db: Session, item_id: int, user: User, payload: dict) -> 
     return MemoryCardEnvelope(item_id=item.id, card=card)
 
 
-def auto_enrich_item(db: Session, item: ClothingItem, user: User) -> ClothingItem:
+def auto_enrich_item(
+    db: Session,
+    item: ClothingItem,
+    user: User,
+    multimodal_config: dict | None = None,
+) -> ClothingItem:
     item_text = _item_text(item)
     inferred_tags = list(item.tags or [])
     inferred_occasions = list(item.occasions or [])
@@ -260,6 +544,13 @@ def auto_enrich_item(db: Session, item: ClothingItem, user: User) -> ClothingIte
     if color_family == "light-neutral":
         inferred_tags.append("brightening")
 
+    remote_payload = _call_multimodal_enrich_chain(item, multimodal_config)
+    if remote_payload:
+        inferred_tags.extend(remote_payload.get("tags", []))
+        inferred_occasions.extend(remote_payload.get("occasions", []))
+        if remote_note := remote_payload.get("style_notes"):
+            inferred_notes.append(remote_note)
+
     item.tags = _unique_preserve(inferred_tags)
     item.occasions = _unique_preserve(inferred_occasions)
 
@@ -275,7 +566,6 @@ def auto_enrich_item(db: Session, item: ClothingItem, user: User) -> ClothingIte
     db.refresh(item)
     attach_memory_card(db, item, user.id)
     return item
-
 
 def _build_profile_summary(profile: StyleProfile) -> str:
     favorite_colors = " / ".join(profile.favorite_colors[:3]) if profile.favorite_colors else "soft versatile tones"

@@ -1,5 +1,6 @@
 from pathlib import Path
 from sqlalchemy import inspect, text
+from core.config import settings
 from db.base import Base
 from db.session import SessionLocal, engine
 from app.models import (
@@ -9,8 +10,10 @@ from app.models import (
     Category,
     ClothingItem,
     ClothingMemoryCard,
+    ExperienceUserState,
     Outfit,
     OutfitRecommendation,
+    PasswordResetToken,
     RecommendationSignal,
     StyleProfile,
     Tag,
@@ -18,6 +21,14 @@ from app.models import (
     WearLog,
 )
 from services.wardrobe_service import seed_demo_data
+
+
+def _is_sqlite() -> bool:
+    return settings.database_url.startswith("sqlite")
+
+
+def _datetime_sql_type() -> str:
+    return "DATETIME" if _is_sqlite() else "TIMESTAMP WITH TIME ZONE"
 
 
 def _ensure_auth_columns() -> None:
@@ -50,7 +61,7 @@ def _ensure_wardrobe_columns() -> None:
 
     with engine.begin() as connection:
         if "last_synced_at" not in columns:
-            connection.execute(text("ALTER TABLE clothing_items ADD COLUMN last_synced_at DATETIME"))
+            connection.execute(text(f"ALTER TABLE clothing_items ADD COLUMN last_synced_at {_datetime_sql_type()}"))
 
 
 def init_db() -> None:
@@ -59,5 +70,6 @@ def init_db() -> None:
     _ensure_auth_columns()
     _ensure_wardrobe_columns()
 
-    with SessionLocal() as db:
-        seed_demo_data(db)
+    if _is_sqlite():
+        with SessionLocal() as db:
+            seed_demo_data(db)

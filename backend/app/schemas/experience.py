@@ -24,18 +24,32 @@ class ExperienceWardrobeBulkPayload(BaseModel):
 
 
 class ExperienceImportUrlPayload(BaseModel):
-    image_url: str
+    image_url: str | None = None
+    source_url: str | None = None
+    platform_hint: str | None = None
     name: str | None = None
     category: str = "tops"
     slot: str = "top"
     color: str = "米白"
 
 
+class ExperienceDecomposeConfirmPayload(BaseModel):
+    piece_ids: list[str] = Field(default_factory=list)
+    auto_focus_try_on: bool = True
+
+
 class ExperienceSmartConfigPayload(BaseModel):
-    primary_service: str = "Remove.bg API"
+    primary_service: str = "R2 解构资产输出"
     remove_bg_key: str | None = None
-    fallback_strategy: str = "自动切换本地 rembg"
-    label_model: str = "GPT-4o Vision"
+    fallback_strategy: str = "本地失败后切换 OpenAI / DeepSeek"
+    person_detector: str = "YOLO26 · 人体/配件检测"
+    face_selector: str = "人物主体锁定"
+    garment_segmenter: str = "SAM 2.1 / SCHP / 本地抠图"
+    label_model: str = "FashionCLIP + Vision LLM"
+    recognition_local_model: str = "FashionCLIP + 本地视觉解构"
+    recognition_openai_model: str = "gpt-4.1-mini"
+    recognition_deepseek_model: str = "deepseek-chat"
+    recognition_retries: int = Field(default=1, ge=0, le=3)
     concurrency: int = Field(default=3, ge=1, le=10)
 
 
@@ -48,7 +62,7 @@ class ExperienceSmartEditPayload(BaseModel):
 
 
 class ExperienceUploadBatchPayload(BaseModel):
-    mode: str = "上传后自动抠图 + 补全标签"
+    mode: str = "上传后自动解构单品 + 补全标签"
     default_category: str = "自动识别"
     filenames: list[str] = Field(default_factory=list)
 

@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, File, Query, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_or_demo_user, get_db
 from app.models.user import User
 from app.schemas.experience import (
+    ExperienceDecomposeConfirmPayload,
     ExperienceDiaryLogPayload,
     ExperienceIdleActionPayload,
     ExperienceImportUrlPayload,
@@ -127,8 +128,11 @@ def smart_wardrobe(
 
 
 @router.post("/smart-wardrobe/config")
-def save_smart_config(payload: ExperienceSmartConfigPayload):
-    return experience_service.save_smart_config(payload)
+def save_smart_config(
+    payload: ExperienceSmartConfigPayload,
+    current_user: User = Depends(get_current_or_demo_user),
+):
+    return experience_service.save_smart_config(current_user, payload)
 
 
 @router.post("/smart-wardrobe/actions/{action}")
@@ -147,6 +151,42 @@ def upload_smart_batch(
     current_user: User = Depends(get_current_or_demo_user),
 ):
     return experience_service.upload_smart_batch(db, current_user, payload)
+
+
+@router.post("/smart-wardrobe/upload-batch-files")
+def upload_smart_batch_files(
+    mode: str = Form(...),
+    default_category: str = Form("自动识别"),
+    files: list[UploadFile] = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_or_demo_user),
+):
+    return experience_service.upload_smart_batch_files(
+        db,
+        current_user,
+        mode=mode,
+        default_category=default_category,
+        files=files,
+    )
+
+
+@router.post("/smart-wardrobe/decompose-url-preview")
+def preview_smart_decomposition_from_url(
+    payload: ExperienceImportUrlPayload,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_or_demo_user),
+):
+    return experience_service.preview_smart_decomposition_from_url(db, current_user, payload)
+
+
+@router.post("/smart-wardrobe/decompose-preview/{preview_id}/confirm")
+def confirm_smart_decomposition_preview(
+    preview_id: str,
+    payload: ExperienceDecomposeConfirmPayload,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_or_demo_user),
+):
+    return experience_service.confirm_smart_decomposition_preview(db, current_user, preview_id, payload)
 
 
 @router.post("/smart-wardrobe/items/{item_id}/retry")
@@ -196,8 +236,12 @@ def reanalyze_smart_item(
 
 
 @router.post("/smart-wardrobe/pending/{item_id}/prioritize")
-def prioritize_pending_item(item_id: int):
-    return experience_service.prioritize_pending_item(item_id)
+def prioritize_pending_item(
+    item_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_or_demo_user),
+):
+    return experience_service.prioritize_pending_item(db, current_user, item_id)
 
 
 @router.get("/outfit-diary")
@@ -230,10 +274,11 @@ def generate_suitcase(
 
 @router.get("/closet-analysis")
 def closet_analysis(
+    season: str | None = Query(default=None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_or_demo_user),
 ):
-    return experience_service.get_closet_analysis_overview(db, current_user)
+    return experience_service.get_closet_analysis_overview(db, current_user, season=season)
 
 
 @router.post("/closet-analysis/care/{item_id}/mark-done")
@@ -255,8 +300,13 @@ def set_care_reminder(
 
 
 @router.post("/closet-analysis/idle/{item_id}/action")
-def record_idle_action(item_id: int, payload: ExperienceIdleActionPayload):
-    return experience_service.record_idle_action(item_id, payload)
+def record_idle_action(
+    item_id: int,
+    payload: ExperienceIdleActionPayload,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_or_demo_user),
+):
+    return experience_service.record_idle_action(db, current_user, item_id, payload)
 
 
 @router.get("/style-profile")

@@ -2,6 +2,8 @@ export interface AuthUserSummary {
   id: number;
   supabase_user_id: string | null;
   email: string;
+  display_name?: string | null;
+  auth_provider?: string | null;
   avatar_url: string | null;
   created_at: string;
 }

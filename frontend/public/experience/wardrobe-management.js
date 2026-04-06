@@ -14,7 +14,7 @@
     sort: "recent",
     view: "grid",
     page: 1,
-    pageSize: 12,
+    pageSize: 18,
     selectedIds: [],
     editingItem: null,
     hasLoadedOnce: false
@@ -65,6 +65,11 @@
   uploadInput.style.display = "none";
   document.body.appendChild(uploadInput);
 
+  function restoreUploadInput() {
+    uploadInput.multiple = true;
+    uploadInput.onchange = handleBulkUpload;
+  }
+
   function api(path, options) {
     return W.request(API_ROOT + path, options);
   }
@@ -76,6 +81,28 @@
       behavior: "smooth",
       block: "start"
     });
+  }
+
+  function jumpTo(path) {
+    if (!path) return;
+    if (window.top && window.top.location) {
+      window.top.location.href = path;
+      return;
+    }
+    window.location.href = path;
+  }
+
+  function pulseNode(node) {
+    if (!node) return;
+    node.style.transition = "transform .34s ease, box-shadow .34s ease, border-color .34s ease";
+    node.style.transform = "translateY(-3px) scale(1.01)";
+    node.style.boxShadow = "0 24px 44px rgba(192,122,110,.16)";
+    node.style.borderColor = "rgba(192,122,110,.34)";
+    window.setTimeout(function () {
+      node.style.transform = "";
+      node.style.boxShadow = "";
+      node.style.borderColor = "";
+    }, 820);
   }
 
   function escapeAttr(value) {
@@ -94,6 +121,102 @@
       return W.apiBase.replace(/\/$/, "") + raw;
     }
     return raw;
+  }
+
+  function findEditableEntranceItem() {
+    var targetId = state.selectedIds[0];
+    if (targetId) {
+      return state.items.find(function (entry) { return entry.id === targetId; }) || null;
+    }
+    return currentPageItems()[0] || state.items[0] || null;
+  }
+
+  function bindHeroEntrances() {
+    var rows = document.querySelectorAll(".feat-row");
+    rows.forEach(function (row, index) {
+      if (row.dataset.boundHero === "1") return;
+      row.dataset.boundHero = "1";
+      row.setAttribute("role", "button");
+      row.setAttribute("tabindex", "0");
+      row.addEventListener("click", function () {
+        if (index === 0) {
+          scrollToPanel();
+          triggerUpload();
+          W.toast("这里保留本地上传与快速入柜，链接解构入口已迁移到智能衣物", "soft");
+          pulseNode(document.querySelector(".ph-acts [data-action='upload']") || document.querySelector(".uptile"));
+          return;
+        }
+        if (index === 1) {
+          scrollToPanel();
+          var searchInput = document.getElementById("si");
+          if (searchInput) searchInput.focus();
+          pulseNode(searchInput && searchInput.closest(".tbs"));
+          W.toast("这里可以按分类、颜色和关键词快速筛到目标单品", "soft");
+          return;
+        }
+        if (index === 2) {
+          var targetItem = findEditableEntranceItem();
+          fillEditor(targetItem);
+          W.toast(targetItem ? "已打开可编辑单品，标签和备注都能直接修改" : "已打开新增单品入口，也可以先从这里补标签", "soft");
+          return;
+        }
+        scrollToPanel();
+        pulseNode(document.querySelector(".bulk"));
+        if (!state.selectedIds.length) {
+          W.toast("先勾选几件单品，下面这组批量操作就能一次走通", "soft");
+        } else {
+          W.toast("已定位到批量操作区，可以继续移动分类、替换图片或删除", "soft");
+        }
+      });
+      row.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          row.click();
+        }
+      });
+    });
+  }
+
+  function bindHangTagEntrances() {
+    var tags = document.querySelectorAll(".hang-tags .hang-tag");
+    tags.forEach(function (tag, index) {
+      if (tag.dataset.boundTag === "1") return;
+      tag.dataset.boundTag = "1";
+      tag.addEventListener("click", function (event) {
+        if (index === 0) {
+          event.preventDefault();
+          scrollToPanel();
+          pulseNode(document.querySelector(".ph"));
+          return;
+        }
+        if (index === 1) {
+          event.preventDefault();
+          W.toast("链接解构、图片解构和一键试穿入口都在智能衣物", "soft");
+          window.setTimeout(function () {
+            jumpTo("/smart-wardrobe");
+          }, 120);
+          return;
+        }
+        event.preventDefault();
+        jumpTo("/outfit-diary");
+      });
+    });
+  }
+
+  function bindStageFx() {
+    var stage = document.querySelector(".stage");
+    if (!stage || stage.dataset.boundStage === "1") return;
+    stage.dataset.boundStage = "1";
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    stage.addEventListener("pointermove", function (event) {
+      var rect = stage.getBoundingClientRect();
+      var px = (event.clientX - rect.left) / rect.width - 0.5;
+      var py = (event.clientY - rect.top) / rect.height - 0.5;
+      stage.style.transform = "translateY(-14px) rotateX(" + (-py * 7).toFixed(2) + "deg) rotateY(" + (px * 9).toFixed(2) + "deg)";
+    });
+    stage.addEventListener("pointerleave", function () {
+      stage.style.transform = "";
+    });
   }
 
   function parseUploadResponse(response) {
@@ -116,6 +239,7 @@
     formData.append("image", file);
     return fetch((W.apiBase || "") + API_ROOT + "/items/" + itemId + "/upload-image", {
       method: "POST",
+      headers: W.buildAuthHeaders({}, false),
       body: formData,
       credentials: "include"
     }).then(parseUploadResponse);
@@ -292,6 +416,9 @@
       var tags = (item.tags || []).slice(0, 3).map(function (tag) {
         return '<span class="ict' + (tag === "未标签" ? " w" : "") + '">' + W.escapeHtml(tag) + "</span>";
       }).join("");
+      var source = item.source
+        ? '<div class="icsource"><span class="icsource-platform">' + W.escapeHtml(item.source.platform) + '</span><span class="icsource-status">' + W.escapeHtml(item.source.status) + "</span></div>"
+        : "";
       var stroke = silhouetteStroke[item.visual_theme] || "rgba(192,100,88,.45)";
       var silhouetteKind = item.silhouette === "shirt" ? "shirt" : item.silhouette;
       var svg = W.silhouetteSvg(silhouetteKind, stroke, "cs");
@@ -311,7 +438,7 @@
             '<div class="ia" data-action="replace"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>' +
             '<div class="ia" data-action="delete" onclick="del(event,this)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></div>' +
           "</div>" +
-          '<div class="icfoot"><div class="icname">' + W.escapeHtml(item.name) + '</div><div class="ictags">' + tags + "</div></div>" +
+          '<div class="icfoot"><div class="icname">' + W.escapeHtml(item.name) + '</div>' + source + '<div class="ictags">' + tags + "</div></div>" +
         "</div>";
     }).join("");
 
@@ -339,6 +466,12 @@
     if (!container) return;
     var meta = paginationMeta();
     if (state.page > meta.pages) state.page = meta.pages;
+    if (meta.pages <= 1) {
+      container.innerHTML = "";
+      container.style.display = "none";
+      return;
+    }
+    container.style.display = "flex";
     var html = '' +
       '<div class="pg arr" data-page="' + Math.max(1, state.page - 1) + '"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>';
     var pages = [];
@@ -440,6 +573,7 @@
   }
 
   function replaceImage(itemId) {
+    uploadInput.multiple = false;
     uploadInput.onchange = function () {
       var file = uploadInput.files && uploadInput.files[0];
       if (!file) return;
@@ -450,7 +584,41 @@
         W.toast(error.message || "替换失败");
       }).finally(function () {
         uploadInput.value = "";
-        uploadInput.onchange = handleBulkUpload;
+        restoreUploadInput();
+      });
+    };
+    uploadInput.click();
+  }
+
+  function replaceSelectedImages() {
+    var targetIds = state.selectedIds.slice();
+    if (!targetIds.length) {
+      W.toast("先选中需要替换图片的单品");
+      return;
+    }
+
+    uploadInput.multiple = true;
+    uploadInput.onchange = function () {
+      var files = Array.prototype.slice.call(uploadInput.files || []);
+      if (!files.length) return;
+      if (files.length !== targetIds.length) {
+        W.toast("请选择与已选单品数量一致的图片后再替换");
+        uploadInput.value = "";
+        restoreUploadInput();
+        return;
+      }
+
+      Promise.all(targetIds.map(function (itemId, index) {
+        return uploadAssetForItem(itemId, files[index]);
+      })).then(function () {
+        W.toast("已完成批量替换图片", "soft");
+        clrSel();
+        fetchOverview(false);
+      }).catch(function (error) {
+        W.toast(error.message || "批量替换失败");
+      }).finally(function () {
+        uploadInput.value = "";
+        restoreUploadInput();
       });
     };
     uploadInput.click();
@@ -489,36 +657,10 @@
   }
 
   function bindToolbar() {
-    var actions = document.querySelectorAll(".ph-acts .pa");
-    if (actions[1]) actions[1].addEventListener("click", triggerUpload);
-    if (actions[2]) actions[2].addEventListener("click", function () { fillEditor(null); });
-
-    var urlInput = document.querySelector(".urli");
-    var urlButton = document.querySelector(".urlgo");
-    if (urlButton) {
-      urlButton.addEventListener("click", function () {
-        if (!urlInput || !urlInput.value.trim()) {
-          W.toast("先贴一张图片地址再导入");
-          return;
-        }
-        api("/import-url", {
-          method: "POST",
-          body: JSON.stringify({
-            image_url: urlInput.value.trim(),
-            category: state.category === "all" ? "tops" : state.category,
-            slot: (categoryMap[state.category] || categoryMap.tops).slot,
-            color: state.color || "米白"
-          })
-        }).then(function () {
-          W.toast("图片 URL 已导入到衣橱", "soft");
-          urlInput.value = "";
-          document.getElementById("urlrow").classList.remove("show");
-          fetchOverview(false);
-        }).catch(function (error) {
-          W.toast(error.message || "URL 导入失败");
-        });
-      });
-    }
+    var uploadAction = document.querySelector(".ph-acts [data-action='upload']");
+    var createAction = document.querySelector(".ph-acts [data-action='create']");
+    if (uploadAction) uploadAction.addEventListener("click", triggerUpload);
+    if (createAction) createAction.addEventListener("click", function () { fillEditor(null); });
 
     var searchInput = document.getElementById("si");
     if (searchInput) {
@@ -623,8 +765,7 @@
     }
     if (bulkButtons[2]) {
       bulkButtons[2].addEventListener("click", function () {
-        if (!state.selectedIds.length) return W.toast("先选中需要替换图片的单品");
-        W.toast("请逐件替换图片，已经为你保留当前的原图地址");
+        replaceSelectedImages();
       });
     }
     if (bulkButtons[3]) {
@@ -763,7 +904,10 @@
   window.scrollToPanel = scrollToPanel;
 
   if (saveButton) saveButton.addEventListener("click", saveEditor);
-  uploadInput.onchange = handleBulkUpload;
+  bindHeroEntrances();
+  bindHangTagEntrances();
+  bindStageFx();
+  restoreUploadInput();
   bindToolbar();
   fetchOverview(false);
 })();

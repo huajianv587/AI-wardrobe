@@ -243,7 +243,7 @@ export function NavBar({ onNavigateHome }: NavBarProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-            className="mx-5 mt-3 rounded-[26px] border border-[rgba(var(--accent-rose-rgb),0.16)] bg-[rgba(var(--bg-primary-rgb),0.92)] p-4 shadow-[0_20px_50px_rgba(180,120,140,0.12)] backdrop-blur-xl md:hidden"
+            className="mx-3 mt-2 max-h-[calc(100svh-104px)] overflow-auto rounded-[24px] border border-[rgba(var(--accent-rose-rgb),0.16)] bg-[rgba(var(--bg-primary-rgb),0.92)] p-4 shadow-[0_20px_50px_rgba(180,120,140,0.12)] backdrop-blur-xl md:hidden"
           >
             <div className="grid gap-2">
               {navItems.map((item) => (

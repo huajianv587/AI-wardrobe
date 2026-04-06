@@ -253,11 +253,11 @@ def attach_item_image(db: Session, item_id: int, upload_file: UploadFile, user: 
     return _apply_source_image(db, item, user, asset.url, image_backup_url=asset.backup_url)
 
 
-def process_item_image(db: Session, item_id: int, user: User) -> ClothingItem:
+def process_item_image(db: Session, item_id: int, user: User, *, prefer_local: bool = False) -> ClothingItem:
     item = get_item(db, item_id, user.id)
 
     if item.image_url:
-        cleanup = image_pipeline_service.process_item_image(item.id, item.image_url)
+        cleanup = image_pipeline_service.process_item_image(item.id, item.image_url, prefer_local=prefer_local)
         processed_asset = storage_service.save_generated_asset(
             f"wardrobe/processed/user-{user.id}/item-{item.id}",
             cleanup.filename,

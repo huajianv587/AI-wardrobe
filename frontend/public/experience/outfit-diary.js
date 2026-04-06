@@ -163,6 +163,93 @@
     return item.color_hex || item.hex || item.color || "#eadfd5";
   }
 
+  function resolvePreviewUrl(item) {
+    var raw = (item && (item.thumbnail_url || item.processed_image_url || item.image_url)) || "";
+    if (!raw) return "";
+    if (/^https?:\/\//i.test(raw) || raw.indexOf("data:") === 0) return raw;
+    if (raw.charAt(0) === "/" && W.apiBase) {
+      return W.apiBase.replace(/\/$/, "") + raw;
+    }
+    return raw;
+  }
+
+  function escapeAttr(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/"/g, "&quot;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  function encodeItemCard(item) {
+    return encodeURIComponent(JSON.stringify(item || {}));
+  }
+
+  function renderItemThumb(item, className) {
+    var shellStyle = "";
+    if (className === "item-card-thumb") {
+      shellStyle = ' style="width:88px;height:88px;border-radius:24px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:' + colorForItem(item) + ';font-size:36px"';
+    } else if (className === "item-plan-thumb") {
+      shellStyle = ' style="width:28px;height:28px;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:' + colorForItem(item) + ';font-size:16px"';
+    }
+    var imageUrl = resolvePreviewUrl(item);
+    if (imageUrl) {
+      return '<div class="' + className + ' thumb-image"' + shellStyle + '><img src="' + escapeAttr(imageUrl) + '" alt="' + escapeAttr(item.name || "衣物缩略图") + '" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" /></div>';
+    }
+    return '<div class="' + className + '"' + (shellStyle || ' style="background:' + colorForItem(item) + '"') + '>' + (item.emoji || "✨") + "</div>";
+  }
+
+  function openItemCard(item) {
+    if (!item) return;
+    var tags = (item.tags || []).map(function (tag) {
+      return '<span style="display:inline-flex;align-items:center;min-height:24px;padding:0 10px;border-radius:999px;background:rgba(255,248,242,.94);font-size:11px;color:var(--text-mid)">' + W.escapeHtml(tag) + "</span>";
+    }).join("");
+    var occasions = (item.occasions || []).map(function (entry) {
+      return '<span style="display:inline-flex;align-items:center;min-height:24px;padding:0 10px;border-radius:999px;background:rgba(239,245,241,.94);font-size:11px;color:#6f8c79">' + W.escapeHtml(entry) + "</span>";
+    }).join("");
+    var mask = document.createElement("div");
+    mask.style.cssText = "position:fixed;inset:0;z-index:420;display:flex;align-items:center;justify-content:center;background:rgba(24,16,12,.18);backdrop-filter:blur(10px);padding:16px";
+    mask.innerHTML = '' +
+      '<div style="width:min(100%,420px);border-radius:24px;padding:20px;background:linear-gradient(180deg,rgba(255,252,249,.98),rgba(255,247,241,.94));box-shadow:0 26px 54px rgba(24,16,12,.16);border:1px solid rgba(190,123,111,.14);position:relative">' +
+        '<button type="button" data-close style="position:absolute;right:14px;top:14px;width:34px;height:34px;border:none;border-radius:999px;background:rgba(255,255,255,.72);font-size:18px;cursor:pointer;color:var(--text-mid)">×</button>' +
+        '<div style="display:flex;gap:14px;align-items:flex-start">' +
+          renderItemThumb(item, "item-card-thumb") +
+          '<div style="flex:1;min-width:0">' +
+            '<div style="font-size:20px;font-weight:600;color:var(--text);margin-bottom:6px">' + W.escapeHtml(item.name || "单品") + "</div>" +
+            '<div style="font-size:12px;line-height:1.75;color:var(--text-light)">' + W.escapeHtml(item.detail || "这件单品的识别信息还在整理中。") + "</div>" +
+            (item.qty ? '<div style="margin-top:10px;font-size:12px;color:var(--accent);font-weight:600">打包数量 ' + W.escapeHtml(item.qty) + "</div>" : "") +
+          "</div>" +
+        "</div>" +
+        (tags ? '<div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:8px"><div style="width:100%;font-size:11px;color:var(--text-light)">识别标签</div>' + tags + "</div>" : "") +
+        (occasions ? '<div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:8px"><div style="width:100%;font-size:11px;color:var(--text-light)">适用场景</div>' + occasions + "</div>" : "") +
+        (item.reason ? '<div style="margin-top:14px;padding:12px 14px;border-radius:16px;background:rgba(255,250,245,.94);font-size:12px;line-height:1.7;color:var(--text-mid)"><strong style="display:block;margin-bottom:4px;color:var(--accent-dark)">AI 打包理由</strong>' + W.escapeHtml(item.reason) + "</div>" : "") +
+      "</div>";
+    document.body.appendChild(mask);
+    function closeMask() {
+      mask.remove();
+    }
+    mask.addEventListener("click", function (event) {
+      if (event.target === mask || event.target.getAttribute("data-close") !== null) {
+        closeMask();
+      }
+    });
+  }
+
+  function bindDetailTriggers(root) {
+    (root || document).querySelectorAll("[data-item-card]").forEach(function (node) {
+      if (node.dataset.boundCard === "1") return;
+      node.dataset.boundCard = "1";
+      node.style.cursor = "pointer";
+      node.addEventListener("click", function () {
+        try {
+          openItemCard(JSON.parse(decodeURIComponent(node.dataset.itemCard || "%7B%7D")));
+        } catch (error) {
+          openItemCard(null);
+        }
+      });
+    });
+  }
+
   function buildLocalItemsFromWardrobe(itemIds) {
     var items = (itemIds || []).map(function (itemId) {
       return state.wardrobeItems.find(function (item) { return item.id === itemId; });
@@ -176,12 +263,36 @@
 
     return items.slice(0, 3).map(function (item) {
       return {
+        id: item.id,
         name: item.name,
         detail: (item.brand || "文文的衣橱") + " · " + (item.slot_label || item.category_label || "单品") + " · " + (item.color || "柔雾色"),
         color: colorForItem(item),
-        emoji: emojiForCategory(item.category)
+        color_hex: colorForItem(item),
+        emoji: emojiForCategory(item.category),
+        thumbnail_url: resolvePreviewUrl(item),
+        tags: item.tags || [],
+        occasions: item.occasions || []
       };
     });
+  }
+
+  function diaryItemOptions() {
+    var options = [{ label: "暂不选择", value: "" }];
+    state.wardrobeItems.forEach(function (item) {
+      options.push({
+        label: item.name + " · " + (item.color || "未标记颜色"),
+        value: String(item.id)
+      });
+    });
+    return options;
+  }
+
+  function resolveDiaryItemIds(values, fallbackIds) {
+    var selected = [values.item_id_1, values.item_id_2, values.item_id_3]
+      .map(function (value) { return Number(value || 0); })
+      .filter(function (value) { return Number.isFinite(value) && value > 0; });
+    selected = selected.filter(function (value, index) { return selected.indexOf(value) === index; });
+    return selected.length ? selected : fallbackIds;
   }
 
   function buildFallbackOverview(year, month) {
@@ -207,6 +318,9 @@
       if (entry && entry.year === year && entry.month === month) {
         details[String(entry.day)] = {
           date_label: month + "月" + entry.day + "日",
+          outfit_name: entry.outfit_name || "今日穿搭",
+          occasion: entry.occasion || "日常",
+          item_ids: entry.item_ids || [],
           items: (entry.items || []).map(function (item) { return Object.assign({}, item); }),
           tags: entry.tags || [],
           note: entry.note || "这条穿搭先保存在本地预览里，等接口恢复后也可以继续同步。"
@@ -307,11 +421,12 @@
     byId("panelDate").textContent = detail.date_label + " 周" + weekdayNames[date.getDay()];
     byId("outfitItems").innerHTML = (detail.items || []).map(function (item, index) {
       return '' +
-        '<div class="outfit-item" style="animation-delay:' + (index * 0.12) + 's">' +
-          '<div class="item-thumb" style="background:' + item.color + '">' + item.emoji + '</div>' +
+        '<div class="outfit-item" data-item-card="' + encodeItemCard(item) + '" style="animation-delay:' + (index * 0.12) + 's">' +
+          renderItemThumb(item, "item-thumb") +
           '<div class="item-info"><h3>' + W.escapeHtml(item.name) + '</h3><p>' + W.escapeHtml(item.detail) + "</p></div>" +
         "</div>";
-    }).join("");
+    }).join("") +
+      '<div style="padding-top:6px;"><button id="editOutfitBtn" type="button" style="width:100%;padding:11px 16px;border:none;border-radius:14px;background:rgba(196,149,106,.12);color:var(--accent-dark);font-family:inherit;font-size:12px;cursor:pointer;">编辑这天穿搭</button></div>';
     byId("outfitTags").innerHTML = (detail.tags || []).map(function (tag) {
       return "<span>" + W.escapeHtml(tag) + "</span>";
     }).join("");
@@ -323,27 +438,40 @@
     setSelectedDay(day);
     refreshFx();
 
+    var editButton = byId("editOutfitBtn");
+    if (editButton) {
+      editButton.addEventListener("click", function () {
+        openDiaryEditor(day, detail);
+      });
+    }
+
     setTimeout(function () {
       document.querySelectorAll(".outfit-item").forEach(function (entry, index) {
         setTimeout(function () { entry.classList.add("fly-in"); }, index * 90);
       });
     }, 120);
+    bindDetailTriggers(byId("outfitOverlay"));
   }
 
-  function recordOutfitForDay(day) {
+  function openDiaryEditor(day, detail) {
     var defaultIds = state.wardrobeItems.slice(0, 3).map(function (item) { return item.id; });
+    var selectedIds = detail && detail.item_ids ? detail.item_ids.slice(0, 3) : defaultIds;
     W.openFormModal({
-      title: "记录当天穿搭",
-      description: "会自动从当前衣橱挑选基础单品写入，也可以先用作日志占位。",
-      submitLabel: "写入日历",
+      title: detail ? "编辑当天穿搭" : "记录当天穿搭",
+      description: "可以直接挑选今天真正穿到的单品，保存后会立即回写到月历。",
+      submitLabel: detail ? "保存修改" : "写入日历",
       fields: [
-        { name: "outfit_name", label: "穿搭标题", value: "今日穿搭" },
-        { name: "occasion", label: "场景", value: "日常通勤" },
-        { name: "note", label: "备注", type: "textarea", full: true, value: "今天想要轻一点、干净一点的感觉。" }
+        { name: "outfit_name", label: "穿搭标题", value: detail && detail.outfit_name ? detail.outfit_name : "今日穿搭" },
+        { name: "occasion", label: "场景", value: detail && detail.occasion ? detail.occasion : "日常通勤" },
+        { name: "item_id_1", label: "主单品 1", type: "select", options: diaryItemOptions(), value: selectedIds[0] ? String(selectedIds[0]) : "" },
+        { name: "item_id_2", label: "主单品 2", type: "select", options: diaryItemOptions(), value: selectedIds[1] ? String(selectedIds[1]) : "" },
+        { name: "item_id_3", label: "主单品 3", type: "select", options: diaryItemOptions(), value: selectedIds[2] ? String(selectedIds[2]) : "" },
+        { name: "note", label: "备注", type: "textarea", full: true, value: detail && detail.note ? detail.note : "今天想要轻一点、干净一点的感觉。" }
       ],
-      note: "保存后会立刻回写到月历，并可重新点进当天查看详情。"
+      note: state.wardrobeItems.length ? "保存后会立刻回写到月历，并可重新点进当天查看详情。" : "当前衣橱里还没有单品，会先用默认占位写入日志。"
     }).then(function (values) {
       if (!values) return;
+      var resolvedIds = resolveDiaryItemIds(values, defaultIds);
       api("/logs", {
         method: "POST",
         body: JSON.stringify({
@@ -352,7 +480,7 @@
           year: state.year,
           outfit_name: values.outfit_name,
           occasion: values.occasion,
-          item_ids: defaultIds,
+          item_ids: resolvedIds,
           note: values.note
         })
       }).then(function () {
@@ -366,9 +494,12 @@
           year: state.year,
           month: state.month,
           day: day,
+          outfit_name: values.outfit_name,
+          occasion: values.occasion,
+          item_ids: resolvedIds,
           note: values.note,
           tags: [values.occasion || "日常", "本地预览"],
-          items: buildLocalItemsFromWardrobe(defaultIds)
+          items: buildLocalItemsFromWardrobe(resolvedIds)
         };
         writeLocalDiary(localDiary);
         state.usingLocalPreview = true;
@@ -377,6 +508,10 @@
         W.toast("接口暂时未连接，已先保存到本地穿搭日志", "soft");
       });
     });
+  }
+
+  function recordOutfitForDay(day) {
+    openDiaryEditor(day, null);
   }
 
   function renderEmptyDay(day) {
@@ -410,7 +545,7 @@
     byId("packCount").textContent = "共 " + (result.packed_items || []).length + " 类";
     var grid = byId("suitcaseGrid");
     grid.innerHTML = (result.packed_items || []).map(function (item, index) {
-      return '<div class="suitcase-item" style="animation-delay:' + (index * 0.08) + 's"><div class="item-emoji">' + item.emoji + '</div><div class="item-name">' + W.escapeHtml(item.name) + '</div><div class="item-qty">' + W.escapeHtml(item.qty) + "</div></div>";
+      return '<div class="suitcase-item" data-item-card="' + encodeItemCard(item) + '" style="animation-delay:' + (index * 0.08) + 's">' + renderItemThumb(item, "item-emoji") + '<div class="item-name">' + W.escapeHtml(item.name) + '</div><div class="item-qty">' + W.escapeHtml(item.qty) + "</div></div>";
     }).join("");
 
     setTimeout(function () {
@@ -419,9 +554,21 @@
       });
     }, 80);
 
-    byId("dayPlans").innerHTML = (result.day_plans || []).map(function (plan) {
-      return '<div class="day-plan-card"><h4>' + W.escapeHtml(plan.title) + '</h4><div class="day-plan-items">' + (plan.items || []).map(function (item) { return "<span>" + W.escapeHtml(item) + "</span>"; }).join("") + "</div></div>";
+    var planHtml = "";
+    if (result.summary) {
+      planHtml += '<div class="day-plan-card"><h4>整体建议</h4><div style="font-size:12px;line-height:1.7;color:var(--text-light)">' + W.escapeHtml(result.summary) + "</div></div>";
+    }
+    byId("dayPlans").innerHTML = planHtml + (result.day_plans || []).map(function (plan) {
+      return '<div class="day-plan-card"><h4>' + W.escapeHtml(plan.title) + '</h4>' +
+        (plan.note ? '<div style="margin-bottom:10px;font-size:11.5px;line-height:1.7;color:var(--text-light)">' + W.escapeHtml(plan.note) + "</div>" : "") +
+        '<div class="day-plan-items">' + (plan.items || []).map(function (item) {
+          if (typeof item === "string") {
+            return "<span>" + W.escapeHtml(item) + "</span>";
+          }
+          return '<button type="button" data-item-card="' + encodeItemCard(item) + '" style="display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:none;border-radius:14px;background:rgba(255,250,246,.94);font-family:inherit;font-size:12px;color:var(--text-mid);cursor:pointer">' + renderItemThumb(item, "item-plan-thumb") + "<strong style=\"font-weight:500;color:var(--text)\">" + W.escapeHtml(item.name) + "</strong></button>";
+        }).join("") + "</div></div>";
     }).join("");
+    bindDetailTriggers(byId("suitcaseResult"));
     refreshFx();
   }
 
@@ -515,9 +662,17 @@
       var dayCount = parseInt((byId("tripDays").value || "5").match(/\d+/), 10) || 5;
       var packedItems = buildLocalItemsFromWardrobe(state.wardrobeItems.slice(0, 6).map(function (item) { return item.id; })).map(function (item, index) {
         return {
+          id: item.id || index + 1,
           emoji: item.emoji,
           name: item.name,
-          qty: index < 3 && dayCount >= 5 ? "×2" : "×1"
+          detail: item.detail,
+          color: item.color,
+          color_hex: item.color_hex || item.color,
+          thumbnail_url: item.thumbnail_url || "",
+          tags: item.tags || [],
+          occasions: item.occasions || [],
+          qty: index < 3 && dayCount >= 5 ? "×2" : "×1",
+          reason: "本地预览模式下，为你优先保留最容易复用的旅途单品。"
         };
       });
       var dayPlans = [];
@@ -525,9 +680,8 @@
       for (var index = 0; index < dayCount; index += 1) {
         dayPlans.push({
           title: "Day " + (index + 1) + " · " + destination,
-          items: packedItems.slice(index % divisor).concat(packedItems.slice(0, index % divisor)).slice(0, 3).map(function (item) {
-            return item.emoji + " " + item.name;
-          })
+          note: "先用衣橱里最稳的基础单品打底，再留一件应对温差和拍照场景。",
+          items: packedItems.slice(index % divisor).concat(packedItems.slice(0, index % divisor)).slice(0, 3)
         });
       }
       renderSuitcase({ packed_items: packedItems, day_plans: dayPlans });

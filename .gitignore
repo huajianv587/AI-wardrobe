@@ -2,6 +2,7 @@
 node_modules/
 .next/
 out/
+*.tsbuildinfo
 
 # Python
 __pycache__/
@@ -9,6 +10,7 @@ __pycache__/
 .pytest_cache/
 .venv/
 venv/
+backend/scripts/__pycache__/
 
 # Environment
 .env
@@ -31,3 +33,4 @@ model_training/outputs/
 # Editors / OS
 .DS_Store
 Thumbs.db
+.claude/

@@ -146,7 +146,7 @@ export function RecommendationPanel() {
   }, [authReady, isAuthenticated, replaceItems]);
 
   useEffect(() => {
-    if (result.source === "api") {
+    if (result.source !== "fallback") {
       return;
     }
 
@@ -202,7 +202,7 @@ export function RecommendationPanel() {
           </div>
           <div className="metric-tile p-4">
             <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Request mode</p>
-            <p className="mt-2 text-lg font-semibold text-[var(--ink-strong)]">{result.source === "api" ? "Backend API" : "Local fallback"}</p>
+            <p className="mt-2 text-lg font-semibold text-[var(--ink-strong)]">{result.source === "fallback" ? "Local fallback" : "Live backend"}</p>
           </div>
           <div className="metric-tile p-4">
             <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">One more look</p>

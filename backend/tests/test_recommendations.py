@@ -87,6 +87,62 @@ def test_recommendations_use_remote_worker_when_enabled(monkeypatch):
     assert captured["payload"]["wardrobe_items"][0]["name"] == "Soft Ivory Shirt"
 
 
+def test_recommendations_support_openai_compatible_endpoint(monkeypatch):
+    monkeypatch.setattr(recommendation_service.local_model, "should_use_local_model", lambda feature: False)
+    monkeypatch.setattr(
+        recommendation_service.local_model,
+        "get_remote_worker_url",
+        lambda feature: "https://api.deepseek.com/v1/chat/completions",
+    )
+    monkeypatch.setattr(recommendation_service.settings, "llm_recommender_api_key", "")
+    monkeypatch.setattr(recommendation_service.settings, "llm_recommender_model_name", "")
+    monkeypatch.setattr(recommendation_service.settings, "deepseek_api_key", "deepseek-secret")
+    monkeypatch.setattr(recommendation_service.settings, "deepseek_multimodal_model", "deepseek-chat")
+
+    class DummyResponse:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {
+                "choices": [
+                    {
+                        "message": {
+                            "content": (
+                                '{"source":"deepseek-direct","outfits":[{"title":"Soft Office Edit",'
+                                '"rationale":"Direct from a compatible endpoint.","item_ids":[1,2,3],'
+                                '"confidence":0.89,"confidence_label":"很懂你"}],'
+                                '"agent_trace":[{"node":"DeepSeek","summary":"Compatible chat completions path."}]}'
+                            )
+                        }
+                    }
+                ]
+            }
+
+    captured = {}
+
+    def fake_post(url, headers, json, timeout):
+        captured["url"] = url
+        captured["headers"] = headers
+        captured["payload"] = json
+        captured["timeout"] = timeout
+        return DummyResponse()
+
+    monkeypatch.setattr(recommendation_service.httpx, "post", fake_post)
+
+    response = recommendation_service.generate_recommendations(
+        RecommendationRequest(prompt="Office commute tomorrow"),
+        _items(),
+    )
+
+    assert response.source == "deepseek-direct"
+    assert response.outfits[0].title == "Soft Office Edit"
+    assert captured["url"] == "https://api.deepseek.com/v1/chat/completions"
+    assert captured["headers"]["Authorization"] == "Bearer deepseek-secret"
+    assert captured["payload"]["model"] == "deepseek-chat"
+    assert captured["payload"]["messages"][0]["role"] == "system"
+
+
 def test_recommendations_fall_back_to_local_when_remote_fails(monkeypatch):
     monkeypatch.setattr(recommendation_service.local_model, "should_use_local_model", lambda feature: False)
     monkeypatch.setattr(recommendation_service.local_model, "get_remote_worker_url", lambda feature: "https://llm-worker.example.com")

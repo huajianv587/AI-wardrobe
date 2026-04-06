@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import json
 import logging
+import re
+from urllib.parse import urlparse
 
 import httpx
 
@@ -10,6 +13,18 @@ from core import local_model
 from core.config import settings
 
 logger = logging.getLogger(__name__)
+
+RECOMMENDER_SYSTEM_PROMPT = (
+    "You are an AI wardrobe stylist. Return strict JSON only. "
+    "Use only the wardrobe item ids that appear in wardrobe_items. "
+    "Prefer 2 outfit options when enough items exist. "
+    "Return this schema exactly: "
+    '{"source":"remote-model","outfits":[{"title":"...","rationale":"...","item_ids":[1,2],"confidence":0.84,'
+    '"confidence_label":"很懂你","key_item_id":1,"substitute_item_ids":[3],"reason_badges":["soft office"],'
+    '"charm_copy":"...","mood_emoji":"✨"}],"agent_trace":[{"node":"Router Agent","summary":"..."}],'
+    '"profile_summary":"...","closet_gaps":["..."],"reminder_flags":["..."]}. '
+    "Do not wrap the JSON in markdown."
+)
 
 
 def _pick_by_slot(items: list[ClothingItem], slot: str, keywords: list[str]) -> ClothingItem | None:
@@ -90,6 +105,112 @@ def _serialize_items(items: list[ClothingItem]) -> list[dict]:
 
 def _infer_url(base_url: str) -> str:
     return f"{base_url.rstrip('/')}/infer"
+
+
+def _chat_completions_url(base_url: str) -> str:
+    trimmed = base_url.rstrip("/")
+    if trimmed.endswith("/chat/completions"):
+        return trimmed
+    if trimmed.endswith("/v1"):
+        return f"{trimmed}/chat/completions"
+    return f"{trimmed}/v1/chat/completions"
+
+
+def _json_from_text(content: str | None) -> dict | None:
+    if not content:
+        return None
+    cleaned = str(content).strip()
+    if cleaned.startswith("```"):
+        cleaned = re.sub(r"^```[a-zA-Z0-9_-]*\s*", "", cleaned)
+        cleaned = re.sub(r"\s*```$", "", cleaned)
+    match = re.search(r"\{[\s\S]*\}", cleaned)
+    if not match:
+        return None
+    try:
+        parsed = json.loads(match.group(0))
+    except json.JSONDecodeError:
+        return None
+    return parsed if isinstance(parsed, dict) else None
+
+
+def _content_from_chat_completions(payload: dict) -> str:
+    choices = payload.get("choices", []) if isinstance(payload, dict) else []
+    if not choices:
+        return ""
+    message = choices[0].get("message", {}) if isinstance(choices[0], dict) else {}
+    content = message.get("content") or ""
+    if isinstance(content, list):
+        return "\n".join(str(part.get("text") or "") for part in content if isinstance(part, dict))
+    return str(content)
+
+
+def _looks_like_openai_compatible_url(base_url: str) -> bool:
+    trimmed = base_url.strip().rstrip("/")
+    if not trimmed:
+        return False
+    parsed = urlparse(trimmed)
+    host = parsed.netloc.lower()
+    path = parsed.path.rstrip("/")
+    if path.endswith("/chat/completions") or path.endswith("/v1"):
+        return True
+    if host.endswith("openai.com") or host.endswith("deepseek.com"):
+        return True
+    return bool(settings.vllm_base_url.strip() and trimmed == settings.vllm_base_url.strip().rstrip("/"))
+
+
+def _llm_recommender_api_key(base_url: str) -> str:
+    explicit_key = settings.llm_recommender_api_key.strip()
+    if explicit_key:
+        return explicit_key
+
+    trimmed = base_url.strip().rstrip("/")
+    if settings.vllm_base_url.strip() and trimmed == settings.vllm_base_url.strip().rstrip("/"):
+        return ""
+
+    host = urlparse(trimmed).netloc.lower()
+    if host.endswith("deepseek.com"):
+        return settings.deepseek_api_key.strip()
+    if host.endswith("openai.com"):
+        return settings.openai_api_key.strip()
+    return ""
+
+
+def _llm_recommender_model_name(base_url: str) -> str:
+    explicit_name = settings.llm_recommender_model_name.strip()
+    if explicit_name:
+        return explicit_name
+
+    trimmed = base_url.strip().rstrip("/")
+    if settings.vllm_base_url.strip() and trimmed == settings.vllm_base_url.strip().rstrip("/"):
+        return settings.qwen_model_name.strip() or "Qwen/Qwen2.5-VL-7B-Instruct"
+
+    host = urlparse(trimmed).netloc.lower()
+    if host.endswith("deepseek.com"):
+        return settings.deepseek_multimodal_model.strip() or "deepseek-chat"
+    if host.endswith("openai.com"):
+        return settings.openai_multimodal_model.strip() or "gpt-4.1-mini"
+    return settings.qwen_model_name.strip() or settings.deepseek_multimodal_model.strip() or settings.openai_multimodal_model.strip() or "gpt-4.1-mini"
+
+
+def _openai_style_messages(request: RecommendationRequest, items: list[ClothingItem]) -> list[dict]:
+    snapshot = {
+        "prompt": request.prompt,
+        "weather": request.weather,
+        "scene": request.scene,
+        "style": request.style,
+        "wardrobe_items": _serialize_items(items),
+    }
+    return [
+        {"role": "system", "content": RECOMMENDER_SYSTEM_PROMPT},
+        {
+            "role": "user",
+            "content": (
+                "Build the best outfit recommendations for this wardrobe snapshot. "
+                "If the wardrobe is small, it is okay to reuse items across looks. "
+                f"Snapshot: {json.dumps(snapshot, ensure_ascii=False)}"
+            ),
+        },
+    ]
 
 
 def _coerce_item_ids(raw_option: dict, items: list[ClothingItem]) -> list[int]:
@@ -175,11 +296,11 @@ def _parse_remote_response(payload: dict, items: list[ClothingItem]) -> Recommen
     )
 
 
-def _remote_recommendations(request: RecommendationRequest, items: list[ClothingItem]) -> RecommendationResponse:
-    worker_url = local_model.get_remote_worker_url("llm_recommender")
-    if not worker_url:
-        raise ValueError("No external LLM recommender worker URL is configured.")
-
+def _remote_worker_recommendations(
+    request: RecommendationRequest,
+    items: list[ClothingItem],
+    worker_url: str,
+) -> RecommendationResponse:
     payload = {
         "prompt": request.prompt,
         "weather": request.weather,
@@ -196,6 +317,43 @@ def _remote_recommendations(request: RecommendationRequest, items: list[Clothing
     )
     response.raise_for_status()
     return _parse_remote_response(response.json(), items)
+
+
+def _openai_compatible_recommendations(
+    request: RecommendationRequest,
+    items: list[ClothingItem],
+    base_url: str,
+) -> RecommendationResponse:
+    headers = {"Content-Type": "application/json"}
+    if api_key := _llm_recommender_api_key(base_url):
+        headers["Authorization"] = f"Bearer {api_key}"
+
+    response = httpx.post(
+        _chat_completions_url(base_url),
+        headers=headers,
+        json={
+            "model": _llm_recommender_model_name(base_url),
+            "temperature": 0.2,
+            "response_format": {"type": "json_object"},
+            "messages": _openai_style_messages(request, items),
+        },
+        timeout=max(settings.ai_demo_adapter_timeout_seconds, settings.multimodal_request_timeout_seconds),
+    )
+    response.raise_for_status()
+    payload = _json_from_text(_content_from_chat_completions(response.json()))
+    if payload is None:
+        raise ValueError("OpenAI-compatible recommender response did not contain valid JSON.")
+    return _parse_remote_response(payload, items)
+
+
+def _remote_recommendations(request: RecommendationRequest, items: list[ClothingItem]) -> RecommendationResponse:
+    worker_url = local_model.get_remote_worker_url("llm_recommender")
+    if not worker_url:
+        raise ValueError("No external LLM recommender worker URL is configured.")
+
+    if _looks_like_openai_compatible_url(worker_url):
+        return _openai_compatible_recommendations(request, items, worker_url)
+    return _remote_worker_recommendations(request, items, worker_url)
 
 
 def generate_recommendations(request: RecommendationRequest, items: list[ClothingItem]) -> RecommendationResponse:

@@ -1054,8 +1054,8 @@ def _provider_chain(config: dict[str, Any]) -> str:
     return " → ".join(
         [
             str(config.get("recognition_local_model") or "本地视觉解构"),
-            str(config.get("recognition_openai_model") or "OpenAI"),
             str(config.get("recognition_deepseek_model") or "DeepSeek"),
+            str(config.get("recognition_openai_model") or "OpenAI"),
         ]
     )
 
@@ -1093,25 +1093,6 @@ def generate_decomposition_preview(
                 ),
             )
         )
-    if settings.openai_api_key.strip():
-        providers.append(
-            (
-                f"OpenAI · {normalized_config.get('recognition_openai_model') or settings.openai_multimodal_model}",
-                lambda: _build_remote_preview(
-                    bundle,
-                    user_id=user_id,
-                    preview_id=resolved_preview_id,
-                    provider_label=f"OpenAI · {normalized_config.get('recognition_openai_model') or settings.openai_multimodal_model}",
-                    remote_payload=_call_remote_decomposition(
-                        base_url=settings.openai_base_url,
-                        model_name=str(normalized_config.get('recognition_openai_model') or settings.openai_multimodal_model),
-                        api_key=settings.openai_api_key,
-                        bundle=bundle,
-                    )
-                    or {},
-                ),
-            )
-        )
     if settings.deepseek_api_key.strip():
         providers.append(
             (
@@ -1125,6 +1106,25 @@ def generate_decomposition_preview(
                         base_url=settings.deepseek_base_url,
                         model_name=str(normalized_config.get('recognition_deepseek_model') or settings.deepseek_multimodal_model),
                         api_key=settings.deepseek_api_key,
+                        bundle=bundle,
+                    )
+                    or {},
+                ),
+            )
+        )
+    if settings.openai_api_key.strip():
+        providers.append(
+            (
+                f"OpenAI · {normalized_config.get('recognition_openai_model') or settings.openai_multimodal_model}",
+                lambda: _build_remote_preview(
+                    bundle,
+                    user_id=user_id,
+                    preview_id=resolved_preview_id,
+                    provider_label=f"OpenAI · {normalized_config.get('recognition_openai_model') or settings.openai_multimodal_model}",
+                    remote_payload=_call_remote_decomposition(
+                        base_url=settings.openai_base_url,
+                        model_name=str(normalized_config.get('recognition_openai_model') or settings.openai_multimodal_model),
+                        api_key=settings.openai_api_key,
                         bundle=bundle,
                     )
                     or {},

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from pathlib import Path
 import shutil
+from pathlib import Path
 from urllib.request import urlretrieve
 
 
-ROOT = Path(__file__).resolve().parents[1] / "data" / "models" / "fashion"
+ROOT = Path(__file__).resolve().parents[2] / "data" / "models" / "fashion"
 SAM2_DIR = ROOT / "sam2"
 SCHP_DIR = ROOT / "schp"
 YOLO_DIR = ROOT / "yolo"
@@ -104,9 +104,8 @@ def main() -> None:
     download_fashionclip()
 
     print()
-    print("SCHP 官方权重请按官方仓库说明手动放入以下目录：")
-    print(f"  - {SCHP_DIR / 'atr'}")
-    print(f"  - {SCHP_DIR / 'lip'}")
+    print("Fashion pipeline models are ready under:")
+    print(f"  - {ROOT}")
 
 
 if __name__ == "__main__":

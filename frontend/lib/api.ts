@@ -86,6 +86,26 @@ interface ApiAssistantOverview {
   recent_saved_outfits: SavedOutfit[];
 }
 
+interface ApiTryOnLookItem {
+  item_id: number | null;
+  name: string;
+  slot: string;
+  image_url: string | null;
+}
+
+interface ApiTryOnRenderResponse {
+  status: string;
+  provider_mode: string;
+  provider: string;
+  preview_url: string;
+  item_ids: number[];
+  items: ApiTryOnLookItem[];
+  message: string;
+  prompt: string | null;
+  scene: string | null;
+  created_at: string;
+}
+
 interface ApiStatusMessageResponse {
   status: string;
   message: string;
@@ -239,6 +259,26 @@ export interface PackingResponse {
   weather: WeatherSummary;
   capsule_summary: string;
   suggestions: PackingSuggestion[];
+}
+
+export interface TryOnLookItem {
+  itemId: number | null;
+  name: string;
+  slot: string;
+  imageUrl: string | null;
+}
+
+export interface TryOnRenderResult {
+  status: string;
+  providerMode: string;
+  provider: string;
+  previewUrl: string;
+  itemIds: number[];
+  items: TryOnLookItem[];
+  message: string;
+  prompt: string | null;
+  scene: string | null;
+  createdAt: string;
 }
 
 export interface StyleProfile {
@@ -550,6 +590,26 @@ function mapAssistantOverview(payload: ApiAssistantOverview): AssistantOverview 
     reminders: payload.reminders,
     style_profile: payload.style_profile,
     recent_saved_outfits: payload.recent_saved_outfits
+  };
+}
+
+function mapTryOnRenderResult(payload: ApiTryOnRenderResponse): TryOnRenderResult {
+  return {
+    status: payload.status,
+    providerMode: payload.provider_mode,
+    provider: payload.provider,
+    previewUrl: resolveAssetUrl(payload.preview_url) ?? payload.preview_url,
+    itemIds: payload.item_ids ?? [],
+    items: (payload.items ?? []).map((item) => ({
+      itemId: item.item_id,
+      name: item.name,
+      slot: item.slot,
+      imageUrl: resolveAssetUrl(item.image_url)
+    })),
+    message: payload.message,
+    prompt: payload.prompt,
+    scene: payload.scene,
+    createdAt: payload.created_at
   };
 }
 
@@ -1074,6 +1134,21 @@ export async function fetchPackingPlan(payload: {
     method: "POST",
     body: JSON.stringify(payload)
   });
+}
+
+export async function renderVirtualTryOn(payload: {
+  item_ids: number[];
+  person_image_url?: string | null;
+  garment_image_urls?: string[];
+  prompt?: string | null;
+  scene?: string | null;
+}) {
+  const result = await apiRequest<ApiTryOnRenderResponse>("/api/v1/try-on/render", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+
+  return mapTryOnRenderResult(result);
 }
 
 export async function fetchClientAssistantOverview() {

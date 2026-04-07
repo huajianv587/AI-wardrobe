@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import json
+import logging
 import time
 from datetime import datetime
 from io import BytesIO
@@ -19,6 +20,8 @@ from app.schemas.try_on import TryOnLookItem, TryOnRenderRequest, TryOnRenderRes
 from core import local_model
 from core.config import settings
 from services import storage_service, wardrobe_service
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_REPLICATE_INPUT_TEMPLATE = {
     "human_img": "{{person_image_url}}",
@@ -202,6 +205,20 @@ def _tryon_route_label(base_url: str) -> str:
     if path and path != "/":
         return f"{host}{path}"
     return host
+
+
+def _route_error_trace(route_errors: list[tuple[str, str, Exception]]) -> list[str]:
+    return [
+        f"{route_name}@{_tryon_route_label(route_url)} => {exc}"
+        for route_name, route_url, exc in route_errors
+    ]
+
+
+def _route_error_detail(route_errors: list[tuple[str, str, Exception]]) -> str | None:
+    trace = _route_error_trace(route_errors)
+    if not trace:
+        return None
+    return "; ".join(trace)
 
 
 def _replicate_headers(api_key: str, *, include_body_headers: bool = True) -> dict[str, str]:
@@ -578,6 +595,13 @@ def render_try_on(db: Session, user: User, payload: TryOnRenderRequest) -> TryOn
             break
         except Exception as exc:
             route_errors.append((route_name, route_url, exc))
+            logger.warning(
+                "Try-on route %s failed via %s: %s",
+                route_name,
+                _tryon_route_label(route_url),
+                exc,
+                exc_info=True,
+            )
 
     if image_bytes is None:
         image_bytes, content_type, provider = _local_tryon(request=payload, items=items)
@@ -597,6 +621,8 @@ def render_try_on(db: Session, user: User, payload: TryOnRenderRequest) -> TryOn
         content_type,
     )
     look_items = _serialize_items(items, payload.garment_image_urls)
+    route_error_detail = _route_error_detail(route_errors)
+    debug_trace = _route_error_trace(route_errors)
     if provider_mode == "remote":
         message = "试衣图已经由远端模型服务生成。"
     elif provider_mode == "remote-fallback-worker":
@@ -606,11 +632,9 @@ def render_try_on(db: Session, user: User, payload: TryOnRenderRequest) -> TryOn
     elif provider_mode == "remote-fallback-local":
         message = "远端试衣服务暂时不可用，已自动切回本地试衣合成。"
     elif provider_mode == "remote-fallback-worker-fallback-local":
-        detail = "; ".join(f"{route_name}@{_tryon_route_label(route_url)} => {exc}" for route_name, route_url, exc in route_errors)
-        message = f"云端试衣 API 和本地 OOT worker 都不可用，已切换到本地试衣合成预览。Detail: {detail}"
+        message = f"云端试衣 API 和本地 OOT worker 都不可用，已切换到本地试衣合成预览。Detail: {route_error_detail}"
     elif provider_mode == "local-worker-fallback-local":
-        detail = "; ".join(f"{route_name}@{_tryon_route_label(route_url)} => {exc}" for route_name, route_url, exc in route_errors)
-        message = f"本地 OOT worker 暂时不可用，已切换到本地试衣合成预览。Detail: {detail}"
+        message = f"本地 OOT worker 暂时不可用，已切换到本地试衣合成预览。Detail: {route_error_detail}"
     elif skipped_remote_for_missing_person_image:
         message = "未上传全身照，当前先生成本地试衣预览。上传全身照后会自动切到 Replicate 云端试衣。"
     else:
@@ -624,6 +648,8 @@ def render_try_on(db: Session, user: User, payload: TryOnRenderRequest) -> TryOn
         item_ids=[item.id for item in items],
         items=look_items,
         message=message,
+        remote_error_detail=route_error_detail,
+        debug_trace=debug_trace,
         prompt=payload.prompt,
         scene=payload.scene,
         created_at=datetime.utcnow(),

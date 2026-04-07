@@ -26,6 +26,8 @@ class TryOnRenderResponse(BaseModel):
     item_ids: list[int] = Field(default_factory=list)
     items: list[TryOnLookItem] = Field(default_factory=list)
     message: str
+    remote_error_detail: str | None = None
+    debug_trace: list[str] = Field(default_factory=list)
     prompt: str | None = None
     scene: str | None = None
     created_at: datetime

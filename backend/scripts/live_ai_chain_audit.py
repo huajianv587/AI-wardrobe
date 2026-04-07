@@ -320,18 +320,36 @@ def main() -> None:
                 tryon = tryon_response.json()
                 provider_mode = str(tryon.get("provider_mode") or "")
                 provider = str(tryon.get("provider") or "")
+                remote_error_detail = str(tryon.get("remote_error_detail") or "")
+                debug_trace = tryon.get("debug_trace") or []
                 if provider_mode == "remote":
                     _step("try_on_fallback", True, f"Replicate cloud try-on responded normally. provider={provider}")
                 elif provider_mode == "remote-fallback-worker":
-                    _step("try_on_fallback", True, f"cloud API failed over to worker provider={provider}")
+                    _step(
+                        "try_on_fallback",
+                        True,
+                        f"cloud API failed over to worker provider={provider} detail={remote_error_detail or debug_trace}",
+                    )
                 elif provider_mode == "remote-fallback-local":
                     audit_failed = True
-                    _step("try_on_fallback", False, f"cloud API fell straight to local composite, worker fallback is not active. provider={provider}")
+                    _step(
+                        "try_on_fallback",
+                        False,
+                        f"cloud API fell straight to local composite, worker fallback is not active. provider={provider} detail={remote_error_detail or debug_trace}",
+                    )
                 elif provider_mode in {"remote-fallback-worker-fallback-local", "local-worker-fallback-local"}:
                     audit_failed = True
-                    _step("try_on_fallback", False, f"worker fallback path exists but degraded to local composite. provider_mode={provider_mode} provider={provider}")
+                    _step(
+                        "try_on_fallback",
+                        False,
+                        f"worker fallback path exists but degraded to local composite. provider_mode={provider_mode} provider={provider} detail={remote_error_detail or debug_trace}",
+                    )
                 else:
-                    _step("try_on_fallback", True, f"unexpected but non-failing mode={provider_mode}, provider={provider}")
+                    _step(
+                        "try_on_fallback",
+                        True,
+                        f"unexpected but non-failing mode={provider_mode}, provider={provider}, detail={remote_error_detail or debug_trace}",
+                    )
             else:
                 audit_failed = True
                 _step("try_on_fallback", False, f"Try-on endpoint returned {tryon_response.status_code}, so the fallback chain could not be verified online.")

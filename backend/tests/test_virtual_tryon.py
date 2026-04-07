@@ -114,6 +114,8 @@ def test_virtual_tryon_supports_replicate_async_predictions(monkeypatch):
     assert response.provider_mode == "remote"
     assert response.provider.startswith("Replicate")
     assert response.preview_url == uploaded_preview.url
+    assert response.remote_error_detail is None
+    assert response.debug_trace == []
     assert captured["create_url"] == "https://api.replicate.com/v1/predictions"
     assert captured["create_headers"]["Authorization"] == "Bearer replicate-secret"
     assert captured["create_payload"]["version"] == "owner/model:123456"
@@ -197,6 +199,8 @@ def test_virtual_tryon_falls_back_to_local_oot_worker_when_cloud_api_fails(monke
     assert response.provider_mode == "remote-fallback-worker"
     assert response.provider == "OOTDiffusion local"
     assert response.preview_url == uploaded_preview.url
+    assert response.remote_error_detail == "remote@api.replicate.com/v1/predictions => replicate unavailable"
+    assert response.debug_trace == ["remote@api.replicate.com/v1/predictions => replicate unavailable"]
     assert captured["urls"] == [
         "https://api.replicate.com/v1/predictions",
         "http://127.0.0.1:9002/infer",
@@ -306,12 +310,20 @@ def test_virtual_tryon_skips_replicate_without_person_image(monkeypatch):
             source="remote",
         ),
     )
-    monkeypatch.setattr(storage_service, "save_generated_asset", lambda *args, **kwargs: storage_service.StoredAsset(
-        relative_path="tryon/user-1/local-preview.png",
-        url="https://assets.example.com/local-preview.png",
-        backup_url="https://assets.example.com/local-preview.png",
-    ))
-    monkeypatch.setattr(virtual_tryon_service.httpx, "post", lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("Replicate should be skipped when person_image_url is missing")))
+    monkeypatch.setattr(
+        storage_service,
+        "save_generated_asset",
+        lambda *args, **kwargs: storage_service.StoredAsset(
+            relative_path="tryon/user-1/local-preview.png",
+            url="https://assets.example.com/local-preview.png",
+            backup_url="https://assets.example.com/local-preview.png",
+        ),
+    )
+    monkeypatch.setattr(
+        virtual_tryon_service.httpx,
+        "post",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("Replicate should be skipped when person_image_url is missing")),
+    )
 
     response = virtual_tryon_service.render_try_on(
         db=None,
@@ -324,5 +336,68 @@ def test_virtual_tryon_skips_replicate_without_person_image(monkeypatch):
     )
 
     assert response.provider_mode == "local"
-    assert response.provider == "本地试衣合成"
-    assert "上传全身照后会自动切到 Replicate 云端试衣" in response.message
+    assert response.remote_error_detail is None
+    assert response.debug_trace == []
+    assert "Replicate" in response.message
+
+
+def test_virtual_tryon_remote_fallback_local_exposes_route_error_detail(monkeypatch):
+    garment_item = ClothingItem(
+        id=88,
+        user_id=1,
+        name="Fallback Audit Top",
+        category="tops",
+        slot="top",
+        color="Pink",
+        brand="AI Wardrobe",
+        image_url="https://assets.example.com/top.png",
+        processed_image_url=None,
+        tags=["soft"],
+        occasions=["office"],
+        style_notes="Remote fallback local detail test.",
+    )
+
+    monkeypatch.setattr(virtual_tryon_service.local_model, "should_use_local_model", lambda feature: False)
+    monkeypatch.setattr(virtual_tryon_service, "_look_items_from_ids", lambda db, user, item_ids: [garment_item])
+    monkeypatch.setattr(virtual_tryon_service.settings, "virtual_tryon_api_url", "https://api.replicate.com/v1/predictions")
+    monkeypatch.setattr(virtual_tryon_service.settings, "virtual_tryon_api_key", "replicate-secret")
+    monkeypatch.setattr(virtual_tryon_service.settings, "virtual_tryon_fallback_api_url", "")
+    monkeypatch.setattr(
+        storage_service,
+        "load_asset_bytes",
+        lambda url: storage_service.LoadedAsset(
+            payload=_png_bytes((240, 226, 214)),
+            content_type="image/png",
+            filename="top.png",
+            source="remote",
+        ),
+    )
+    monkeypatch.setattr(
+        storage_service,
+        "save_generated_asset",
+        lambda *args, **kwargs: storage_service.StoredAsset(
+            relative_path="tryon/user-1/local-preview.png",
+            url="https://assets.example.com/local-preview.png",
+            backup_url="https://assets.example.com/local-preview.png",
+        ),
+    )
+    monkeypatch.setattr(
+        virtual_tryon_service.httpx,
+        "post",
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("replicate schema mismatch")),
+    )
+
+    response = virtual_tryon_service.render_try_on(
+        db=None,
+        user=User(id=1, email="tester@ai-wardrobe.dev", password_hash="supabase-managed"),
+        payload=TryOnRenderRequest(
+            item_ids=[88],
+            person_image_url="https://assets.example.com/person.png",
+            prompt="Fallback audit",
+            scene="studio",
+        ),
+    )
+
+    assert response.provider_mode == "remote-fallback-local"
+    assert response.remote_error_detail == "remote@api.replicate.com/v1/predictions => replicate schema mismatch"
+    assert response.debug_trace == ["remote@api.replicate.com/v1/predictions => replicate schema mismatch"]

@@ -888,6 +888,10 @@ def _emoji_for_prompt(prompt: str) -> str:
     return CHARM_EMOJI["default"]
 
 
+def _compose_charm_copy(key_item_name: str | None) -> str:
+    hero_name = key_item_name or "主角单品"
+    return f"我记得你喜欢看起来不费力但有被认真照顾到的感觉，这套就把 {hero_name} 放在了最顺手的位置。"
+
 def _enrich_recommendation(
     response: RecommendationResponse,
     items: list[ClothingItem],
@@ -928,10 +932,8 @@ def _enrich_recommendation(
             if profile.favorite_colors:
                 reason_badges.append(f"leans into {profile.favorite_colors[0]}")
             outfit.reason_badges = _unique_preserve(reason_badges)[:4]
-            outfit.charm_copy = (
-                f"{_emoji_for_prompt(prompt)} 我记得你喜欢看起来不费力但有被认真照顾到的感觉，这套就把 {key_item.name if key_item else '主角单品'} 放在了最顺手的位置。"
-            )
-            outfit.mood_emoji = _emoji_for_prompt(prompt)
+            outfit.charm_copy = _compose_charm_copy(key_item.name if key_item else None)
+            outfit.mood_emoji = None
 
     response.profile_summary = _build_profile_summary(profile)
     response.closet_gaps = [insight.title for insight in gap_response.insights[:3]]

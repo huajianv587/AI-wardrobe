@@ -242,6 +242,45 @@ def test_virtual_tryon_default_replicate_template_infers_category(monkeypatch):
     assert payload["force_dc"] is True
 
 
+def test_virtual_tryon_template_context_supports_railway_alias_placeholders(monkeypatch):
+    top_item = ClothingItem(
+        id=66,
+        user_id=1,
+        name="Alias Template Top",
+        category="tops",
+        slot="top",
+        color="Pink",
+        brand="AI Wardrobe",
+        image_url="https://assets.example.com/top.png",
+        processed_image_url=None,
+        tags=["soft"],
+        occasions=["office"],
+        style_notes="Alias placeholder test.",
+    )
+
+    monkeypatch.setattr(
+        virtual_tryon_service.settings,
+        "virtual_tryon_replicate_input_template",
+        '{"human_img":"{{human_img}}","garm_img":"{{garm_img}}","garment_des":"{{garment_des}}"}',
+    )
+
+    payload = virtual_tryon_service._replicate_input_payload(
+        TryOnRenderRequest(
+            item_ids=[66],
+            person_image_url="https://assets.example.com/person.png",
+            prompt="Soft audit look",
+            scene="audit",
+        ),
+        [top_item],
+    )
+
+    assert payload == {
+        "human_img": "https://assets.example.com/person.png",
+        "garm_img": "https://assets.example.com/top.png",
+        "garment_des": "Soft audit look",
+    }
+
+
 def test_virtual_tryon_replicate_uses_public_backup_urls_for_managed_assets(monkeypatch):
     garment_item = ClothingItem(
         id=77,

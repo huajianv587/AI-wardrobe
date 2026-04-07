@@ -287,20 +287,26 @@ def _replicate_template_context(request: TryOnRenderRequest, items: list[Clothin
     ]
     primary_garment_url = garment_urls[0] if garment_urls else None
     replicate_category = _replicate_category(request, items)
+    person_image_url = _ensure_external_image_url(
+        request.person_image_url,
+        relative_directory="tryon/remote-inputs/person",
+        fallback_filename="person-photo.png",
+    )
+    prompt_or_scene = request.prompt or request.scene or "Virtual try-on preview"
     return {
-        "person_image_url": _ensure_external_image_url(
-            request.person_image_url,
-            relative_directory="tryon/remote-inputs/person",
-            fallback_filename="person-photo.png",
-        ),
+        "person_image_url": person_image_url,
+        "human_img": person_image_url,
         "primary_garment_url": primary_garment_url,
+        "garm_img": primary_garment_url,
         "garment_image_urls": garment_urls,
         "prompt": request.prompt or "",
         "scene": request.scene or "",
-        "prompt_or_scene": request.prompt or request.scene or "Virtual try-on preview",
+        "prompt_or_scene": prompt_or_scene,
+        "garment_des": prompt_or_scene,
         "item_ids": [item.id for item in items],
         "garment_count": len(garment_urls),
         "replicate_category": replicate_category,
+        "category": replicate_category,
         "replicate_force_dc": replicate_category == "dresses",
     }
 

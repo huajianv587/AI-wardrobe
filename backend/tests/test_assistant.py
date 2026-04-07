@@ -1,6 +1,6 @@
 import io
 
-from services import weather_service
+from services import assistant_service, weather_service
 
 
 def _seed_closet(client):
@@ -204,6 +204,91 @@ def test_assistant_feedback_save_wear_and_packing(client, monkeypatch):
     assert wear_logs_response.status_code == 200
     assert outfits_response.json()[0]["name"] == "Rainy city set"
     assert any(entry["outfit_name"] == "Rainy city set" for entry in wear_logs)
+
+
+def test_recommendation_survives_assistant_sidecar_failures(client, monkeypatch):
+    _seed_closet(client)
+
+    monkeypatch.setattr(
+        assistant_service,
+        "attach_memory_cards",
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("memory card table missing")),
+    )
+    monkeypatch.setattr(
+        assistant_service,
+        "_load_recent_signals",
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("recommendation signal table missing")),
+    )
+    monkeypatch.setattr(
+        assistant_service,
+        "_build_reminder_response",
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("reminder sidecar missing")),
+    )
+
+    response = client.post(
+        "/api/v1/outfits/recommend",
+        json={
+            "prompt": "Tomorrow office commute, soft but polished.",
+            "scene": "fallback-test",
+            "style": "gentle-practical",
+        },
+    )
+    payload = response.json()
+
+    assert response.status_code == 200
+    assert payload["outfits"]
+    assert payload["profile_summary"]
+    assert payload["reminder_flags"] == []
+
+
+def test_assistant_overview_survives_style_profile_sidecar_failure(client, monkeypatch):
+    _seed_closet(client)
+
+    monkeypatch.setattr(
+        assistant_service,
+        "_ensure_style_profile",
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("style profile table missing")),
+    )
+    monkeypatch.setattr(
+        assistant_service,
+        "_build_reminder_response",
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("reminder sidecar missing")),
+    )
+    monkeypatch.setattr(
+        weather_service,
+        "search_locations",
+        lambda query: [
+            weather_service.LocationResult(
+                name="Shanghai",
+                country="China",
+                admin1="Shanghai",
+                latitude=31.23,
+                longitude=121.47,
+                timezone="Asia/Shanghai",
+            )
+        ],
+    )
+    monkeypatch.setattr(
+        weather_service,
+        "fetch_daily_forecast",
+        lambda **kwargs: weather_service.DailyForecast(
+            location_name=kwargs["location_name"],
+            timezone="Asia/Shanghai",
+            date="2026-04-01",
+            weather_code=2,
+            condition_label="Partly cloudy",
+            temperature_max=25,
+            temperature_min=16,
+            precipitation_probability_max=18,
+        ),
+    )
+
+    overview_response = client.get("/api/v1/assistant/overview")
+    overview = overview_response.json()
+
+    assert overview_response.status_code == 200
+    assert overview["style_profile"]["user_id"] is not None
+    assert overview["reminders"]["repeat_warning"] == []
 
 
 def test_memory_card_and_async_cleanup_task(client):

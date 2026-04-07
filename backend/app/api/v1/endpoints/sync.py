@@ -14,6 +14,15 @@ def sync_status(db: Session = Depends(get_db), current_user: User = Depends(get_
     return sync_service.build_sync_status(db, current_user)
 
 
+def _run_sync(db: Session, current_user: User) -> SyncRunResponse:
+    return sync_service.sync_user_wardrobe(db, current_user)
+
+
 @router.post("/wardrobe", response_model=SyncRunResponse)
 def sync_wardrobe(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> SyncRunResponse:
-    return sync_service.sync_user_wardrobe(db, current_user)
+    return _run_sync(db, current_user)
+
+
+@router.post("/run", response_model=SyncRunResponse)
+def sync_run(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> SyncRunResponse:
+    return _run_sync(db, current_user)

@@ -2482,29 +2482,36 @@ def _map_diary_detail(log: WearLog, items_by_id: dict[int, ClothingItem]) -> dic
 
 def generate_suitcase_plan(db: Session, user: User, payload: ExperienceSuitcasePayload) -> dict[str, Any]:
     days = _extract_days(payload.days_label)
-    packing = assistant_service.generate_packing_plan(
-        db,
-        user,
-        PackingRequest(city=payload.destination, days=days, trip_kind=payload.scene, include_commute=False),
-    )
     items = _all_user_items(db, user)
     items_by_id = {item.id: item for item in items}
+    packing = None
+    offline_preview = False
+
+    try:
+        packing = assistant_service.generate_packing_plan(
+            db,
+            user,
+            PackingRequest(city=payload.destination, days=days, trip_kind=payload.scene, include_commute=False),
+        )
+    except HTTPException:
+        offline_preview = True
 
     packed_items: list[dict[str, Any]] = []
-    for suggestion in packing.suggestions:
-        item = items_by_id.get(suggestion.item_id)
-        if item is None:
-            continue
-        packed_items.append(
-            {
-                **_item_preview_payload(
-                    item,
-                    detail=f"{item.brand or '文文的衣橱'} · {_slot_label(item)} · {item.color}",
-                ),
-                "qty": "×2" if _slot_for_item(item) in {"top", "bottom"} and days >= 5 else "×1",
-                "reason": suggestion.reason,
-            }
-        )
+    if packing is not None:
+        for suggestion in packing.suggestions:
+            item = items_by_id.get(suggestion.item_id)
+            if item is None:
+                continue
+            packed_items.append(
+                {
+                    **_item_preview_payload(
+                        item,
+                        detail=f"{item.brand or '文文的衣橱'} · {_slot_label(item)} · {item.color}",
+                    ),
+                    "qty": "×2" if _slot_for_item(item) in {"top", "bottom"} and days >= 5 else "×1",
+                    "reason": suggestion.reason,
+                }
+            )
 
     if not packed_items:
         fallback_items = items[: min(6, len(items))]
@@ -2519,6 +2526,13 @@ def generate_suitcase_plan(db: Session, user: User, payload: ExperienceSuitcaseP
             }
             for item in fallback_items
         ]
+        offline_preview = True
+
+    summary = (
+        packing.capsule_summary
+        if packing is not None
+        else f"{payload.destination} 的天气服务暂不可用，已先按 {payload.scene} 场景生成离线行李建议。优先带高复用基础单品，再留一件机动外层应对温差。"
+    )
 
     day_plans = []
     for index in range(days):
@@ -2544,11 +2558,16 @@ def generate_suitcase_plan(db: Session, user: User, payload: ExperienceSuitcaseP
 
     return {
         "status": "generated",
-        "message": f"已生成 {payload.destination} 的 {payload.days_label} 行李箱方案。",
+        "message": (
+            f"已生成 {payload.destination} 的 {payload.days_label} 行李箱方案。"
+            if not offline_preview
+            else f"{payload.destination} 的实时天气暂不可用，已切换为离线行李建议。"
+        ),
         "result": {
             "packed_items": packed_items[:9],
             "day_plans": day_plans,
-            "summary": packing.capsule_summary,
+            "summary": summary,
+            "offline_preview": offline_preview,
         },
     }
 

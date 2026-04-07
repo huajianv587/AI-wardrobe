@@ -46,9 +46,10 @@ export function AuthPanel({ defaultMode = "login" }: AuthPanelProps) {
     setMessage("");
 
     try {
+      const signUpRedirect = typeof window !== "undefined" ? `${window.location.origin}/login` : undefined;
       const payload = mode === "login"
         ? await signInWithPassword({ email, password })
-        : await signUpWithPassword({ email, password });
+        : await signUpWithPassword({ email, password, redirect_to: signUpRedirect });
 
       if (payload.access_token) {
         persistAuthSession(payload);

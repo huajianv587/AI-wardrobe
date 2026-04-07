@@ -5,6 +5,7 @@ import logging
 import mimetypes
 from dataclasses import dataclass, field
 from io import BytesIO
+from urllib.parse import urlparse
 
 import httpx
 from PIL import Image, ImageOps
@@ -240,7 +241,65 @@ def _parse_json_payload(payload: dict, source: storage_service.LoadedAsset) -> t
     raise ValueError("Cleanup service returned JSON without image_base64 or image_url.")
 
 
+def _is_remove_bg_endpoint(url: str) -> bool:
+    netloc = urlparse(url.rstrip("/")).netloc.lower()
+    return netloc.endswith("remove.bg")
+
+
+def _raise_remote_cleanup_error(response: httpx.Response, provider: str) -> None:
+    content_type = response.headers.get("content-type", "")
+    detail = ""
+    if content_type.startswith("application/json"):
+        try:
+            payload = response.json()
+        except ValueError:
+            payload = None
+        if isinstance(payload, dict):
+            errors = payload.get("errors")
+            if isinstance(errors, list) and errors:
+                first_error = errors[0]
+                if isinstance(first_error, dict):
+                    title = str(first_error.get("title") or "").strip()
+                    error_detail = str(first_error.get("detail") or "").strip()
+                    detail = ": ".join(part for part in (title, error_detail) if part)
+            if not detail:
+                detail = str(payload.get("message") or payload.get("detail") or "").strip()
+    if not detail:
+        detail = response.text[:240].strip()
+    raise ValueError(f"{provider} request failed with status {response.status_code}{f': {detail}' if detail else ''}.")
+
+
 def _call_remote_cleanup(source: storage_service.LoadedAsset, item_id: int) -> CleanupResult:
+    if _is_remove_bg_endpoint(settings.ai_cleanup_api_url):
+        if not settings.ai_cleanup_api_key:
+            raise ValueError("AI_CLEANUP_API_KEY is required when AI_CLEANUP_API_URL points to remove.bg.")
+
+        response = httpx.post(
+            settings.ai_cleanup_api_url,
+            files={"image_file": (source.filename, source.payload, source.content_type)},
+            data={"size": "auto", "format": "png", "bg_color": "FFFFFF"},
+            headers={"X-Api-Key": settings.ai_cleanup_api_key},
+            timeout=settings.ai_cleanup_timeout_seconds,
+        )
+        if response.status_code >= 400:
+            _raise_remote_cleanup_error(response, "remove.bg")
+
+        content_type = response.headers.get("content-type", "")
+        payload = response.content
+        content_type = content_type if content_type.startswith("image/") else "image/png"
+        extension = _extension_for_content_type(content_type, source.filename)
+        return CleanupResult(
+            payload=payload,
+            content_type=content_type,
+            filename=f"item-{item_id}-processed{extension}",
+            mode="remote",
+            note="AI cleanup completed via remove.bg and returned a white-background export.",
+            tag="cleanup-remote",
+            provider="remove.bg",
+            subject_mode="background-removal",
+            stages=_pipeline_stages("remote"),
+        )
+
     headers: dict[str, str] = {}
     if settings.ai_cleanup_api_key:
         headers["Authorization"] = f"Bearer {settings.ai_cleanup_api_key}"

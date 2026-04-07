@@ -1,9 +1,15 @@
 from __future__ import annotations
 
+import sys
+from pathlib import Path
 from typing import Iterable
 
 import httpx
 from sqlalchemy import text
+
+BACKEND_ROOT = Path(__file__).resolve().parents[1]
+if str(BACKEND_ROOT) not in sys.path:
+    sys.path.insert(0, str(BACKEND_ROOT))
 
 from core import local_model
 from core.config import settings
@@ -92,7 +98,11 @@ def main() -> None:
             ("VLLM_BASE_URL", _status(settings.vllm_base_url)),
             ("OPENAI_API_KEY", _status(settings.openai_api_key)),
             ("DEEPSEEK_API_KEY", _status(settings.deepseek_api_key)),
+            ("LLM_RECOMMENDER_API_URL", _status(settings.llm_recommender_api_url)),
+            ("LLM_RECOMMENDER_FALLBACK_API_URL", _status(settings.llm_recommender_fallback_api_url)),
             ("AI_CLEANUP_API_URL", _status(settings.ai_cleanup_api_url)),
+            ("VIRTUAL_TRYON_API_URL", _status(settings.virtual_tryon_api_url)),
+            ("VIRTUAL_TRYON_FALLBACK_API_URL", _status(settings.virtual_tryon_fallback_api_url)),
             ("SMTP_HOST", _status(settings.smtp_host)),
             ("SMTP_FROM_EMAIL", _status(settings.smtp_from_email)),
         ]
@@ -103,8 +113,10 @@ def main() -> None:
     if db_detail:
         print(f"DB_ERROR: {db_detail}")
     print(f"VLLM_CONNECT: {_probe_vllm()}")
+    print(f"LLM_RECOMMENDER_MODE: {local_model.resolve_model_mode('llm_recommender')}")
     print(f"IMAGE_CLEANUP_MODE: {local_model.resolve_model_mode('image_cleanup')}")
     print(f"MULTIMODAL_READER_MODE: {_multimodal_mode_summary()}")
+    print(f"VIRTUAL_TRYON_MODE: {local_model.resolve_model_mode('virtual_tryon')}")
 
 
 if __name__ == "__main__":

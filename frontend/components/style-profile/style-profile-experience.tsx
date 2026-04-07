@@ -377,6 +377,7 @@ export function StyleProfileExperience() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [demoMode, setDemoMode] = useState(false);
+  const [authRequired, setAuthRequired] = useState(false);
   const [flashColor, setFlashColor] = useState<string | null>(null);
   const [editor, setEditor] = useState<EditorState | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
@@ -428,19 +429,24 @@ export function StyleProfileExperience() {
         setOverview(result);
         setError("");
         setDemoMode(false);
+        setAuthRequired(false);
       } catch (nextError) {
         if (!active) {
           return;
         }
 
-        const fallback = buildDemoOverview();
-        setOverview(fallback);
-        setDemoMode(true);
-        setError(
-          nextError instanceof ApiError && nextError.status === 401
-            ? "登录状态暂未就绪，当前先展示可编辑的演示画像。"
-            : "风格雷达已切换到演示模式，后端接通后会自动显示真实画像。"
-        );
+        if (nextError instanceof ApiError && nextError.status === 401) {
+          setOverview(null);
+          setDemoMode(false);
+          setAuthRequired(true);
+          setError("请先登录，登录后查看真实数据。");
+        } else {
+          const fallback = buildDemoOverview();
+          setOverview(fallback);
+          setDemoMode(true);
+          setAuthRequired(false);
+          setError("当前为演示模式，登录后查看真实数据");
+        }
       } finally {
         if (active) {
           setLoading(false);
@@ -461,17 +467,31 @@ export function StyleProfileExperience() {
       setOverview(result);
       setError("");
       setDemoMode(false);
+      setAuthRequired(false);
       if (showMessage) {
         setToast({ message: showMessage, tone: "soft" });
       }
     } catch (nextError) {
-      const fallback = buildDemoOverview();
-      setOverview(fallback);
-      setDemoMode(true);
-      setToast({
-        message: showMessage ?? (nextError instanceof Error ? `${nextError.message}，已继续显示演示画像。` : "刷新失败，已继续显示演示画像。"),
-        tone: "soft"
-      });
+      if (nextError instanceof ApiError && nextError.status === 401) {
+        setOverview(null);
+        setDemoMode(false);
+        setAuthRequired(true);
+        setError("请先登录，登录后查看真实数据。");
+        setToast({
+          message: "请先登录",
+          tone: "error"
+        });
+      } else {
+        const fallback = buildDemoOverview();
+        setOverview(fallback);
+        setDemoMode(true);
+        setAuthRequired(false);
+        setError("当前为演示模式，登录后查看真实数据");
+        setToast({
+          message: showMessage ?? (nextError instanceof Error ? `${nextError.message}，已继续显示演示画像。` : "刷新失败，已继续显示演示画像。"),
+          tone: "soft"
+        });
+      }
     }
   }
 
@@ -706,10 +726,20 @@ export function StyleProfileExperience() {
   if (!overview) {
     return (
       <div className={styles.emptyState}>
-        <h2>风格画像暂时没有载入成功</h2>
+        <h2>{authRequired ? "请先登录" : "风格画像暂时没有载入成功"}</h2>
         <p>{error || "请稍后再试。"}</p>
-        <button type="button" className={styles.retryButton} onClick={() => void reloadOverview()}>
-          重新加载
+        <button
+          type="button"
+          className={styles.retryButton}
+          onClick={() => {
+            if (authRequired) {
+              window.location.assign("/login");
+              return;
+            }
+            void reloadOverview();
+          }}
+        >
+          {authRequired ? "前往登录" : "重新加载"}
         </button>
       </div>
     );

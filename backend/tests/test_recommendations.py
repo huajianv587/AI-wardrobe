@@ -146,6 +146,7 @@ def test_recommendations_support_openai_compatible_endpoint(monkeypatch):
 def test_recommendations_fall_back_to_local_when_remote_fails(monkeypatch):
     monkeypatch.setattr(recommendation_service.local_model, "should_use_local_model", lambda feature: False)
     monkeypatch.setattr(recommendation_service.local_model, "get_remote_worker_url", lambda feature: "https://llm-worker.example.com")
+    monkeypatch.setattr(recommendation_service.settings, "llm_recommender_fallback_api_url", "")
 
     def fake_post(url, json, timeout):
         raise RuntimeError("worker offline")
@@ -158,5 +159,69 @@ def test_recommendations_fall_back_to_local_when_remote_fails(monkeypatch):
     )
 
     assert response.source == "remote-fallback-local-model"
-    assert response.agent_trace[0].node == "Remote Adapter"
+    assert response.agent_trace[0].node == "Failover Router"
     assert len(response.outfits) >= 1
+
+
+def test_recommendations_fail_over_to_secondary_qwen_worker(monkeypatch):
+    monkeypatch.setattr(recommendation_service.local_model, "should_use_local_model", lambda feature: False)
+    monkeypatch.setattr(
+        recommendation_service.local_model,
+        "get_remote_worker_url",
+        lambda feature: "https://api.deepseek.com/v1/chat/completions",
+    )
+    monkeypatch.setattr(recommendation_service.settings, "deepseek_api_key", "deepseek-secret")
+    monkeypatch.setattr(recommendation_service.settings, "deepseek_multimodal_model", "deepseek-chat")
+    monkeypatch.setattr(recommendation_service.settings, "llm_recommender_api_key", "")
+    monkeypatch.setattr(recommendation_service.settings, "llm_recommender_model_name", "")
+    monkeypatch.setattr(recommendation_service.settings, "llm_recommender_fallback_api_url", "http://127.0.0.1:8011")
+    monkeypatch.setattr(recommendation_service.settings, "llm_recommender_fallback_api_key", "")
+    monkeypatch.setattr(recommendation_service.settings, "llm_recommender_fallback_model_name", "Qwen/Qwen2.5-7B-Instruct")
+
+    captured = {"urls": []}
+
+    class DummyResponse:
+        def __init__(self, payload: dict):
+            self._payload = payload
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return self._payload
+
+    def fake_post(url, **kwargs):
+        captured["urls"].append(url)
+        if url == "https://api.deepseek.com/v1/chat/completions":
+            raise RuntimeError("deepseek unavailable")
+        if url == "http://127.0.0.1:8011/infer":
+            return DummyResponse(
+                {
+                    "source": "qwen-lora-worker",
+                    "outfits": [
+                        {
+                            "title": "Local Qwen Look",
+                            "rationale": "Recovered through the fallback worker.",
+                            "item_ids": [1, 2, 3],
+                            "confidence": 0.87,
+                        }
+                    ],
+                    "agent_trace": [{"node": "Qwen Worker", "summary": "Fallback worker handled the request."}],
+                }
+            )
+        raise AssertionError(f"Unexpected URL: {url}")
+
+    monkeypatch.setattr(recommendation_service.httpx, "post", fake_post)
+
+    response = recommendation_service.generate_recommendations(
+        RecommendationRequest(prompt="Office commute tomorrow"),
+        _items(),
+    )
+
+    assert response.source == "qwen-lora-worker"
+    assert response.agent_trace[0].node == "Failover Router"
+    assert "secondary Qwen LoRA worker" in response.agent_trace[0].summary
+    assert captured["urls"] == [
+        "https://api.deepseek.com/v1/chat/completions",
+        "http://127.0.0.1:8011/infer",
+    ]

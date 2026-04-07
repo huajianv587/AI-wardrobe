@@ -1,4 +1,8 @@
-from services import ai_demo_service
+from sqlalchemy import select
+
+from app.models.user import User
+from app.schemas.wardrobe import ClothingItemCreate
+from services import ai_demo_service, wardrobe_service
 
 
 def test_ai_demo_workflows_endpoint(client):
@@ -84,22 +88,25 @@ def test_mini_program_home_endpoint(client):
 
 
 def test_mini_program_wardrobe_endpoint(client):
-    create_response = client.post(
-        "/api/v1/wardrobe/items",
-        json={
-            "name": "Mini Wardrobe Coat",
-            "category": "outerwear",
-            "slot": "outerwear",
-            "color": "Oat",
-            "brand": "Mini",
-            "image_url": "https://example.com/coat.png",
-            "processed_image_url": None,
-            "tags": ["soft", "layering"],
-            "occasions": ["weekend"],
-            "style_notes": "Used for mini program cards.",
-        },
-    )
-    assert create_response.status_code == 200
+    with client.testing_session_local() as db:
+        user = db.scalar(select(User).where(User.email == "tester@ai-wardrobe.dev"))
+        assert user is not None
+        wardrobe_service.create_item(
+            db,
+            ClothingItemCreate(
+                name="Mini Wardrobe Coat",
+                category="outerwear",
+                slot="outerwear",
+                color="Oat",
+                brand="Mini",
+                image_url="https://example.com/coat.png",
+                processed_image_url=None,
+                tags=["soft", "layering"],
+                occasions=["weekend"],
+                style_notes="Used for mini program cards.",
+            ),
+            user,
+        )
 
     response = client.get("/api/v1/mini-program/wardrobe")
     payload = response.json()

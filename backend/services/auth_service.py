@@ -266,6 +266,20 @@ def _append_query_params(url: str, **params: str) -> str:
     return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
 
 
+def _signup_email_redirect_url(redirect_to: str | None = None) -> str:
+    fallback = f"{settings.next_public_app_url.rstrip('/')}/login"
+    target = (redirect_to or "").strip() or fallback
+    parts = urlsplit(target)
+    path = parts.path or "/login"
+    normalized_path = path.rstrip("/") or path
+    if normalized_path.endswith("/register"):
+        head = normalized_path.rsplit("/", 1)[0]
+        path = f"{head}/login" if head else "/login"
+    elif normalized_path in {"", "/"}:
+        path = "/login"
+    return urlunsplit((parts.scheme, parts.netloc, path, parts.query, ""))
+
+
 def _local_password_reset_status(reset_url: str) -> StatusMessageResponse:
     if email_service.is_enabled():
         return StatusMessageResponse(
@@ -523,6 +537,7 @@ def sign_up_with_password(
     password: str,
     *,
     display_name: str | None = None,
+    redirect_to: str | None = None,
 ) -> AuthSessionResponse:
     normalized_email = _normalize_email(email)
     if _find_local_user_by_email(db, normalized_email) is not None:
@@ -530,7 +545,16 @@ def sign_up_with_password(
 
     if is_enabled():
         try:
-            auth_response = _auth_client().auth.sign_up({"email": normalized_email, "password": password})
+            sign_up_payload = {
+                "email": normalized_email,
+                "password": password,
+                "options": {
+                    "email_redirect_to": _signup_email_redirect_url(redirect_to),
+                },
+            }
+            if display_name:
+                sign_up_payload["options"]["data"] = {"full_name": display_name.strip()}
+            auth_response = _auth_client().auth.sign_up(sign_up_payload)
         except Exception as exc:
             logger.warning("Supabase sign-up failed for %s: %s", normalized_email, exc)
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc

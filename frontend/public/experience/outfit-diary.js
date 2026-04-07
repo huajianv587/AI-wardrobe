@@ -12,7 +12,8 @@
     usingLocalPreview: false,
     activeMode: "calendar",
     selectedDay: now.getDate(),
-    suitcaseLoading: false
+    suitcaseLoading: false,
+    suitcaseOffline: false
   };
 
   var monthNames = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
@@ -82,6 +83,34 @@
     document.body.dataset.diaryLoading = loading ? "true" : "false";
   }
 
+  function ensureCalendarSyncBanner() {
+    var section = byId("calendarSection");
+    if (!section) return null;
+    var banner = byId("diarySyncBanner");
+    if (banner) return banner;
+    banner = document.createElement("div");
+    banner.id = "diarySyncBanner";
+    banner.style.cssText = "display:none;margin:0 0 14px;padding:11px 14px;border-radius:16px;border:1px solid rgba(196,149,106,.16);background:rgba(255,248,242,.92);font-size:12px;line-height:1.7;color:var(--text-mid);box-shadow:0 10px 22px rgba(24,16,12,.06)";
+    var firstChild = section.firstElementChild;
+    if (firstChild) {
+      section.insertBefore(banner, firstChild);
+    } else {
+      section.appendChild(banner);
+    }
+    return banner;
+  }
+
+  function renderCalendarSyncBanner() {
+    var banner = ensureCalendarSyncBanner();
+    if (!banner) return;
+    if (state.usingLocalPreview) {
+      banner.textContent = "当前显示本地缓存，数据可能不是最新";
+      banner.style.display = "block";
+      return;
+    }
+    banner.style.display = "none";
+  }
+
   function setSelectedDay(day) {
     state.selectedDay = day;
     document.querySelectorAll(".day-cell.is-focus").forEach(function (node) {
@@ -143,6 +172,42 @@
   function writeLocalDiary(payload) {
     if (!storageAvailable()) return;
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  }
+
+  function syncPendingLocalDiary() {
+    var localDiary = readLocalDiary();
+    var keys = Object.keys(localDiary);
+    if (!keys.length) return Promise.resolve(0);
+
+    var syncedCount = 0;
+    return keys.reduce(function (chain, key) {
+      return chain.then(function () {
+        var entry = localDiary[key];
+        if (!entry) return null;
+        return api("/logs", {
+          method: "POST",
+          body: JSON.stringify({
+            day: entry.day,
+            month: entry.month,
+            year: entry.year,
+            outfit_name: entry.outfit_name,
+            occasion: entry.occasion,
+            item_ids: entry.item_ids || [],
+            note: entry.note
+          })
+        }).then(function () {
+          delete localDiary[key];
+          syncedCount += 1;
+        }).catch(function () {
+          return null;
+        });
+      });
+    }, Promise.resolve()).then(function () {
+      if (syncedCount > 0) {
+        writeLocalDiary(localDiary);
+      }
+      return syncedCount;
+    });
   }
 
   function diaryEntryKey(year, month, day) {
@@ -402,6 +467,7 @@
     syncTripDefaults(overview.suitcase_defaults);
     renderStats();
     renderCalendar();
+    renderCalendarSyncBanner();
   }
 
   function renderOutfit(day) {
@@ -500,7 +566,7 @@
         state.usingLocalPreview = true;
         applyOverview(buildFallbackOverview(state.year, state.month));
         renderOutfit(day);
-        W.toast("接口暂时未连接，已先保存到本地穿搭日志", "soft");
+        W.toast("已暂存本地，网络恢复后将自动同步", "soft");
       });
     });
   }
@@ -537,7 +603,10 @@
 
   function renderSuitcase(result) {
     byId("suitcaseResult").style.display = "block";
-    byId("packCount").textContent = "共 " + (result.packed_items || []).length + " 类";
+    state.suitcaseOffline = !!result.offline_preview;
+    byId("packCount").innerHTML = "共 " + (result.packed_items || []).length + " 类" + (state.suitcaseOffline
+      ? ' <span style="display:inline-flex;align-items:center;justify-content:center;min-height:22px;margin-left:8px;padding:0 10px;border-radius:999px;background:rgba(196,149,106,.16);font-size:11px;color:var(--accent-dark);vertical-align:middle">离线建议</span>'
+      : "");
     var grid = byId("suitcaseGrid");
     grid.innerHTML = (result.packed_items || []).map(function (item, index) {
       return '<div class="suitcase-item" data-item-card="' + encodeItemCard(item) + '" style="animation-delay:' + (index * 0.08) + 's">' + renderItemThumb(item, "item-emoji") + '<div class="item-name">' + W.escapeHtml(item.name) + '</div><div class="item-qty">' + W.escapeHtml(item.qty) + "</div></div>";
@@ -573,12 +642,24 @@
       state.usingLocalPreview = false;
       applyOverview(data);
       state.hasLoadedOnce = true;
-      if (withToast) W.toast("穿搭日志已更新", "soft");
+      return syncPendingLocalDiary().then(function (syncedCount) {
+        if (syncedCount > 0) {
+          return api("?year=" + state.year + "&month=" + state.month, { method: "GET" }).then(function (refreshed) {
+            state.usingLocalPreview = false;
+            applyOverview(refreshed);
+            W.toast("已将 " + syncedCount + " 条本地暂存自动同步到云端", "soft");
+          }).catch(function () {
+            return null;
+          });
+        }
+        if (withToast) W.toast("穿搭日志已更新", "soft");
+        return null;
+      });
     }).catch(function () {
       state.usingLocalPreview = true;
       applyOverview(buildFallbackOverview(state.year, state.month));
       if (withToast || state.hasLoadedOnce) {
-        W.toast("当前先展示本地穿搭日志预览，后端恢复后会自动切回", "soft");
+        W.toast("当前显示本地缓存，数据可能不是最新", "soft");
       }
       state.hasLoadedOnce = true;
     }).finally(function () {
@@ -650,7 +731,7 @@
         scene: byId("tripScene").value
       })
     }).then(function (result) {
-      renderSuitcase(result.result || {});
+      renderSuitcase(Object.assign({ offline_preview: false }, result.result || {}));
       W.toast(result.message || "行李箱模式已生成", "soft");
     }).catch(function () {
       var destination = byId("tripDest").value.trim() || "东京";
@@ -679,8 +760,8 @@
           items: packedItems.slice(index % divisor).concat(packedItems.slice(0, index % divisor)).slice(0, 3)
         });
       }
-      renderSuitcase({ packed_items: packedItems, day_plans: dayPlans });
-      W.toast("接口未连接，已先生成本地行李箱预览", "soft");
+      renderSuitcase({ packed_items: packedItems, day_plans: dayPlans, offline_preview: true });
+      W.toast("网络异常，已切换为离线建议", "soft");
     }).finally(function () {
       setSuitcaseLoading(false);
     });

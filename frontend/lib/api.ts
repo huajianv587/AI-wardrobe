@@ -147,6 +147,7 @@ export interface EmailPasswordAuthPayload {
   email: string;
   password: string;
   display_name?: string;
+  redirect_to?: string;
 }
 
 export interface PasswordResetPayload {

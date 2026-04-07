@@ -221,6 +221,24 @@ def _route_error_detail(route_errors: list[tuple[str, str, Exception]]) -> str |
     return "; ".join(trace)
 
 
+def _response_text_snippet(response: httpx.Response) -> str:
+    text = (response.text or "").strip()
+    if not text:
+        return ""
+    compact = " ".join(text.split())
+    return compact[:600]
+
+
+def _raise_for_status_with_body(response: httpx.Response, *, context: str) -> None:
+    try:
+        response.raise_for_status()
+    except httpx.HTTPStatusError as exc:
+        snippet = _response_text_snippet(exc.response)
+        if snippet:
+            raise ValueError(f"{context}: {exc}. Response body: {snippet}") from exc
+        raise ValueError(f"{context}: {exc}") from exc
+
+
 def _replicate_headers(api_key: str, *, include_body_headers: bool = True) -> dict[str, str]:
     headers = {"Accept": "application/json"}
     if include_body_headers:
@@ -377,7 +395,7 @@ def _create_replicate_prediction(
         headers=_replicate_headers(api_key),
         timeout=settings.ai_cleanup_timeout_seconds,
     )
-    response.raise_for_status()
+    _raise_for_status_with_body(response, context="Replicate create prediction failed")
     body = response.json()
     if not isinstance(body, dict):
         raise ValueError("Replicate did not return a JSON prediction payload.")
@@ -397,7 +415,7 @@ def _poll_replicate_prediction(started_prediction: dict, *, api_key: str) -> dic
             headers=_replicate_headers(api_key, include_body_headers=False),
             timeout=settings.ai_cleanup_timeout_seconds,
         )
-        response.raise_for_status()
+        _raise_for_status_with_body(response, context="Replicate poll prediction failed")
         body = response.json()
         if not isinstance(body, dict):
             raise ValueError("Replicate polling returned a non-JSON payload.")

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+import logging
 
 from fastapi import HTTPException, UploadFile, status
 from sqlalchemy import create_engine
@@ -14,6 +15,7 @@ from app.schemas.wardrobe import ClothingItemCreate, ClothingItemUpdate
 from services import image_pipeline_service, storage_service, supabase_service
 
 CLEANUP_TAGS = {"processed", "white-background", "cleanup-placeholder", "cleanup-fallback", "cleanup-remote", "cleanup-local"}
+logger = logging.getLogger(__name__)
 
 
 def _dedupe_tokens(values: list[str] | None) -> list[str]:
@@ -63,19 +65,34 @@ def _attach_memory_cards(db: Session, items: list[ClothingItem], user_id: int) -
 
     from services import assistant_service
 
-    return assistant_service.attach_memory_cards(db, items, user_id)
+    try:
+        return assistant_service.attach_memory_cards(db, items, user_id)
+    except Exception as exc:
+        db.rollback()
+        logger.warning("Memory card batch attach failed for user %s, returning items without cards: %s", user_id, exc)
+        return items
 
 
 def _attach_memory_card(db: Session, item: ClothingItem, user_id: int) -> ClothingItem:
     from services import assistant_service
 
-    return assistant_service.attach_memory_card(db, item, user_id)
+    try:
+        return assistant_service.attach_memory_card(db, item, user_id)
+    except Exception as exc:
+        db.rollback()
+        logger.warning("Memory card attach failed for item %s, returning the base item: %s", getattr(item, "id", None), exc)
+        return db.get(ClothingItem, item.id) or item
 
 
 def _auto_enrich(db: Session, item: ClothingItem, user: User) -> ClothingItem:
     from services import assistant_service
 
-    return assistant_service.auto_enrich_item(db, item, user)
+    try:
+        return assistant_service.auto_enrich_item(db, item, user)
+    except Exception as exc:
+        db.rollback()
+        logger.warning("Auto enrich failed for item %s, keeping the core wardrobe item available: %s", getattr(item, "id", None), exc)
+        return db.get(ClothingItem, item.id) or item
 
 
 def _serialize_item(item: ClothingItem) -> dict:

@@ -18,6 +18,7 @@ class EmailPasswordAuthRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=6, max_length=128)
     display_name: str | None = Field(default=None, max_length=255)
+    redirect_to: str | None = Field(default=None, max_length=500)
 
 
 class RefreshSessionRequest(BaseModel):

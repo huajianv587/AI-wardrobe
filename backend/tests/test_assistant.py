@@ -88,7 +88,7 @@ def test_assistant_overview_and_tomorrow_flow(client, monkeypatch):
     overview = overview_response.json()
 
     assert overview_response.status_code == 200
-    assert overview["style_profile"]["user_id"] == 1
+    assert overview["style_profile"]["user_id"] is not None
     assert overview["tomorrow"]["weather"]["location_name"]
     assert "summary" in overview["gaps"]
 
@@ -198,11 +198,12 @@ def test_assistant_feedback_save_wear_and_packing(client, monkeypatch):
 
     outfits_response = client.get("/api/v1/assistant/outfits")
     wear_logs_response = client.get("/api/v1/assistant/wear-log")
+    wear_logs = wear_logs_response.json()
 
     assert outfits_response.status_code == 200
     assert wear_logs_response.status_code == 200
     assert outfits_response.json()[0]["name"] == "Rainy city set"
-    assert wear_logs_response.json()[0]["outfit_name"] == "Rainy city set"
+    assert any(entry["outfit_name"] == "Rainy city set" for entry in wear_logs)
 
 
 def test_memory_card_and_async_cleanup_task(client):

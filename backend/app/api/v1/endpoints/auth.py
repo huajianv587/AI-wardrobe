@@ -25,7 +25,13 @@ bearer_scheme = HTTPBearer(auto_error=False)
 
 @router.post("/sign-up", response_model=AuthSessionResponse)
 def sign_up(payload: EmailPasswordAuthRequest, db: Session = Depends(get_db)) -> AuthSessionResponse:
-    return auth_service.sign_up_with_password(db, payload.email, payload.password, display_name=payload.display_name)
+    return auth_service.sign_up_with_password(
+        db,
+        payload.email,
+        payload.password,
+        display_name=payload.display_name,
+        redirect_to=payload.redirect_to,
+    )
 
 
 @router.post("/login", response_model=AuthSessionResponse)

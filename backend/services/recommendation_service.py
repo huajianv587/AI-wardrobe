@@ -158,8 +158,8 @@ def _looks_like_openai_compatible_url(base_url: str) -> bool:
     return bool(settings.vllm_base_url.strip() and trimmed == settings.vllm_base_url.strip().rstrip("/"))
 
 
-def _llm_recommender_api_key(base_url: str) -> str:
-    explicit_key = settings.llm_recommender_api_key.strip()
+def _llm_recommender_api_key(base_url: str, explicit_key: str = "") -> str:
+    explicit_key = explicit_key.strip()
     if explicit_key:
         return explicit_key
 
@@ -175,21 +175,40 @@ def _llm_recommender_api_key(base_url: str) -> str:
     return ""
 
 
-def _llm_recommender_model_name(base_url: str) -> str:
-    explicit_name = settings.llm_recommender_model_name.strip()
+def _llm_recommender_model_name(base_url: str, explicit_name: str = "") -> str:
+    explicit_name = explicit_name.strip()
     if explicit_name:
         return explicit_name
 
     trimmed = base_url.strip().rstrip("/")
     if settings.vllm_base_url.strip() and trimmed == settings.vllm_base_url.strip().rstrip("/"):
-        return settings.qwen_model_name.strip() or "Qwen/Qwen2.5-VL-7B-Instruct"
+        return settings.qwen_model_name.strip() or "Qwen/Qwen2.5-7B-Instruct"
 
     host = urlparse(trimmed).netloc.lower()
     if host.endswith("deepseek.com"):
         return settings.deepseek_multimodal_model.strip() or "deepseek-chat"
     if host.endswith("openai.com"):
         return settings.openai_multimodal_model.strip() or "gpt-4.1-mini"
-    return settings.qwen_model_name.strip() or settings.deepseek_multimodal_model.strip() or settings.openai_multimodal_model.strip() or "gpt-4.1-mini"
+    return settings.llm_recommender_fallback_model_name.strip() or "Qwen/Qwen2.5-7B-Instruct"
+
+
+def _recommender_worker_model_name(explicit_name: str = "") -> str:
+    return (
+        explicit_name.strip()
+        or settings.llm_recommender_model_name.strip()
+        or settings.llm_recommender_fallback_model_name.strip()
+        or "Qwen/Qwen2.5-7B-Instruct"
+    )
+
+
+def _worker_label(base_url: str) -> str:
+    trimmed = base_url.strip().rstrip("/")
+    parsed = urlparse(trimmed)
+    host = parsed.netloc or parsed.path or trimmed
+    path = parsed.path.rstrip("/")
+    if path and path != "/":
+        return f"{host}{path}"
+    return host
 
 
 def _openai_style_messages(request: RecommendationRequest, items: list[ClothingItem]) -> list[dict]:
@@ -300,6 +319,8 @@ def _remote_worker_recommendations(
     request: RecommendationRequest,
     items: list[ClothingItem],
     worker_url: str,
+    *,
+    model_name: str = "",
 ) -> RecommendationResponse:
     payload = {
         "prompt": request.prompt,
@@ -307,7 +328,7 @@ def _remote_worker_recommendations(
         "scene": request.scene,
         "style": request.style,
         "wardrobe_items": _serialize_items(items),
-        "model_name": settings.qwen_model_name,
+        "model_name": _recommender_worker_model_name(model_name),
     }
 
     response = httpx.post(
@@ -323,16 +344,19 @@ def _openai_compatible_recommendations(
     request: RecommendationRequest,
     items: list[ClothingItem],
     base_url: str,
+    *,
+    api_key: str = "",
+    model_name: str = "",
 ) -> RecommendationResponse:
     headers = {"Content-Type": "application/json"}
-    if api_key := _llm_recommender_api_key(base_url):
+    if api_key := _llm_recommender_api_key(base_url, api_key):
         headers["Authorization"] = f"Bearer {api_key}"
 
     response = httpx.post(
         _chat_completions_url(base_url),
         headers=headers,
         json={
-            "model": _llm_recommender_model_name(base_url),
+            "model": _llm_recommender_model_name(base_url, model_name),
             "temperature": 0.2,
             "response_format": {"type": "json_object"},
             "messages": _openai_style_messages(request, items),
@@ -346,31 +370,92 @@ def _openai_compatible_recommendations(
     return _parse_remote_response(payload, items)
 
 
-def _remote_recommendations(request: RecommendationRequest, items: list[ClothingItem]) -> RecommendationResponse:
-    worker_url = local_model.get_remote_worker_url("llm_recommender")
-    if not worker_url:
-        raise ValueError("No external LLM recommender worker URL is configured.")
-
+def _remote_recommendations_via_url(
+    request: RecommendationRequest,
+    items: list[ClothingItem],
+    worker_url: str,
+    *,
+    api_key: str = "",
+    model_name: str = "",
+) -> RecommendationResponse:
     if _looks_like_openai_compatible_url(worker_url):
-        return _openai_compatible_recommendations(request, items, worker_url)
-    return _remote_worker_recommendations(request, items, worker_url)
+        return _openai_compatible_recommendations(request, items, worker_url, api_key=api_key, model_name=model_name)
+    return _remote_worker_recommendations(request, items, worker_url, model_name=model_name)
+
+
+def _remote_recommendation_targets() -> list[tuple[str, str, str, str]]:
+    primary_url = local_model.get_remote_worker_url("llm_recommender")
+    fallback_url = settings.llm_recommender_fallback_api_url.strip()
+    targets: list[tuple[str, str, str, str]] = []
+    if primary_url:
+        targets.append(
+            (
+                "primary-remote",
+                primary_url,
+                settings.llm_recommender_api_key.strip(),
+                settings.llm_recommender_model_name.strip(),
+            )
+        )
+    if fallback_url and fallback_url.rstrip("/") != (primary_url or "").rstrip("/"):
+        targets.append(
+            (
+                "fallback-worker",
+                fallback_url,
+                settings.llm_recommender_fallback_api_key.strip(),
+                settings.llm_recommender_fallback_model_name.strip(),
+            )
+        )
+    return targets
 
 
 def generate_recommendations(request: RecommendationRequest, items: list[ClothingItem]) -> RecommendationResponse:
     if local_model.should_use_local_model("llm_recommender"):
         return _local_recommendations(request, items)
 
-    try:
-        return _remote_recommendations(request, items)
-    except Exception as exc:
-        logger.warning("Remote LLM recommender failed, falling back to local mode: %s", exc)
-        local_response = _local_recommendations(request, items)
-        local_response.source = "remote-fallback-local-model"
-        local_response.agent_trace.insert(
-            0,
-            AgentTraceStep(
-                node="Remote Adapter",
-                summary=f"External LLM worker was unavailable or returned an invalid payload, so the local fallback model handled this request instead. Detail: {exc}",
+    targets = _remote_recommendation_targets()
+    errors: list[tuple[str, str, Exception]] = []
+
+    for route_name, worker_url, api_key, model_name in targets:
+        try:
+            response = _remote_recommendations_via_url(
+                request,
+                items,
+                worker_url,
+                api_key=api_key,
+                model_name=model_name,
+            )
+            if route_name == "fallback-worker":
+                response.agent_trace.insert(
+                    0,
+                    AgentTraceStep(
+                        node="Failover Router",
+                        summary=(
+                            "The primary LLM provider was unavailable, so the secondary Qwen LoRA worker "
+                            f"at {_worker_label(worker_url)} handled this request."
+                        ),
+                    ),
+                )
+                if response.source == "remote-model":
+                    response.source = "fallback-worker-model"
+            return response
+        except Exception as exc:
+            logger.warning("%s LLM recommender failed for %s: %s", route_name, _worker_label(worker_url), exc)
+            errors.append((route_name, worker_url, exc))
+
+    local_response = _local_recommendations(request, items)
+    local_response.source = "remote-fallback-local-model"
+    if not targets:
+        detail = "No external LLM recommender worker URL is configured."
+    else:
+        detail = "; ".join(f"{route_name}@{_worker_label(worker_url)} => {exc}" for route_name, worker_url, exc in errors)
+    local_response.agent_trace.insert(
+        0,
+        AgentTraceStep(
+            node="Failover Router",
+            summary=(
+                "External recommender providers were unavailable or returned invalid payloads, "
+                f"so the local fallback model handled this request instead. Detail: {detail}"
             ),
-        )
-        return local_response
+        ),
+    )
+    return local_response

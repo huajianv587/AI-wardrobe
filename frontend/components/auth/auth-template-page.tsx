@@ -217,10 +217,13 @@ export function AuthTemplatePage({ mode }: AuthTemplatePageProps) {
     const expiresAt = hash.get("expires_at");
     const expiresIn = hash.get("expires_in");
     const tokenType = hash.get("token_type") ?? "bearer";
+    const oauthErrorCode = hash.get("error_code") ?? "";
     const oauthError = hash.get("error_description") ?? hash.get("error");
 
     if (oauthError) {
-      const message = decodeURIComponent(oauthError);
+      const message = oauthErrorCode === "otp_expired"
+        ? "邮箱确认链接已失效，请重新获取新的确认邮件后再继续。"
+        : decodeURIComponent(oauthError);
       if (isLogin) {
         showLoginFeedback(message, "error");
       } else {
@@ -362,7 +365,8 @@ export function AuthTemplatePage({ mode }: AuthTemplatePageProps) {
       const payload = await signUpWithPassword({
         email: registerEmail.trim(),
         password: registerPassword,
-        display_name: nickname.trim() || undefined
+        display_name: nickname.trim() || undefined,
+        redirect_to: typeof window !== "undefined" ? `${window.location.origin}/login` : undefined
       });
 
       if (payload.access_token) {

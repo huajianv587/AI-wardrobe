@@ -122,6 +122,87 @@ def test_virtual_tryon_supports_replicate_async_predictions(monkeypatch):
     assert captured["poll_url"] == "https://api.replicate.com/v1/predictions/pred-123"
 
 
+def test_virtual_tryon_falls_back_to_local_oot_worker_when_cloud_api_fails(monkeypatch):
+    garment_item = ClothingItem(
+        id=31,
+        user_id=1,
+        name="Warm Camel Coat",
+        category="outerwear",
+        slot="outerwear",
+        color="Camel",
+        brand="AI Wardrobe",
+        image_url="https://assets.example.com/coat.png",
+        processed_image_url=None,
+        tags=["coat"],
+        occasions=["travel"],
+        style_notes="Fallback worker test.",
+    )
+
+    monkeypatch.setattr(virtual_tryon_service.local_model, "should_use_local_model", lambda feature: False)
+    monkeypatch.setattr(virtual_tryon_service, "_look_items_from_ids", lambda db, user, item_ids: [garment_item])
+    monkeypatch.setattr(virtual_tryon_service.settings, "virtual_tryon_api_url", "https://api.replicate.com/v1/predictions")
+    monkeypatch.setattr(virtual_tryon_service.settings, "virtual_tryon_api_key", "replicate-secret")
+    monkeypatch.setattr(virtual_tryon_service.settings, "virtual_tryon_fallback_api_url", "http://127.0.0.1:9002/infer")
+    monkeypatch.setattr(virtual_tryon_service.settings, "virtual_tryon_fallback_api_key", "")
+
+    uploaded_preview = storage_service.StoredAsset(
+        relative_path="tryon/user-1/preview.png",
+        url="https://assets.example.com/fallback-preview.png",
+        backup_url="https://assets.example.com/fallback-preview.png",
+    )
+    monkeypatch.setattr(storage_service, "save_generated_asset", lambda *args, **kwargs: uploaded_preview)
+
+    fallback_png = _png_bytes((210, 198, 188))
+
+    class DummyResponse:
+        def __init__(self, payload: dict):
+            self._payload = payload
+            self.headers = {"content-type": "application/json"}
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return self._payload
+
+    captured = {"urls": []}
+
+    def fake_post(url, **kwargs):
+        captured["urls"].append(url)
+        if url == "https://api.replicate.com/v1/predictions":
+            raise RuntimeError("replicate unavailable")
+        if url == "http://127.0.0.1:9002/infer":
+            return DummyResponse(
+                {
+                    "image_base64": __import__("base64").b64encode(fallback_png).decode("ascii"),
+                    "content_type": "image/png",
+                    "provider": "OOTDiffusion local",
+                }
+            )
+        raise AssertionError(f"Unexpected URL: {url}")
+
+    monkeypatch.setattr(virtual_tryon_service.httpx, "post", fake_post)
+
+    response = virtual_tryon_service.render_try_on(
+        db=None,
+        user=User(id=1, email="tester@ai-wardrobe.dev", password_hash="supabase-managed"),
+        payload=TryOnRenderRequest(
+            item_ids=[31],
+            person_image_url="https://assets.example.com/person.png",
+            prompt="Travel look",
+            scene="studio",
+        ),
+    )
+
+    assert response.provider_mode == "remote-fallback-worker"
+    assert response.provider == "OOTDiffusion local"
+    assert response.preview_url == uploaded_preview.url
+    assert captured["urls"] == [
+        "https://api.replicate.com/v1/predictions",
+        "http://127.0.0.1:9002/infer",
+    ]
+
+
 def test_virtual_tryon_default_replicate_template_infers_category(monkeypatch):
     dress_item = ClothingItem(
         id=21,

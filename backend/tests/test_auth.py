@@ -42,10 +42,11 @@ def test_login_endpoint(client, monkeypatch):
 
 
 def test_sign_up_endpoint(client, monkeypatch):
-    def fake_sign_up(db, email, password, *, display_name=None):
+    def fake_sign_up(db, email, password, *, display_name=None, redirect_to=None):
         assert email == "new@ai-wardrobe.dev"
         assert password == "secret123"
         assert display_name is None
+        assert redirect_to == "https://www.aiwardrobes.com/login"
         return AuthSessionResponse(
             access_token=None,
             refresh_token=None,
@@ -64,7 +65,14 @@ def test_sign_up_endpoint(client, monkeypatch):
 
     monkeypatch.setattr(auth_service, "sign_up_with_password", fake_sign_up)
 
-    response = client.post("/api/v1/auth/sign-up", json={"email": "new@ai-wardrobe.dev", "password": "secret123"})
+    response = client.post(
+        "/api/v1/auth/sign-up",
+        json={
+            "email": "new@ai-wardrobe.dev",
+            "password": "secret123",
+            "redirect_to": "https://www.aiwardrobes.com/login",
+        },
+    )
     payload = response.json()
 
     assert response.status_code == 200

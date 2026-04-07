@@ -1028,7 +1028,7 @@ def save_outfit(db: Session, user: User, payload: SavedOutfitPayload) -> Outfit:
 def list_wear_logs(db: Session, user: User) -> list[WearLog]:
     return list(
         db.scalars(
-            select(WearLog).where(WearLog.user_id == user.id).order_by(desc(WearLog.worn_on)).limit(20)
+            select(WearLog).where(WearLog.user_id == user.id).order_by(desc(WearLog.worn_on), desc(WearLog.id)).limit(20)
         ).all()
     )
 

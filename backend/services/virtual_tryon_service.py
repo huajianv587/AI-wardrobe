@@ -165,13 +165,23 @@ def _is_replicate_predictions_url(base_url: str) -> bool:
     return parsed.path.rstrip("/").endswith("/predictions")
 
 
-def _replicate_headers(*, include_body_headers: bool = True) -> dict[str, str]:
+def _tryon_route_label(base_url: str) -> str:
+    trimmed = base_url.strip().rstrip("/")
+    parsed = urlparse(trimmed)
+    host = parsed.netloc or parsed.path or trimmed
+    path = parsed.path.rstrip("/")
+    if path and path != "/":
+        return f"{host}{path}"
+    return host
+
+
+def _replicate_headers(api_key: str, *, include_body_headers: bool = True) -> dict[str, str]:
     headers = {"Accept": "application/json"}
     if include_body_headers:
         headers["Content-Type"] = "application/json"
         headers["Prefer"] = "wait=5"
-    if settings.virtual_tryon_api_key:
-        headers["Authorization"] = f"Bearer {settings.virtual_tryon_api_key}"
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
     return headers
 
 
@@ -284,16 +294,22 @@ def _replicate_provider_label(prediction: dict) -> str:
     return "Replicate"
 
 
-def _create_replicate_prediction(request: TryOnRenderRequest, items: list[ClothingItem]) -> dict:
+def _create_replicate_prediction(
+    request: TryOnRenderRequest,
+    items: list[ClothingItem],
+    *,
+    api_url: str,
+    api_key: str,
+) -> dict:
     payload = {"input": _replicate_input_payload(request, items)}
     configured_version = settings.virtual_tryon_replicate_version.strip()
-    if configured_version and "/models/" not in settings.virtual_tryon_api_url:
+    if configured_version and "/models/" not in api_url:
         payload["version"] = configured_version
 
     response = httpx.post(
-        settings.virtual_tryon_api_url,
+        api_url,
         json=payload,
-        headers=_replicate_headers(),
+        headers=_replicate_headers(api_key),
         timeout=settings.ai_cleanup_timeout_seconds,
     )
     response.raise_for_status()
@@ -303,7 +319,7 @@ def _create_replicate_prediction(request: TryOnRenderRequest, items: list[Clothi
     return body
 
 
-def _poll_replicate_prediction(started_prediction: dict) -> dict:
+def _poll_replicate_prediction(started_prediction: dict, *, api_key: str) -> dict:
     urls = started_prediction.get("urls") if isinstance(started_prediction.get("urls"), dict) else {}
     get_url = str(urls.get("get") or "").strip()
     if not get_url:
@@ -313,7 +329,7 @@ def _poll_replicate_prediction(started_prediction: dict) -> dict:
     while time.monotonic() < deadline:
         response = httpx.get(
             get_url,
-            headers=_replicate_headers(include_body_headers=False),
+            headers=_replicate_headers(api_key, include_body_headers=False),
             timeout=settings.ai_cleanup_timeout_seconds,
         )
         response.raise_for_status()
@@ -335,15 +351,17 @@ def _remote_tryon_replicate(
     *,
     request: TryOnRenderRequest,
     items: list[ClothingItem],
+    api_url: str,
+    api_key: str,
 ) -> tuple[bytes, str, str]:
-    started_prediction = _create_replicate_prediction(request, items)
+    started_prediction = _create_replicate_prediction(request, items, api_url=api_url, api_key=api_key)
     status_value = str(started_prediction.get("status") or "").lower()
     completed_prediction = started_prediction
 
     if status_value in REPLICATE_TERMINAL_FAILURE:
         raise ValueError(f"Replicate prediction failed: {started_prediction.get('error') or status_value}")
     if status_value not in REPLICATE_TERMINAL_SUCCESS:
-        completed_prediction = _poll_replicate_prediction(started_prediction)
+        completed_prediction = _poll_replicate_prediction(started_prediction, api_key=api_key)
 
     output_reference = _extract_output_reference(completed_prediction.get("output"))
     if not output_reference:
@@ -357,11 +375,13 @@ def _remote_tryon_worker(
     *,
     request: TryOnRenderRequest,
     items: list[ClothingItem],
+    api_url: str,
+    api_key: str,
 ) -> tuple[bytes, str, str]:
     headers: dict[str, str] = {}
-    if settings.virtual_tryon_api_key:
-        headers["Authorization"] = f"Bearer {settings.virtual_tryon_api_key}"
-        headers["X-API-Key"] = settings.virtual_tryon_api_key
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+        headers["X-API-Key"] = api_key
 
     payload = {
         "person_image_url": request.person_image_url,
@@ -371,7 +391,7 @@ def _remote_tryon_worker(
         "scene": request.scene,
     }
     response = httpx.post(
-        settings.virtual_tryon_api_url,
+        api_url,
         json=payload,
         headers=headers,
         timeout=settings.ai_cleanup_timeout_seconds,
@@ -393,10 +413,29 @@ def _remote_tryon(
     *,
     request: TryOnRenderRequest,
     items: list[ClothingItem],
+    api_url: str,
+    api_key: str,
 ) -> tuple[bytes, str, str]:
-    if _is_replicate_predictions_url(settings.virtual_tryon_api_url):
-        return _remote_tryon_replicate(request=request, items=items)
-    return _remote_tryon_worker(request=request, items=items)
+    if _is_replicate_predictions_url(api_url):
+        return _remote_tryon_replicate(request=request, items=items, api_url=api_url, api_key=api_key)
+    return _remote_tryon_worker(request=request, items=items, api_url=api_url, api_key=api_key)
+
+
+def _tryon_targets() -> list[tuple[str, str, str]]:
+    primary_url = settings.virtual_tryon_api_url.strip()
+    fallback_url = settings.virtual_tryon_fallback_api_url.strip()
+
+    if local_model.should_use_local_model("virtual_tryon"):
+        if fallback_url:
+            return [("local-worker", fallback_url, settings.virtual_tryon_fallback_api_key.strip())]
+        return []
+
+    targets: list[tuple[str, str, str]] = []
+    if primary_url:
+        targets.append(("remote", primary_url, settings.virtual_tryon_api_key.strip()))
+    if fallback_url and fallback_url.rstrip("/") != primary_url.rstrip("/"):
+        targets.append(("fallback-worker", fallback_url, settings.virtual_tryon_fallback_api_key.strip()))
+    return targets
 
 
 def _local_tryon(
@@ -444,18 +483,41 @@ def render_try_on(db: Session, user: User, payload: TryOnRenderRequest) -> TryOn
     if not items and not payload.garment_image_urls:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="请至少选择 1 件衣物后再生成试衣图。")
 
-    use_local_first = local_model.should_use_local_model("virtual_tryon") or not settings.virtual_tryon_api_url
+    routes = _tryon_targets()
     provider_mode = "local"
+    route_errors: list[tuple[str, str, Exception]] = []
+    image_bytes: bytes | None = None
+    content_type = "image/png"
+    provider = ""
 
-    if use_local_first:
-        image_bytes, content_type, provider = _local_tryon(request=payload, items=items)
-    else:
+    for route_name, route_url, route_key in routes:
         try:
-            image_bytes, content_type, provider = _remote_tryon(request=payload, items=items)
-            provider_mode = "remote"
-        except Exception:
-            image_bytes, content_type, provider = _local_tryon(request=payload, items=items)
-            provider_mode = "remote-fallback-local"
+            image_bytes, content_type, provider = _remote_tryon(
+                request=payload,
+                items=items,
+                api_url=route_url,
+                api_key=route_key,
+            )
+            if route_name == "remote":
+                provider_mode = "remote"
+            elif route_name == "fallback-worker":
+                provider_mode = "remote-fallback-worker"
+            else:
+                provider_mode = "local-worker"
+            break
+        except Exception as exc:
+            route_errors.append((route_name, route_url, exc))
+
+    if image_bytes is None:
+        image_bytes, content_type, provider = _local_tryon(request=payload, items=items)
+        if route_errors:
+            route_names = {route_name for route_name, _, _ in route_errors}
+            if "fallback-worker" in route_names:
+                provider_mode = "remote-fallback-worker-fallback-local"
+            elif "remote" in route_names:
+                provider_mode = "remote-fallback-local"
+            elif "local-worker" in route_names:
+                provider_mode = "local-worker-fallback-local"
 
     saved = storage_service.save_generated_asset(
         f"tryon/user-{user.id}",
@@ -466,8 +528,18 @@ def render_try_on(db: Session, user: User, payload: TryOnRenderRequest) -> TryOn
     look_items = _serialize_items(items, payload.garment_image_urls)
     if provider_mode == "remote":
         message = "试衣图已经由远端模型服务生成。"
+    elif provider_mode == "remote-fallback-worker":
+        message = "云端试衣 API 暂时不可用，已自动切换到本地 OOT worker。"
+    elif provider_mode == "local-worker":
+        message = "试衣图已经由本地 OOT worker 生成。"
     elif provider_mode == "remote-fallback-local":
         message = "远端试衣服务暂时不可用，已自动切回本地试衣合成。"
+    elif provider_mode == "remote-fallback-worker-fallback-local":
+        detail = "; ".join(f"{route_name}@{_tryon_route_label(route_url)} => {exc}" for route_name, route_url, exc in route_errors)
+        message = f"云端试衣 API 和本地 OOT worker 都不可用，已切换到本地试衣合成预览。Detail: {detail}"
+    elif provider_mode == "local-worker-fallback-local":
+        detail = "; ".join(f"{route_name}@{_tryon_route_label(route_url)} => {exc}" for route_name, route_url, exc in route_errors)
+        message = f"本地 OOT worker 暂时不可用，已切换到本地试衣合成预览。Detail: {detail}"
     else:
         message = "试衣图已经由本地试衣合成链路生成。"
 

@@ -121,6 +121,8 @@ def public_backup_url_for_asset(asset_url: str | None) -> str | None:
 
     asset_path = managed_asset_path_from_url(asset_url)
     if asset_path:
+        if r2_public_url := r2_storage_service.public_url_for_asset_path(asset_path):
+            return r2_public_url
         return _public_local_asset_url(asset_path)
 
     parsed = urlparse(asset_url)

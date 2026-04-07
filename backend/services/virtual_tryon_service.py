@@ -5,6 +5,7 @@ import json
 import time
 from datetime import datetime
 from io import BytesIO
+from pathlib import Path
 from urllib.parse import urlparse
 
 import httpx
@@ -43,6 +44,34 @@ def _look_items_from_ids(db: Session, user: User, item_ids: list[int]) -> list[C
 
 def _item_image_url(item: ClothingItem) -> str | None:
     return item.processed_image_url or item.image_url
+
+
+def _ensure_external_image_url(
+    image_url: str | None,
+    *,
+    relative_directory: str,
+    fallback_filename: str,
+) -> str | None:
+    if not image_url:
+        return None
+    if image_url.startswith(("http://", "https://")):
+        return image_url
+    if backup_url := storage_service.public_backup_url_for_asset(image_url):
+        return backup_url
+
+    loaded = storage_service.load_asset_bytes(image_url)
+    suffix = Path(loaded.filename).suffix or ".png"
+    filename = fallback_filename if Path(fallback_filename).suffix else f"{fallback_filename}{suffix}"
+    stored = storage_service.save_generated_asset(relative_directory, filename, loaded.payload, loaded.content_type)
+    return stored.backup_url or storage_service.public_backup_url_for_asset(stored.url) or stored.url
+
+
+def _remote_item_image_url(item: ClothingItem) -> str | None:
+    return _ensure_external_image_url(
+        _item_image_url(item),
+        relative_directory="tryon/remote-inputs/garment",
+        fallback_filename=f"item-{item.id or 'garment'}.png",
+    )
 
 
 def _open_image(image_url: str | None) -> Image.Image | None:
@@ -205,11 +234,30 @@ def _replicate_category(request: TryOnRenderRequest, items: list[ClothingItem]) 
 
 
 def _replicate_template_context(request: TryOnRenderRequest, items: list[ClothingItem]) -> dict[str, object]:
-    garment_urls = [entry for entry in [_item_image_url(item) for item in items] if entry] + list(request.garment_image_urls or [])
+    garment_urls = [
+        entry
+        for entry in [_remote_item_image_url(item) for item in items]
+        if entry
+    ] + [
+        entry
+        for entry in [
+            _ensure_external_image_url(
+                image_url,
+                relative_directory="tryon/remote-inputs/garment",
+                fallback_filename="garment-upload.png",
+            )
+            for image_url in (request.garment_image_urls or [])
+        ]
+        if entry
+    ]
     primary_garment_url = garment_urls[0] if garment_urls else None
     replicate_category = _replicate_category(request, items)
     return {
-        "person_image_url": request.person_image_url,
+        "person_image_url": _ensure_external_image_url(
+            request.person_image_url,
+            relative_directory="tryon/remote-inputs/person",
+            fallback_filename="person-photo.png",
+        ),
         "primary_garment_url": primary_garment_url,
         "garment_image_urls": garment_urls,
         "prompt": request.prompt or "",
@@ -384,8 +432,27 @@ def _remote_tryon_worker(
         headers["X-API-Key"] = api_key
 
     payload = {
-        "person_image_url": request.person_image_url,
-        "garment_image_urls": [entry for entry in [_item_image_url(item) for item in items] if entry] + list(request.garment_image_urls or []),
+        "person_image_url": _ensure_external_image_url(
+            request.person_image_url,
+            relative_directory="tryon/remote-inputs/person",
+            fallback_filename="person-photo.png",
+        ),
+        "garment_image_urls": [
+            entry
+            for entry in [_remote_item_image_url(item) for item in items]
+            if entry
+        ] + [
+            entry
+            for entry in [
+                _ensure_external_image_url(
+                    image_url,
+                    relative_directory="tryon/remote-inputs/garment",
+                    fallback_filename="garment-upload.png",
+                )
+                for image_url in (request.garment_image_urls or [])
+            ]
+            if entry
+        ],
         "item_ids": [item.id for item in items],
         "prompt": request.prompt,
         "scene": request.scene,
@@ -489,8 +556,12 @@ def render_try_on(db: Session, user: User, payload: TryOnRenderRequest) -> TryOn
     image_bytes: bytes | None = None
     content_type = "image/png"
     provider = ""
+    skipped_remote_for_missing_person_image = False
 
     for route_name, route_url, route_key in routes:
+        if _is_replicate_predictions_url(route_url) and not payload.person_image_url:
+            skipped_remote_for_missing_person_image = True
+            continue
         try:
             image_bytes, content_type, provider = _remote_tryon(
                 request=payload,
@@ -540,6 +611,8 @@ def render_try_on(db: Session, user: User, payload: TryOnRenderRequest) -> TryOn
     elif provider_mode == "local-worker-fallback-local":
         detail = "; ".join(f"{route_name}@{_tryon_route_label(route_url)} => {exc}" for route_name, route_url, exc in route_errors)
         message = f"本地 OOT worker 暂时不可用，已切换到本地试衣合成预览。Detail: {detail}"
+    elif skipped_remote_for_missing_person_image:
+        message = "未上传全身照，当前先生成本地试衣预览。上传全身照后会自动切到 Replicate 云端试衣。"
     else:
         message = "试衣图已经由本地试衣合成链路生成。"
 

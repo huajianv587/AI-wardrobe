@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from core import local_model
 from core.config import settings
 from services import r2_storage_service, supabase_service
 
@@ -19,4 +20,9 @@ def health_check() -> dict:
         "supabase_configured": supabase_service.is_enabled(),
         "supabase_sync_table": settings.supabase_sync_table,
         "ai_cleanup_mode": "remote" if settings.ai_cleanup_api_url else "placeholder",
+        "runtime_modes": {
+            "llm_recommender": local_model.resolve_model_mode("llm_recommender"),
+            "image_cleanup": local_model.resolve_model_mode("image_cleanup"),
+            "virtual_tryon": local_model.resolve_model_mode("virtual_tryon"),
+        },
     }

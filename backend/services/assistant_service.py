@@ -4,9 +4,10 @@ import base64
 from collections import Counter
 from datetime import datetime, timedelta
 import json
+import logging
 import mimetypes
 import re
-from typing import Callable
+from typing import Callable, TypeVar
 
 import httpx
 from fastapi import HTTPException, status
@@ -42,6 +43,9 @@ from app.schemas.recommendation import RecommendationRequest, RecommendationResp
 from core import local_model
 from core.config import settings
 from services import recommendation_service, storage_service, weather_service, wardrobe_service
+
+logger = logging.getLogger(__name__)
+T = TypeVar("T")
 
 LOW_THOUGHT_MODES = {
     "上班": "Office commute tomorrow, polished and easy to repeat",
@@ -372,18 +376,13 @@ def _item_text(item: ClothingItem) -> str:
     )
 
 
-def _ensure_style_profile(db: Session, user: User) -> StyleProfile:
-    profile = db.scalar(select(StyleProfile).where(StyleProfile.user_id == user.id))
-    if profile is not None:
-        return profile
-
-    items = wardrobe_service.list_items(db, user.id)
+def _build_style_profile_snapshot(user_id: int, items: list[ClothingItem]) -> StyleProfile:
     colors = Counter(item.color.lower() for item in items if item.color)
     silhouettes = Counter(tag for item in items for tag in (item.tags or []) if tag in {"minimal", "structured", "soft", "airy", "cozy", "elegant"})
     occasions = Counter(occasion for item in items for occasion in (item.occasions or []) if occasion)
 
-    profile = StyleProfile(
-        user_id=user.id,
+    return StyleProfile(
+        user_id=user_id,
         favorite_colors=[color.title() for color, _ in colors.most_common(3)],
         avoid_colors=[],
         favorite_silhouettes=[tag for tag, _ in silhouettes.most_common(3)],
@@ -394,7 +393,17 @@ def _ensure_style_profile(db: Session, user: User) -> StyleProfile:
         comfort_priorities=["easy layering", "repeat-friendly"],
         wardrobe_rules=["Prefer one anchor piece and one gentle accent."],
         personal_note="Still learning your closet rhythm, but already tracking what feels most like you.",
+        updated_at=datetime.utcnow(),
     )
+
+
+def _ensure_style_profile(db: Session, user: User) -> StyleProfile:
+    profile = db.scalar(select(StyleProfile).where(StyleProfile.user_id == user.id))
+    if profile is not None:
+        return profile
+
+    items = wardrobe_service.list_items(db, user.id)
+    profile = _build_style_profile_snapshot(user.id, items)
     db.add(profile)
     db.commit()
     db.refresh(profile)
@@ -765,6 +774,98 @@ def _build_reminder_response(db: Session, items: list[ClothingItem], user_id: in
     )
 
 
+def _empty_reminder_response() -> ReminderResponse:
+    return ReminderResponse(repeat_warning=[], laundry_and_care=[], idle_and_seasonal=[])
+
+
+def _rollback_sidecar_failure(db: Session, label: str, exc: Exception) -> None:
+    try:
+        db.rollback()
+    except Exception as rollback_exc:
+        logger.warning("Assistant sidecar '%s' rollback also failed: %s: %s", label, type(rollback_exc).__name__, rollback_exc)
+    logger.warning("Assistant sidecar '%s' failed; using fallback. %s: %s", label, type(exc).__name__, exc)
+
+
+def _safe_sidecar(db: Session, label: str, loader: Callable[[], T], fallback_factory: Callable[[], T]) -> T:
+    try:
+        return loader()
+    except Exception as exc:
+        _rollback_sidecar_failure(db, label, exc)
+        return fallback_factory()
+
+
+def _safe_attach_memory_cards(db: Session, items: list[ClothingItem], user_id: int) -> list[ClothingItem]:
+    def _fallback() -> list[ClothingItem]:
+        for item in items:
+            item.memory_card = None
+        return items
+
+    return _safe_sidecar(
+        db,
+        "memory_cards",
+        lambda: attach_memory_cards(db, items, user_id),
+        _fallback,
+    )
+
+
+def _load_recent_signals(db: Session, user_id: int, limit: int = 60) -> list[RecommendationSignal]:
+    return list(
+        db.scalars(
+            select(RecommendationSignal)
+            .where(RecommendationSignal.user_id == user_id)
+            .order_by(desc(RecommendationSignal.created_at))
+            .limit(limit)
+        ).all()
+    )
+
+
+def _safe_recent_signals(db: Session, user_id: int, limit: int = 60) -> list[RecommendationSignal]:
+    return _safe_sidecar(
+        db,
+        "recommendation_signals",
+        lambda: _load_recent_signals(db, user_id, limit),
+        list,
+    )
+
+
+def _load_recent_wear_logs(db: Session, user_id: int, limit: int = 40) -> list[WearLog]:
+    return list(
+        db.scalars(
+            select(WearLog)
+            .where(WearLog.user_id == user_id)
+            .order_by(desc(WearLog.worn_on))
+            .limit(limit)
+        ).all()
+    )
+
+
+def _safe_recent_wear_logs(db: Session, user_id: int, limit: int = 40) -> list[WearLog]:
+    return _safe_sidecar(
+        db,
+        "wear_logs",
+        lambda: _load_recent_wear_logs(db, user_id, limit),
+        list,
+    )
+
+
+def _safe_style_profile(db: Session, user: User, items: list[ClothingItem]) -> StyleProfile:
+    return _safe_sidecar(
+        db,
+        "style_profile",
+        lambda: _ensure_style_profile(db, user),
+        lambda: _build_style_profile_snapshot(user.id, items),
+    )
+
+
+def _safe_reminder_response(db: Session, items: list[ClothingItem], user_id: int) -> ReminderResponse:
+    return _safe_sidecar(
+        db,
+        "reminders",
+        lambda: _build_reminder_response(db, items, user_id),
+        _empty_reminder_response,
+    )
+
+
 def _substitute_item_ids(items: list[ClothingItem], selected_item_ids: list[int], slot: str) -> list[int]:
     selected = set(selected_item_ids)
     candidates = [item.id for item in items if item.slot == slot and item.id not in selected]
@@ -840,29 +941,15 @@ def _enrich_recommendation(
 
 def generate_recommendation(db: Session, user: User, payload: RecommendationRequest) -> RecommendationResponse:
     items = wardrobe_service.list_items(db, user.id)
-    attach_memory_cards(db, items, user.id)
-    profile = _ensure_style_profile(db, user)
-    recent_signals = list(
-        db.scalars(
-            select(RecommendationSignal)
-            .where(RecommendationSignal.user_id == user.id)
-            .order_by(desc(RecommendationSignal.created_at))
-            .limit(60)
-        ).all()
-    )
-    recent_wear_logs = list(
-        db.scalars(
-            select(WearLog)
-            .where(WearLog.user_id == user.id)
-            .order_by(desc(WearLog.worn_on))
-            .limit(40)
-        ).all()
-    )
+    _safe_attach_memory_cards(db, items, user.id)
+    profile = _safe_style_profile(db, user, items)
+    recent_signals = _safe_recent_signals(db, user.id)
+    recent_wear_logs = _safe_recent_wear_logs(db, user.id)
     preference_scores = _preference_scores(items, profile, recent_signals, recent_wear_logs, payload.prompt)
     sorted_items = sorted(items, key=lambda item: preference_scores.get(item.id, 0.0), reverse=True)
     response = recommendation_service.generate_recommendations(payload, sorted_items)
     gap_response = _build_gap_response(items)
-    reminder_response = _build_reminder_response(db, items, user.id)
+    reminder_response = _safe_reminder_response(db, items, user.id)
     return _enrich_recommendation(response, items, profile, gap_response, reminder_response, preference_scores, payload.prompt)
 
 
@@ -956,8 +1043,8 @@ def build_gap_overview(db: Session, user: User) -> ClosetGapResponse:
 
 def build_reminders(db: Session, user: User) -> ReminderResponse:
     items = wardrobe_service.list_items(db, user.id)
-    attach_memory_cards(db, items, user.id)
-    return _build_reminder_response(db, items, user.id)
+    _safe_attach_memory_cards(db, items, user.id)
+    return _safe_reminder_response(db, items, user.id)
 
 
 def get_style_profile(db: Session, user: User) -> StyleProfile:
@@ -1127,7 +1214,8 @@ def generate_packing_plan(db: Session, user: User, payload: PackingRequest) -> P
 
 
 def build_overview(db: Session, user: User) -> AssistantOverviewResponse:
-    profile = _ensure_style_profile(db, user)
+    items = wardrobe_service.list_items(db, user.id)
+    profile = _safe_style_profile(db, user, items)
     try:
         tomorrow = generate_tomorrow_plan(
             db,

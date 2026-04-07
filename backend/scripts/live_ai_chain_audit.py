@@ -18,6 +18,8 @@ if str(BACKEND_ROOT) not in sys.path:
 from core.config import settings  # noqa: E402
 from services import auth_service  # noqa: E402
 
+DEFAULT_PERSON_IMAGE_URL = "https://raw.githubusercontent.com/levihsu/OOTDiffusion/main/run/examples/model/model_1.png"
+
 
 def _step(name: str, ok: bool, detail: str) -> None:
     status = "OK" if ok else "FAIL"
@@ -114,6 +116,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--email", default="", help="Smoke-test email.")
     parser.add_argument("--password", default="", help="Smoke-test password.")
     parser.add_argument("--display-name", default="AI Chain Audit", help="Display name for the smoke-test account.")
+    parser.add_argument("--person-image-url", default=DEFAULT_PERSON_IMAGE_URL, help="Public full-body photo URL for remote try-on probing.")
     parser.add_argument("--cleanup-items", action="store_true", help="Delete created wardrobe items at the end.")
     return parser.parse_args()
 
@@ -132,6 +135,7 @@ def main() -> None:
     email = args.email.strip() or _default_email()
     password = args.password.strip() or _default_password()
     display_name = args.display_name.strip() or "AI Chain Audit"
+    person_image_url = args.person_image_url.strip() or DEFAULT_PERSON_IMAGE_URL
     png_bytes = _make_png()
     created_item_ids: list[int] = []
     audit_failed = False
@@ -139,6 +143,11 @@ def main() -> None:
     with httpx.Client(base_url=api_base_url, timeout=60.0) as client:
         headers: dict[str, str] = {}
         try:
+            health_response = client.get("/health")
+            health_ok = health_response.status_code == 200
+            health_payload = health_response.json() if health_ok else health_response.text
+            _step("health_runtime_modes", health_ok, _dump(health_payload))
+
             sign_up_response = client.post(
                 "/auth/sign-up",
                 json={
@@ -277,11 +286,13 @@ def main() -> None:
                 recommendation_source = recommendation.get("source")
                 trace = recommendation.get("agent_trace", [])
                 first_trace = trace[0] if trace else {}
-                if recommendation_source == "fallback-worker-model":
+                if recommendation_source == "remote-model":
+                    _step("recommendation_fallback", True, f"primary DeepSeek chain responded normally: {first_trace}")
+                elif recommendation_source == "fallback-worker-model":
                     _step("recommendation_fallback", True, f"secondary worker handled the request: {first_trace}")
                 elif recommendation_source == "remote-fallback-local-model":
                     audit_failed = True
-                    _step("recommendation_fallback", False, f"secondary worker did not catch the failure, final local fallback was used: {first_trace}")
+                    _step("recommendation_fallback", False, f"remote recommender did not stay online, final local fallback was used: {first_trace}")
                 else:
                     _step(
                         "recommendation_fallback",
@@ -297,6 +308,7 @@ def main() -> None:
                 headers=headers,
                 json={
                     "item_ids": [top_item["id"]],
+                    "person_image_url": person_image_url,
                     "prompt": "Fallback audit",
                     "scene": "audit",
                 },
@@ -308,7 +320,9 @@ def main() -> None:
                 tryon = tryon_response.json()
                 provider_mode = str(tryon.get("provider_mode") or "")
                 provider = str(tryon.get("provider") or "")
-                if provider_mode == "remote-fallback-worker":
+                if provider_mode == "remote":
+                    _step("try_on_fallback", True, f"Replicate cloud try-on responded normally. provider={provider}")
+                elif provider_mode == "remote-fallback-worker":
                     _step("try_on_fallback", True, f"cloud API failed over to worker provider={provider}")
                 elif provider_mode == "remote-fallback-local":
                     audit_failed = True

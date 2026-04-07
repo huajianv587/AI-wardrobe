@@ -260,6 +260,7 @@ export function TryOnStudio() {
   });
   const draggingItem = decoratedItems.find((item) => item.id === draggingItemId) ?? null;
   const wearingItems = decoratedItems.filter((item) => selectedTryOnIds.includes(item.id));
+  const canRequestCloudTryOn = Boolean(avatarPhotoUrl && selectedTryOnIds.length);
   const filteredItems = decoratedItems
     .filter((item) => {
       if (railFilter === "new") {
@@ -328,9 +329,14 @@ export function TryOnStudio() {
       setStatusText("先选中至少 1 件单品，再生成试衣图。");
       return;
     }
+    if (!avatarPhotoUrl) {
+      setServerPreview(null);
+      setStatusText("先上传全身照，再走 Replicate 云端试衣。当前舞台仍可继续做本地叠穿预览。");
+      return;
+    }
 
     setRenderingPreview(true);
-    setStatusText(avatarPhotoUrl ? "正在把选中的衣物贴到你的全身照上..." : "正在根据当前选中单品生成试衣预览...");
+    setStatusText("正在把选中的衣物贴到你的全身照上...");
 
     try {
       const result = await renderVirtualTryOn({
@@ -566,7 +572,13 @@ export function TryOnStudio() {
                 <div className="pill mb-2">Server Try-On</div>
                 <h4 className="text-lg font-semibold text-[var(--ink-strong)]">生成试衣图</h4>
                 <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
-                  {serverPreview.providerMode === "remote" ? "远端模型结果" : serverPreview.providerMode === "remote-fallback-local" ? "远端失败后已切到本地生成" : "本地试衣合成结果"}
+                  {serverPreview.providerMode === "remote"
+                    ? "远端模型结果"
+                    : serverPreview.providerMode === "remote-fallback-worker"
+                      ? "云端失败后已切到 OOT worker"
+                      : serverPreview.providerMode === "remote-fallback-local" || serverPreview.providerMode === "remote-fallback-worker-fallback-local"
+                        ? "远端失败后已切到本地生成"
+                        : "本地试衣合成结果"}
                 </p>
               </div>
               <div className="rounded-[20px] border border-[var(--line)] bg-white/80 px-4 py-3 text-xs leading-5 text-[var(--muted)]">
@@ -616,11 +628,12 @@ export function TryOnStudio() {
             <button
               type="button"
               onClick={() => void handleRenderPreview()}
-              disabled={renderingPreview || !selectedTryOnIds.length}
+              disabled={renderingPreview || !canRequestCloudTryOn}
+              title={!avatarPhotoUrl ? "请先上传全身照后再生成云端试衣图" : undefined}
               className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/85 px-4 py-2 text-sm text-[var(--ink)] transition hover:border-[var(--accent)] hover:bg-[var(--accent-soft)] disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Sparkles className="size-4" />
-              {renderingPreview ? "生成中..." : "生成试衣图"}
+              {renderingPreview ? "生成中..." : avatarPhotoUrl ? "生成试衣图" : "先上传全身照"}
             </button>
             <button
               type="button"
@@ -637,6 +650,11 @@ export function TryOnStudio() {
               className="hidden"
               onChange={(event) => handleAvatarPhotoUpload(event.target.files?.[0] ?? null)}
             />
+            {!avatarPhotoUrl ? (
+              <span className="rounded-full border border-[var(--line)] bg-[var(--accent-soft)] px-3 py-1.5 text-xs text-[var(--ink-strong)]">
+                云端试衣需要先上传全身照
+              </span>
+            ) : null}
           </div>
         </div>
 

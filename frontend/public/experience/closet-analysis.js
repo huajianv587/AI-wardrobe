@@ -67,27 +67,27 @@
       : categories[0];
     var center = 180;
     var values = categories.map(function (entry) { return Number(entry.pct || 0); });
-    var rings = [46, 74, 102, 130, 158].map(function (radius) {
+    var rings = [44, 70, 96, 122, 148].map(function (radius) {
       return buildRadarPolygon([100, 100, 100, 100, 100, 100], radius, radius, center);
     });
-    var areaPoints = buildRadarPolygon(values, 40, 126, center);
+    var areaPoints = buildRadarPolygon(values, 38, 118, center);
     var axes = categories.map(function (_, index) {
-      var point = polarPoint(index, 158, center);
+      var point = polarPoint(index, 148, center);
       return '<line x1="' + center + '" y1="' + center + '" x2="' + point.x.toFixed(1) + '" y2="' + point.y.toFixed(1) + '"></line>';
     }).join("");
     var badges = categories.map(function (entry, index) {
-      var point = polarPoint(index, 132, center);
+      var point = polarPoint(index, 122, center);
       var tone = palette[index % palette.length];
       return '<div class="radar-premium-axis-badge" style="left:' + ((point.x / 360) * 100).toFixed(2) + '%;top:' + ((point.y / 360) * 100).toFixed(2) + '%;--axis-tone:' + W.escapeHtml(tone) + '"><span>' + W.escapeHtml(entry.icon || "✦") + '</span></div>';
     }).join("");
     var labels = categories.map(function (entry, index) {
-      var point = polarPoint(index, 182, center);
+      var point = polarPoint(index, 156, center);
       return '<div class="radar-premium-label" style="left:' + ((point.x / 360) * 100).toFixed(2) + '%;top:' + ((point.y / 360) * 100).toFixed(2) + '%;"><strong>' + W.escapeHtml(entry.name || "分类") + '</strong></div>';
     }).join("");
     var nodes = categories.map(function (entry, index) {
       var pct = Math.max(0, Math.min(Number(entry.pct || 0), 100));
       var tone = palette[index % palette.length];
-      var point = polarPoint(index, 40 + (pct / 100) * 86, center);
+      var point = polarPoint(index, 38 + (pct / 100) * 80, center);
       return '' +
         '<circle cx="' + point.x.toFixed(1) + '" cy="' + point.y.toFixed(1) + '" r="13" class="radar-premium-node-halo" style="fill:' + W.escapeHtml(tone) + '"></circle>' +
         '<circle cx="' + point.x.toFixed(1) + '" cy="' + point.y.toFixed(1) + '" r="6.5" class="radar-premium-node-dot" style="fill:' + W.escapeHtml(tone) + '"></circle>';

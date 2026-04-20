@@ -1,6 +1,8 @@
 import { SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 
+const API_BASE_URL = (process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:8000").replace(/\/$/, "");
+
 export default function App() {
   return (
     <SafeAreaView style={styles.safe}>
@@ -26,6 +28,16 @@ export default function App() {
           <Text style={styles.cardCopy}>2. Assistant overview screen for tomorrow planner and reminders.</Text>
           <Text style={styles.cardCopy}>3. Wardrobe upload + image cleanup queue progress.</Text>
           <Text style={styles.cardCopy}>4. Quick mode and saved outfits tabs.</Text>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Shared backend contract</Text>
+          <Text style={styles.cardCopy}>All native requests should keep going through the same backend contract as web and mini-program.</Text>
+          <View style={styles.runtimePill}>
+            <Text style={styles.runtimeLabel}>EXPO_PUBLIC_API_BASE_URL</Text>
+            <Text style={styles.runtimeValue}>{API_BASE_URL}</Text>
+          </View>
+          <Text style={styles.cardCopy}>This keeps auth, Redis-backed task polling, recommendation routing, and hybrid try-on behavior aligned across every client.</Text>
         </View>
 
         <View style={styles.thumbZone}>
@@ -116,6 +128,25 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     color: "#5f6b7a"
+  },
+  runtimePill: {
+    marginTop: 16,
+    borderRadius: 18,
+    backgroundColor: "#f7ede2",
+    paddingHorizontal: 14,
+    paddingVertical: 12
+  },
+  runtimeLabel: {
+    fontSize: 11,
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+    color: "#8d6f52"
+  },
+  runtimeValue: {
+    marginTop: 8,
+    fontSize: 14,
+    color: "#1b2432",
+    fontWeight: "600"
   },
   thumbZone: {
     flexDirection: "row",

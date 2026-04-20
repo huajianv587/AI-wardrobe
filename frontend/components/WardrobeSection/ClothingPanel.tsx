@@ -1,20 +1,29 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+
 import { ClothingCard } from "./ClothingCard";
 import { CategoryTabs } from "./CategoryTabs";
 import { OutfitActionBar } from "./OutfitActionBar";
-import type { ClothingCategory, ClothingItem, QuickAction } from "@/lib/mockData";
+import type { HomeQuickAction, HomeWardrobeCategory, HomeWardrobeItem } from "@/lib/home-wardrobe";
+
+interface QuickActionDescriptor {
+  id: HomeQuickAction;
+  label: string;
+  prompt: string;
+  keywords: readonly string[];
+  preferredCategories: readonly HomeWardrobeCategory[];
+}
 
 interface ClothingPanelProps {
-  actions: readonly QuickAction[];
-  activeAction: QuickAction | null;
-  items: ClothingItem[];
-  selectedCategory: ClothingCategory;
-  selectedItem: ClothingItem | null;
-  onApplyQuickAction: (action: QuickAction) => void;
-  onSelectCategory: (category: ClothingCategory) => void;
-  onSelectItem: (item: ClothingItem) => void;
+  actions: readonly QuickActionDescriptor[];
+  activeAction: HomeQuickAction | null;
+  items: HomeWardrobeItem[];
+  selectedCategory: HomeWardrobeCategory;
+  selectedItem: HomeWardrobeItem | null;
+  onApplyQuickAction: (action: HomeQuickAction) => void;
+  onSelectCategory: (category: HomeWardrobeCategory) => void;
+  onSelectItem: (item: HomeWardrobeItem) => void;
 }
 
 export function ClothingPanel({

@@ -73,6 +73,7 @@ This step scaffolds:
 ## Local Run
 
 1. Copy `.env.example` to `.env`.
+   For environment isolation you can also use `.env.production`, `.env.test`, or set `AI_WARDROBE_ENV_FILE=/path/to/your.env` before boot.
 2. Fill `DATABASE_URL` with your Supabase Postgres connection string:
 
 ```bash
@@ -82,12 +83,91 @@ postgresql+psycopg://postgres:[YOUR_DB_PASSWORD]@db.<project-ref>.supabase.co:54
 3. Fill `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`.
 4. Run [`infra/supabase/productized_schema.sql`](infra/supabase/productized_schema.sql) inside the Supabase SQL Editor.
 5. If you have a real image cleanup service, set `AI_CLEANUP_API_URL`. If not, the app now prefers the local segmentation stack (`SAM2 + SCHP + YOLO + FashionCLIP`) and only falls back to a simple white-background preview when the local weights are missing.
-6. Start the backend and frontend:
+6. Start the local stack:
 
 ```bash
-cd backend && .venv/Scripts/python.exe -m uvicorn app.main:app --reload
-cd frontend && npm run dev
+start-redis.cmd
+start-backend.cmd
+start-worker.cmd
+start-frontend.cmd
 ```
+
+Or use the one-click launcher:
+
+```bash
+start-web-stack.cmd
+```
+
+The supported local Python runtime is `backend/.venv`. The Windows launchers above will create and reuse it for the backend and worker.
+
+To validate the real queue path after boot:
+
+```bash
+backend/.venv/Scripts/python.exe backend/scripts/smoke_queue_validation.py --redis-url redis://127.0.0.1:6379/0
+```
+
+## Production Hardening
+
+- Health endpoints:
+  - `/api/v1/health/live`
+  - `/api/v1/health/ready`
+  - `/api/v1/health/dependencies`
+- Deployment probe:
+
+```bash
+backend/.venv/Scripts/python.exe backend/scripts/deployment_health_probe.py --base-url http://127.0.0.1:8000
+```
+
+- API protection:
+  - in-memory per-route rate limiting for auth and high-cost AI endpoints
+  - Redis-backed distributed rate limiting when `RATE_LIMIT_USE_REDIS=true`
+  - request audit logs with `X-Request-ID`
+  - uncaught-exception alert hooks through `ALERT_WEBHOOK_URL` and/or `ALERT_EMAIL_TO`
+  - log redaction for bearer tokens, passwords, cookies, and configured third-party secrets
+
+## Production Compose
+
+The production-oriented stack lives at [`infra/docker/docker-compose.production.yml`](infra/docker/docker-compose.production.yml).
+
+```bash
+docker compose --env-file .env.production -f infra/docker/docker-compose.production.yml up -d --build
+```
+
+It starts:
+
+- `frontend`
+- `backend`
+- `backend-worker`
+- `redis`
+- `gateway` (nginx reverse proxy)
+
+## Release Operations
+
+The repo now includes a release operations CLI at [`infra/scripts/release_ops.py`](infra/scripts/release_ops.py).
+
+Common commands:
+
+```bash
+python infra/scripts/release_ops.py backup
+python infra/scripts/release_ops.py verify
+python infra/scripts/release_ops.py deploy --release-tag release-20260411-1
+python infra/scripts/release_ops.py rollback
+```
+
+Reference docs:
+
+- quick checklist: [`docs/deployment-checklist.md`](docs/deployment-checklist.md)
+- full runbook: [`docs/release-runbook.md`](docs/release-runbook.md)
+
+## CI
+
+GitHub Actions workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+
+It runs:
+
+- backend tests
+- frontend production build
+- Playwright browser E2E
 
 ## Model Bootstrap
 

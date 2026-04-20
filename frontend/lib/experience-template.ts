@@ -183,6 +183,150 @@ body{
   margin-top:14px !important;
   padding-top:12px !important;
 }
+@media (max-height:940px) and (min-width:781px){
+body{
+  overflow-y:auto !important;
+}
+.panel{
+  padding:16px 26px 22px !important;
+}
+.ph{
+  padding-bottom:12px !important;
+  margin-bottom:12px !important;
+}
+.ph-title{
+  font-size:22px !important;
+}
+.ph-eyebrow{
+  margin-bottom:4px !important;
+}
+.ph-acts{
+  gap:6px !important;
+}
+.pa{
+  padding:7px 14px !important;
+  font-size:11px !important;
+}
+.tb{
+  gap:6px !important;
+  margin-bottom:10px !important;
+}
+.tbs input,
+.tbsort{
+  font-size:11px !important;
+  padding-top:7px !important;
+  padding-bottom:7px !important;
+}
+.fpp{
+  padding:5px 11px !important;
+  font-size:10px !important;
+}
+.pb{
+  grid-template-columns:176px 1fr !important;
+  gap:10px !important;
+  min-height:calc(100vh - 168px) !important;
+}
+.sb{
+  top:68px !important;
+}
+.stats{
+  gap:7px !important;
+  margin-bottom:8px !important;
+}
+.sc{
+  padding:10px 11px !important;
+}
+.scval{
+  font-size:18px !important;
+}
+.scsub{
+  font-size:9px !important;
+}
+.cg{
+  grid-template-columns:repeat(auto-fill,minmax(140px,1fr)) !important;
+  gap:8px !important;
+}
+.uptile,.ic-img{
+  aspect-ratio:.6 !important;
+}
+.icfoot{
+  padding:8px 9px 9px !important;
+}
+.icname{
+  font-size:11px !important;
+}
+.ict{
+  font-size:8.5px !important;
+}
+.pagi{
+  margin-top:8px !important;
+  padding-top:6px !important;
+}
+}
+@media (max-height:860px) and (min-width:781px){
+.panel{
+  padding:12px 20px 16px !important;
+}
+.ph{
+  padding-bottom:10px !important;
+  margin-bottom:10px !important;
+}
+.ph-title{
+  font-size:20px !important;
+}
+.pa{
+  padding:6px 12px !important;
+  font-size:10.5px !important;
+}
+.tb{
+  margin-bottom:8px !important;
+}
+.tbs input,
+.tbsort{
+  padding-top:7px !important;
+  padding-bottom:7px !important;
+}
+.fpp{
+  padding:4px 10px !important;
+  font-size:9.5px !important;
+}
+.pb{
+  grid-template-columns:168px 1fr !important;
+  gap:8px !important;
+  min-height:calc(100vh - 154px) !important;
+}
+.stats{
+  gap:6px !important;
+  margin-bottom:6px !important;
+}
+.sc{
+  padding:9px 10px !important;
+}
+.scval{
+  font-size:17px !important;
+}
+.cg{
+  grid-template-columns:repeat(auto-fill,minmax(132px,1fr)) !important;
+  gap:7px !important;
+}
+.uptile,.ic-img{
+  aspect-ratio:.54 !important;
+}
+.icfoot{
+  padding:7px 8px 8px !important;
+}
+.icname{
+  font-size:10.5px !important;
+}
+.ict{
+  font-size:7.5px !important;
+  padding:2px 5px !important;
+}
+.pagi{
+  margin-top:8px !important;
+  padding-top:6px !important;
+}
+}
 @keyframes wenwenStageFloat{
   0%,100%{transform:translateY(-10px) rotateX(0deg) rotateY(0deg)}
   50%{transform:translateY(-20px) rotateX(1.8deg) rotateY(-2.6deg)}
@@ -986,7 +1130,7 @@ body{
 }
 `,
   "closet-analysis.html": `
-body{padding-top:18px !important}
+body{padding-top:14px !important}
 .radar-premium-shell{
   position:relative !important;
   width:100% !important;
@@ -996,7 +1140,7 @@ body{padding-top:18px !important}
   align-items:center !important;
   justify-items:center !important;
   gap:8px !important;
-  overflow:hidden !important;
+  overflow:visible !important;
   padding:4px 0 8px !important;
 }
 .radar-premium-ribbon{
@@ -1049,6 +1193,7 @@ body{padding-top:18px !important}
   display:flex !important;
   align-items:center !important;
   justify-content:center !important;
+  overflow:visible !important;
 }
 .radar-premium-stage::before{
   content:"" !important;
@@ -1216,7 +1361,7 @@ body{padding-top:18px !important}
   display:grid !important;
   justify-items:center !important;
   gap:2px !important;
-  min-width:72px !important;
+  min-width:64px !important;
   text-align:center !important;
   z-index:4 !important;
   pointer-events:none !important;
@@ -1226,6 +1371,7 @@ body{padding-top:18px !important}
   font-size:17px !important;
   font-weight:400 !important;
   letter-spacing:.02em !important;
+  white-space:nowrap !important;
   color:#8c6565 !important;
   text-shadow:0 4px 16px rgba(255,255,255,.96) !important;
 }
@@ -1679,6 +1825,126 @@ body{
   margin-left:auto !important;
   min-width:42px !important;
   text-align:right !important;
+}
+@media (max-height:940px) and (min-width:781px){
+body{
+  padding:10px 14px !important;
+  gap:7px !important;
+}
+.top-bar{
+  padding:14px 20px 10px !important;
+}
+.top-bar h1{
+  font-size:32px !important;
+}
+.top-bar .sub{
+  font-size:11px !important;
+  margin-top:5px !important;
+}
+.tab-bar{
+  gap:6px !important;
+}
+.tab-btn{
+  padding:7px 13px !important;
+  font-size:10.5px !important;
+}
+.section.show{
+  gap:8px !important;
+}
+.analysis-card{
+  padding:12px !important;
+}
+.card-header{
+  margin-bottom:7px !important;
+}
+#sec-gap{
+  grid-template-columns:minmax(260px,.86fr) minmax(0,1.14fr) !important;
+}
+#sec-gap .gap-overview{
+  padding:12px 14px !important;
+}
+#sec-gap .gap-score{
+  font-size:38px !important;
+}
+#sec-gap .gap-content{
+  grid-template-columns:minmax(0,.72fr) minmax(340px,1.08fr) !important;
+  gap:8px !important;
+}
+#sec-gap .gap-right{
+  padding:12px 16px 10px !important;
+}
+.radar-premium-stage{
+  min-height:342px !important;
+}
+.radar-premium-svg{
+  width:min(100%,308px) !important;
+}
+.radar-premium-label strong{
+  font-size:14px !important;
+}
+.radar-premium-metrics{
+  gap:6px !important;
+}
+.radar-premium-chip{
+  min-height:28px !important;
+  font-size:9.5px !important;
+  padding:0 9px !important;
+}
+#sec-repeat{
+  grid-template-columns:minmax(0,1.04fr) minmax(264px,.96fr) !important;
+}
+#sec-season{
+  grid-template-columns:minmax(240px,.85fr) minmax(300px,1.1fr) minmax(188px,.72fr) !important;
+}
+}
+@media (max-height:860px) and (min-width:781px){
+.top-bar{
+  padding:12px 16px 8px !important;
+}
+body{
+  padding:9px 12px !important;
+  gap:6px !important;
+}
+.top-bar h1{
+  font-size:28px !important;
+}
+.top-bar .sub{
+  margin-top:4px !important;
+  font-size:10px !important;
+}
+.tab-bar{
+  gap:5px !important;
+}
+.tab-btn{
+  padding:6px 11px !important;
+  font-size:10px !important;
+}
+.section.show{
+  gap:7px !important;
+}
+.analysis-card{
+  padding:11px !important;
+}
+#sec-gap .gap-content{
+  grid-template-columns:minmax(0,.7fr) minmax(296px,1.12fr) !important;
+}
+#sec-gap .gap-right{
+  padding:10px 14px 9px !important;
+}
+.radar-premium-stage{
+  min-height:304px !important;
+}
+.radar-premium-svg{
+  width:min(100%,282px) !important;
+}
+.radar-premium-label strong{
+  font-size:12px !important;
+}
+.radar-premium-chip{
+  min-height:26px !important;
+  font-size:9px !important;
+  padding:0 8px !important;
+}
 }
 }
 @media (max-width:780px){

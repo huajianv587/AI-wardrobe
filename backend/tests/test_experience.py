@@ -1,11 +1,27 @@
 import io
 import re
 
+from sqlalchemy import select
+
+from app.api.deps import get_current_user, get_optional_user
+from app.main import app
+from app.models.assistant import AssistantTask
+from app.models.user import User
 from core.config import settings
 from services import experience_service, r2_storage_service
 
 
+def _seed_demo_experience_account(client):
+    with client.testing_session_local() as db:
+        user = db.scalar(select(User).where(User.email == "tester@ai-wardrobe.dev"))
+        assert user is not None
+        experience_service._ensure_demo_items(db, user)
+        experience_service._ensure_demo_outfits_and_logs(db, user)
+
+
 def test_experience_wardrobe_management_flow(client):
+    _seed_demo_experience_account(client)
+
     overview_response = client.get("/api/v1/experience/wardrobe-management")
     overview = overview_response.json()
 
@@ -257,6 +273,8 @@ def test_experience_wardrobe_management_assets_filters_and_bulk_flow(client, mon
 
 
 def test_experience_smart_diary_analysis_and_style_flow(client):
+    _seed_demo_experience_account(client)
+
     smart_response = client.get("/api/v1/experience/smart-wardrobe")
     smart = smart_response.json()
 
@@ -291,7 +309,7 @@ def test_experience_smart_diary_analysis_and_style_flow(client):
     upload_response = client.post(
         "/api/v1/experience/smart-wardrobe/upload-batch",
         json={
-            "mode": "上传后自动抠图 + 补全标签",
+            "mode": "上传后自动处理 + 补全标签",
             "default_category": "上衣",
             "filenames": ["batch-a.png", "batch-b.png"],
         },
@@ -302,7 +320,7 @@ def test_experience_smart_diary_analysis_and_style_flow(client):
     upload_files_response = client.post(
         "/api/v1/experience/smart-wardrobe/upload-batch-files",
         data={
-            "mode": "上传后自动抠图 + 补全标签",
+            "mode": "上传后自动处理 + 补全标签",
             "default_category": "上衣",
         },
         files=[
@@ -319,7 +337,8 @@ def test_experience_smart_diary_analysis_and_style_flow(client):
 
     retry_response = client.post(f"/api/v1/experience/smart-wardrobe/items/{first_processing_item['id']}/retry")
     assert retry_response.status_code == 200
-    assert retry_response.json()["status"] == "completed"
+    assert retry_response.json()["status"] == "queued"
+    assert retry_response.json()["task_id"] > 0
 
     confirm_response = client.post(f"/api/v1/experience/smart-wardrobe/items/{first_processing_item['id']}/confirm")
     assert confirm_response.status_code == 200
@@ -329,6 +348,18 @@ def test_experience_smart_diary_analysis_and_style_flow(client):
         prioritize_response = client.post(f"/api/v1/experience/smart-wardrobe/pending/{smart['pending_items'][0]['id']}/prioritize")
         assert prioritize_response.status_code == 200
         assert prioritize_response.json()["status"] == "queued"
+
+    with client.testing_session_local() as db:
+        smart_tasks = list(
+            db.scalars(
+                select(AssistantTask)
+                .where(AssistantTask.task_type.in_(["smart-run-all", "smart-retry"]))
+                .order_by(AssistantTask.id.desc())
+            ).all()
+        )
+
+    assert smart_tasks
+    assert any(task.status == "completed" for task in smart_tasks)
 
     diary_response = client.get("/api/v1/experience/outfit-diary?year=2026&month=4")
     diary = diary_response.json()
@@ -527,3 +558,69 @@ def test_experience_state_isolated_per_account(client):
     assert second_smart["config"]["recognition_local_model"] == "FashionCLIP + 本地视觉解构"
     assert first_diary["suitcase_defaults"]["destination"] == "Seoul"
     assert second_diary["suitcase_defaults"]["destination"] == "东京"
+def test_experience_write_endpoints_require_auth_header(client):
+    override = app.dependency_overrides.pop(get_current_user, None)
+    optional_override = app.dependency_overrides.pop(get_optional_user, None)
+
+    try:
+        wardrobe_response = client.post(
+            "/api/v1/experience/wardrobe-management/items",
+            json={
+                "name": "Guest experience item",
+                "category": "tops",
+                "slot": "top",
+                "color": "Ivory",
+                "brand": "Guest",
+                "image_url": None,
+                "tags": [],
+                "occasions": [],
+                "style_notes": "Should be rejected.",
+            },
+        )
+        config_response = client.post(
+            "/api/v1/experience/smart-wardrobe/config",
+            json={
+                "primary_service": "local",
+                "remove_bg_key": "",
+                "fallback_strategy": "local-only",
+                "person_detector": "manual",
+                "face_selector": "manual",
+                "garment_segmenter": "local",
+                "label_model": "local",
+                "recognition_local_model": "local",
+                "recognition_openai_model": "gpt-4.1-mini",
+                "recognition_deepseek_model": "deepseek-chat",
+                "recognition_retries": 0,
+                "concurrency": 1,
+            },
+        )
+        diary_response = client.post(
+            "/api/v1/experience/outfit-diary/logs",
+            json={
+                "day": 10,
+                "year": 2026,
+                "month": 4,
+                "outfit_name": "Guest log",
+                "occasion": "preview",
+                "item_ids": [],
+                "note": "Should be rejected.",
+            },
+        )
+        style_response = client.put(
+            "/api/v1/experience/style-profile",
+            json={
+                "favorite_colors": ["Ivory"],
+                "style_keywords": ["soft"],
+                "personal_note": "Should be rejected.",
+            },
+        )
+
+        assert wardrobe_response.status_code == 401
+        assert config_response.status_code == 401
+        assert diary_response.status_code == 401
+        assert style_response.status_code == 401
+    finally:
+        if override is not None:
+            app.dependency_overrides[get_current_user] = override
+        if optional_override is not None:
+            app.dependency_overrides[get_optional_user] = optional_override

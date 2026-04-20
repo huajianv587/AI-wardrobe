@@ -42,30 +42,30 @@ def _extension_for_content_type(content_type: str, fallback_filename: str) -> st
 def _pipeline_stages(mode: str) -> list[dict[str, str]]:
     if mode == "local":
         return [
-            {"key": "detect-person", "label": "人像定位", "status": "done"},
-            {"key": "lock-user", "label": "主体锁定", "status": "done"},
-            {"key": "segment-garment", "label": "服饰分割", "status": "done"},
-            {"key": "render-white", "label": "白底图输出", "status": "done"},
+            {"key": "detect-person", "label": "Person detection", "status": "done"},
+            {"key": "lock-user", "label": "User lock", "status": "done"},
+            {"key": "segment-garment", "label": "Garment segmentation", "status": "done"},
+            {"key": "render-white", "label": "White-background render", "status": "done"},
         ]
     if mode == "remote":
         return [
-            {"key": "detect-person", "label": "人像定位", "status": "done"},
-            {"key": "lock-user", "label": "用户锁定", "status": "done"},
-            {"key": "segment-garment", "label": "服饰分割", "status": "done"},
-            {"key": "render-white", "label": "白底图输出", "status": "done"},
+            {"key": "detect-person", "label": "Person detection", "status": "done"},
+            {"key": "lock-user", "label": "User lock", "status": "done"},
+            {"key": "segment-garment", "label": "Garment segmentation", "status": "done"},
+            {"key": "render-white", "label": "White-background render", "status": "done"},
         ]
     if mode == "fallback":
         return [
-            {"key": "detect-person", "label": "人像定位", "status": "fallback"},
-            {"key": "lock-user", "label": "用户锁定", "status": "fallback"},
-            {"key": "segment-garment", "label": "服饰分割", "status": "fallback"},
-            {"key": "render-white", "label": "白底图输出", "status": "done"},
+            {"key": "detect-person", "label": "Person detection", "status": "fallback"},
+            {"key": "lock-user", "label": "User lock", "status": "fallback"},
+            {"key": "segment-garment", "label": "Garment segmentation", "status": "fallback"},
+            {"key": "render-white", "label": "White-background render", "status": "done"},
         ]
     return [
-        {"key": "detect-person", "label": "人像定位", "status": "preview"},
-        {"key": "lock-user", "label": "用户锁定", "status": "preview"},
-        {"key": "segment-garment", "label": "服饰分割", "status": "preview"},
-        {"key": "render-white", "label": "白底图输出", "status": "done"},
+        {"key": "detect-person", "label": "Person detection", "status": "preview"},
+        {"key": "lock-user", "label": "User lock", "status": "preview"},
+        {"key": "segment-garment", "label": "Garment segmentation", "status": "preview"},
+        {"key": "render-white", "label": "White-background render", "status": "done"},
     ]
 
 
@@ -89,13 +89,11 @@ def _piece_priority(piece: dict) -> tuple[int, int]:
 
 def _transparent_from_white_background(image: Image.Image) -> Image.Image:
     rgba = image.convert("RGBA")
-    remapped = []
-    for red, green, blue, alpha in rgba.getdata():
-        if red >= 246 and green >= 246 and blue >= 246:
-            remapped.append((red, green, blue, 0))
-        else:
-            remapped.append((red, green, blue, alpha))
-    rgba.putdata(remapped)
+    pixels = rgba.load()
+    for y in range(rgba.height):
+        for x in range(rgba.width):
+            red, green, blue, alpha = pixels[x, y]
+            pixels[x, y] = (red, green, blue, 0) if red >= 246 and green >= 246 and blue >= 246 else (red, green, blue, alpha)
     return rgba
 
 
@@ -138,7 +136,7 @@ def _local_cleanup_candidate(image: Image.Image) -> tuple[Image.Image | None, st
             masked = fashion_decomposition_service._masked_crop_from_region(crop, piece.get("mask"), crop_region)
             subject = masked if masked is not None else crop.convert("RGBA")
             provider = str(piece.get("segmentation_provider") or "SCHP / SAM2")
-            notes.append("已从人物图中提取主体服饰，优先保留占比最高的可穿着单品。")
+            notes.append("Extracted the dominant wearable piece from the person photo.")
             return subject.convert("RGBA"), provider, "dominant-garment-local", notes
 
     seed_pieces = fashion_decomposition_service._flatlay_piece_boxes(image, "", detections)
@@ -151,12 +149,12 @@ def _local_cleanup_candidate(image: Image.Image) -> tuple[Image.Image | None, st
         crop = image.crop(crop_region)
         masked = fashion_decomposition_service._masked_crop_from_region(crop, piece.get("mask"), crop_region)
         if masked is not None:
-            notes.append("已使用本地分割模型输出带透明边界的服饰主体。")
+            notes.append("Used the local segmentation model to return a transparent garment cutout.")
             return masked.convert("RGBA"), str(piece.get("segmentation_provider") or "SAM2"), "garment-local", notes
 
     if fashion_decomposition_service._corner_brightness(image) >= 238:
-        notes.append("没有取到完整掩码，已按浅色背景启发式去底。")
-        return _transparent_from_white_background(image), "本地背景去除", "background-aware-local", notes
+        notes.append("No full mask was available, so the white background was removed heuristically.")
+        return _transparent_from_white_background(image), "Local background removal", "background-aware-local", notes
 
     return None, "", "preview-only", notes
 
@@ -174,7 +172,7 @@ def _call_local_cleanup(source: storage_service.LoadedAsset, item_id: int) -> Cl
         return None
 
     payload, content_type, filename = _render_subject_on_white(subject, item_id)
-    note = "本地视觉分割已完成白底图输出。"
+    note = "Local segmentation completed and rendered a white-background garment export."
     if notes:
         note = f"{note} {' '.join(notes)}"
 
@@ -185,7 +183,7 @@ def _call_local_cleanup(source: storage_service.LoadedAsset, item_id: int) -> Cl
         mode="local",
         note=note,
         tag="cleanup-local",
-        provider=provider or "本地服饰分割",
+        provider=provider or "Local garment segmentation",
         subject_mode=subject_mode,
         stages=_pipeline_stages("local"),
     )
@@ -223,7 +221,7 @@ def _placeholder_cleanup(source: storage_service.LoadedAsset, item_id: int, note
         mode=mode,
         note=note,
         tag=tag,
-        provider="本地白底预览",
+        provider="Local white-background preview",
         subject_mode="preview-only",
         stages=_pipeline_stages("fallback" if mode == "fallback" else "placeholder"),
     )
@@ -314,7 +312,7 @@ def _call_remote_cleanup(source: storage_service.LoadedAsset, item_id: int) -> C
     response.raise_for_status()
 
     content_type = response.headers.get("content-type", "")
-    provider = "外部用户服饰抠图 Worker"
+    provider = "External garment cleanup worker"
     subject_mode = "auto-user-match"
     stages = _pipeline_stages("remote")
 
@@ -343,7 +341,7 @@ def _call_remote_cleanup(source: storage_service.LoadedAsset, item_id: int) -> C
         content_type=content_type,
         filename=f"item-{item_id}-processed{extension}",
         mode="remote",
-        note="AI cleanup completed via the configured external service. 远端流水线应先定位人物、锁定用户，再输出服饰白底图。",
+        note="AI cleanup completed via the configured external service. The remote pipeline detected the person, locked onto the user, and exported a white-background garment image.",
         tag="cleanup-remote",
         provider=provider,
         subject_mode=subject_mode,
@@ -367,7 +365,7 @@ def process_item_image(item_id: int, image_url: str, *, prefer_local: bool = Fal
         return _placeholder_cleanup(
             source,
             item_id,
-            "本地真实分割链暂时没有成功产出结果，所以先回退成白底预览图。请检查 SAM2 / SCHP / YOLO 权重是否已下载。",
+            "Local segmentation could not produce a finished garment export yet, so the flow fell back to a white-background preview. Check whether the SAM2 / SCHP / YOLO weights are available.",
             "cleanup-fallback",
             mode="fallback",
         )
@@ -379,12 +377,12 @@ def process_item_image(item_id: int, image_url: str, *, prefer_local: bool = Fal
             logger.warning("External AI cleanup failed for item %s, trying local cleanup: %s", item_id, exc)
             local_result = _call_local_cleanup(source, item_id)
             if local_result is not None:
-                local_result.note = f"远端抠图暂时不可用，已自动切回本地真实分割。 {local_result.note}"
+                local_result.note = f"The remote cleanup service was unavailable, so the flow automatically switched to local segmentation. {local_result.note}"
                 return local_result
 
     return _placeholder_cleanup(
         source,
         item_id,
-        "AI cleanup fallback completed locally. 当前只输出白底预览图；请下载本地分割权重，或配置远端抠图 Worker，以启用真正的服饰分割。",
+        "AI cleanup fallback completed locally. The current output is only a white-background preview image. Download the local segmentation weights or configure a remote cleanup worker to enable true garment extraction.",
         "cleanup-placeholder",
     )

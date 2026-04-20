@@ -1,15 +1,120 @@
+import os
+import re
 from pathlib import Path
 from typing import Annotated
 
 from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
-ROOT_ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
+WINDOWS_DRIVE_PATH_RE = re.compile(r"^[A-Za-z]:[/\\\\]")
+LOCAL_DEV_CORS_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
+    "http://localhost:3100",
+    "http://127.0.0.1:3100",
+]
+
+
+def _discover_root_dir(config_path: Path | None = None) -> Path:
+    resolved_config = (config_path or Path(__file__)).resolve()
+    backend_dir = resolved_config.parents[1]
+    repo_root = backend_dir.parent
+
+    repo_markers = (
+        repo_root / "frontend",
+        repo_root / "infra",
+        repo_root / ".git",
+        repo_root / "README.md",
+    )
+    if any(marker.exists() for marker in repo_markers):
+        return repo_root
+    return backend_dir
+
+
+ROOT_DIR = _discover_root_dir()
+ROOT_ENV_FILE = ROOT_DIR / ".env"
+
+
+def _resolve_env_files() -> tuple[str, ...]:
+    forced_env_file = os.getenv("AI_WARDROBE_ENV_FILE", "").strip()
+    requested_env = os.getenv("APP_ENV", "").strip().lower()
+    aliases = {
+        "prod": "production",
+        "production": "production",
+        "stage": "staging",
+        "staging": "staging",
+        "test": "test",
+        "testing": "test",
+        "dev": "development",
+        "development": "development",
+    }
+
+    if forced_env_file:
+        forced_path = Path(forced_env_file)
+        return (str(forced_path if forced_path.is_absolute() else ROOT_DIR / forced_path),)
+
+    candidates: list[Path] = []
+    normalized_env = aliases.get(requested_env, requested_env)
+
+    if normalized_env == "test":
+        candidates.extend(
+            [
+                ROOT_DIR / ".env.test",
+                ROOT_DIR / ".env.test.local",
+            ]
+        )
+    else:
+        candidates.extend(
+            [
+                ROOT_DIR / ".env",
+                ROOT_DIR / ".env.local",
+            ]
+        )
+        if normalized_env:
+            candidates.extend(
+                [
+                    ROOT_DIR / f".env.{normalized_env}",
+                    ROOT_DIR / f".env.{normalized_env}.local",
+                ]
+            )
+
+    resolved: list[str] = []
+    seen: set[str] = set()
+    for candidate in candidates:
+        normalized = str(candidate)
+        if normalized not in seen:
+            seen.add(normalized)
+            resolved.append(normalized)
+    return tuple(resolved)
+
+
+def _resolve_project_path(value: str) -> str:
+    candidate = Path(str(value)).expanduser()
+    resolved = candidate if candidate.is_absolute() else ROOT_DIR / candidate
+    return str(resolved.resolve())
+
+
+def _resolve_database_url(value: str) -> str:
+    normalized = str(value or "").strip()
+    sqlite_prefix = "sqlite:///"
+    if not normalized.startswith(sqlite_prefix):
+        return normalized
+
+    raw_path = normalized[len(sqlite_prefix) :]
+    if not raw_path or raw_path == ":memory:":
+        return normalized
+    if raw_path.startswith("/") or WINDOWS_DRIVE_PATH_RE.match(raw_path):
+        return normalized
+
+    resolved = (ROOT_DIR / Path(raw_path).expanduser()).resolve()
+    return f"{sqlite_prefix}{resolved.as_posix()}"
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=(str(ROOT_ENV_FILE), ".env"),
+        env_file=_resolve_env_files(),
         env_file_encoding="utf-8",
         extra="ignore",
     )
@@ -107,6 +212,33 @@ class Settings(BaseSettings):
     smtp_from_name: str = "AI Wardrobe"
     smtp_use_tls: bool = True
     smtp_use_ssl: bool = False
+    log_level: str = "INFO"
+    log_json: bool = False
+    alert_webhook_url: str = ""
+    alert_email_to: str = ""
+    alert_email_subject_prefix: str = "[AI Wardrobe Alert]"
+    alert_on_uncaught_exceptions: bool = True
+    alert_dedupe_window_seconds: int = 900
+    health_probe_timeout_seconds: float = 5.0
+    rate_limit_enabled: bool = True
+    rate_limit_use_redis: bool = True
+    rate_limit_redis_prefix: str = "ai-wardrobe:ratelimit"
+    rate_limit_default_requests: int = 240
+    rate_limit_default_window_seconds: int = 60
+    rate_limit_auth_requests: int = 20
+    rate_limit_auth_window_seconds: int = 300
+    rate_limit_heavy_requests: int = 24
+    rate_limit_heavy_window_seconds: int = 300
+    task_queue_enabled: bool = True
+    task_queue_eager: bool = False
+    task_queue_result_ttl_seconds: int = 1800
+    task_queue_default_timeout_seconds: int = 900
+    task_queue_image_cleanup_timeout_seconds: int = 1200
+    task_queue_smart_timeout_seconds: int = 1500
+    task_queue_queue_prefix: str = "ai-wardrobe"
+    task_queue_image_cleanup_name: str = "image_cleanup"
+    task_queue_smart_default_name: str = "smart_default"
+    task_queue_smart_priority_name: str = "smart_priority"
     expo_public_api_base_url: str = ""
     expo_project_id: str = ""
     ios_bundle_id: str = ""
@@ -124,6 +256,31 @@ class Settings(BaseSettings):
                 return [entry.strip() for entry in stripped.strip("[]").replace('"', "").split(",") if entry.strip()]
             return [entry.strip() for entry in stripped.split(",") if entry.strip()]
         return value
+
+    @field_validator("cors_origins", mode="after")
+    @classmethod
+    def append_local_dev_cors_origins(cls, value: list[str]) -> list[str]:
+        merged: list[str] = []
+        for origin in [*(value or []), *LOCAL_DEV_CORS_ORIGINS]:
+            normalized = origin.strip()
+            if normalized and normalized not in merged:
+                merged.append(normalized)
+        return merged
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def resolve_database_url(cls, value: str) -> str:
+        return _resolve_database_url(value)
+
+    @field_validator("local_storage_root", "model_training_dir", "fashion_model_root", mode="before")
+    @classmethod
+    def resolve_project_relative_paths(cls, value: str) -> str:
+        return _resolve_project_path(value)
+
+    @field_validator("log_level", mode="before")
+    @classmethod
+    def normalize_log_level(cls, value: str) -> str:
+        return str(value or "INFO").strip().upper()
 
 
 settings = Settings()

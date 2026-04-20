@@ -25,6 +25,14 @@ class TomorrowAssistantRequest(BaseModel):
     date: str | None = None
 
 
+class CurrentWeatherRequest(BaseModel):
+    location_query: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    timezone: str | None = None
+    location_name: str | None = None
+
+
 class WeatherSummary(BaseModel):
     location_name: str
     timezone: str
@@ -34,6 +42,24 @@ class WeatherSummary(BaseModel):
     temperature_max: float
     temperature_min: float
     precipitation_probability_max: float | None = None
+
+
+class CurrentWeatherResponse(BaseModel):
+    location_name: str
+    timezone: str
+    current_time: str
+    weather_code: int
+    condition_label: str
+    condition_label_zh: str
+    temperature: float
+    apparent_temperature: float | None = None
+    wind_speed: float | None = None
+    is_day: bool | None = None
+    precipitation: float | None = None
+    temperature_max: float | None = None
+    temperature_min: float | None = None
+    precipitation_probability_max: float | None = None
+    outfit_hint: str
 
 
 class TomorrowPlanBlock(BaseModel):

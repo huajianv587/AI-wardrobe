@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_or_demo_user, get_db
+from app.api.deps import get_current_or_demo_user, get_current_user, get_db
 from app.models.user import User
 from app.schemas.experience import (
     ExperienceDecomposeConfirmPayload,
@@ -45,7 +45,7 @@ def wardrobe_management(
 def create_wardrobe_item(
     payload: ExperienceWardrobeItemPayload,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.create_wardrobe_item_from_experience(db, current_user, payload)
 
@@ -55,7 +55,7 @@ def update_wardrobe_item(
     item_id: int,
     payload: ExperienceWardrobeItemPayload,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.update_wardrobe_item_from_experience(db, current_user, item_id, payload)
 
@@ -65,7 +65,7 @@ def prepare_wardrobe_item_image_upload(
     item_id: int,
     payload: ImageUploadPrepareRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.prepare_wardrobe_item_image_upload(db, current_user, item_id, payload)
 
@@ -75,7 +75,7 @@ def confirm_wardrobe_item_image_upload(
     item_id: int,
     payload: ImageUploadFinalizeRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.confirm_wardrobe_item_image_upload(db, current_user, item_id, payload)
 
@@ -85,7 +85,7 @@ def upload_wardrobe_item_image(
     item_id: int,
     image: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.upload_wardrobe_item_image(db, current_user, item_id, image)
 
@@ -94,7 +94,7 @@ def upload_wardrobe_item_image(
 def delete_wardrobe_item(
     item_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.delete_wardrobe_item_from_experience(db, current_user, item_id)
 
@@ -103,7 +103,7 @@ def delete_wardrobe_item(
 def import_url_item(
     payload: ExperienceImportUrlPayload,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.import_item_from_url(db, current_user, payload)
 
@@ -112,7 +112,7 @@ def import_url_item(
 def wardrobe_bulk_action(
     payload: ExperienceWardrobeBulkPayload,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.run_wardrobe_bulk_action(db, current_user, payload)
 
@@ -130,7 +130,7 @@ def smart_wardrobe(
 @router.post("/smart-wardrobe/config")
 def save_smart_config(
     payload: ExperienceSmartConfigPayload,
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.save_smart_config(current_user, payload)
 
@@ -139,7 +139,7 @@ def save_smart_config(
 def run_smart_action(
     action: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.run_smart_action(db, current_user, action)
 
@@ -148,7 +148,7 @@ def run_smart_action(
 def upload_smart_batch(
     payload: ExperienceUploadBatchPayload,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.upload_smart_batch(db, current_user, payload)
 
@@ -159,7 +159,7 @@ def upload_smart_batch_files(
     default_category: str = Form("自动识别"),
     files: list[UploadFile] = File(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.upload_smart_batch_files(
         db,
@@ -174,7 +174,7 @@ def upload_smart_batch_files(
 def preview_smart_decomposition_from_url(
     payload: ExperienceImportUrlPayload,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.preview_smart_decomposition_from_url(db, current_user, payload)
 
@@ -184,7 +184,7 @@ def confirm_smart_decomposition_preview(
     preview_id: str,
     payload: ExperienceDecomposeConfirmPayload,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.confirm_smart_decomposition_preview(db, current_user, preview_id, payload)
 
@@ -193,7 +193,7 @@ def confirm_smart_decomposition_preview(
 def retry_smart_item(
     item_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.retry_smart_item(db, current_user, item_id)
 
@@ -202,7 +202,7 @@ def retry_smart_item(
 def fallback_smart_item(
     item_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.fallback_smart_item(db, current_user, item_id)
 
@@ -211,7 +211,7 @@ def fallback_smart_item(
 def confirm_smart_item(
     item_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.confirm_smart_enrich(db, current_user, item_id)
 
@@ -221,7 +221,7 @@ def update_smart_item(
     item_id: int,
     payload: ExperienceSmartEditPayload,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.update_smart_enrich(db, current_user, item_id, payload)
 
@@ -230,7 +230,7 @@ def update_smart_item(
 def reanalyze_smart_item(
     item_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.reanalyze_smart_item(db, current_user, item_id)
 
@@ -239,7 +239,7 @@ def reanalyze_smart_item(
 def prioritize_pending_item(
     item_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.prioritize_pending_item(db, current_user, item_id)
 
@@ -258,7 +258,7 @@ def outfit_diary(
 def create_or_update_diary_log(
     payload: ExperienceDiaryLogPayload,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.create_or_update_diary_log(db, current_user, payload)
 
@@ -267,7 +267,7 @@ def create_or_update_diary_log(
 def generate_suitcase(
     payload: ExperienceSuitcasePayload,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.generate_suitcase_plan(db, current_user, payload)
 
@@ -285,7 +285,7 @@ def closet_analysis(
 def mark_care_done(
     item_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.mark_care_done(db, current_user, item_id)
 
@@ -294,7 +294,7 @@ def mark_care_done(
 def set_care_reminder(
     item_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.set_care_reminder(db, current_user, item_id)
 
@@ -304,7 +304,7 @@ def record_idle_action(
     item_id: int,
     payload: ExperienceIdleActionPayload,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.record_idle_action(db, current_user, item_id, payload)
 
@@ -321,6 +321,6 @@ def style_profile(
 def patch_style_profile(
     payload: ExperienceStyleProfilePatch,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ):
     return experience_service.patch_style_profile(db, current_user, payload)

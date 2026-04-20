@@ -1,6 +1,11 @@
 @import "tailwindcss";
 
 :root {
+  --font-cormorant: "Cormorant Garamond", "STKaiti", "KaiTi", "Times New Roman", serif;
+  --font-dm-sans: "Segoe UI", "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", system-ui, sans-serif;
+  --font-auth-serif-cn: "STSong", "Songti SC", "SimSun", serif;
+  --font-auth-serif-en: "Cormorant Garamond", "Times New Roman", serif;
+  --font-auth-sans: "Lato", "Segoe UI", "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", system-ui, sans-serif;
   --bg-primary: #fdf6f0;
   --bg-primary-rgb: 253, 246, 240;
   --bg-secondary: #fff0f3;
@@ -544,6 +549,17 @@ svg {
   gap: 0.48rem;
 }
 
+.hero-editorial-card--weather[data-loading="true"] {
+  opacity: 0.92;
+}
+
+.hero-weather-meta {
+  min-height: 1.5rem;
+  font-size: 0.76rem !important;
+  line-height: 1.7 !important;
+  color: #ab8b8f !important;
+}
+
 .hero-editorial-feature-stack {
   display: flex;
   flex-direction: column;
@@ -1021,6 +1037,126 @@ svg {
 .nav-ribbon:hover .nav-ribbon__sheen {
   transform: translateX(60%);
   opacity: 1;
+}
+
+@media (min-width: 781px) {
+  .navbar-shell[data-compact="true"] {
+    padding: 10px 24px;
+  }
+
+  .navbar-shell[data-compact="true"] .navbar-shell__inner {
+    gap: 1.02rem;
+  }
+
+  .navbar-shell[data-compact="true"] .navbar-logo {
+    gap: 0.72rem;
+  }
+
+  .navbar-shell[data-compact="true"] .navbar-logo__mark {
+    width: 2.4rem;
+    height: 2.4rem;
+  }
+
+  .navbar-shell[data-compact="true"] .navbar-logo__title {
+    font-size: 1.24rem;
+  }
+
+  .navbar-shell[data-compact="true"] .navbar-logo__subtitle {
+    margin-top: 0.2rem;
+    font-size: 0.44rem;
+  }
+
+  .navbar-shell[data-compact="true"] .nav-ribbon {
+    padding: 0.56rem 1.3rem;
+  }
+
+  .navbar-shell[data-compact="true"] .nav-ribbon--auth {
+    padding-inline: 1.04rem;
+  }
+
+  .navbar-shell[data-compact="true"] .nav-link {
+    padding: 0.42rem 0;
+    font-size: 0.78rem;
+  }
+}
+
+@media (max-height: 940px) and (min-width: 781px) {
+  .navbar-shell[data-compact="true"] {
+    padding: 9px 22px;
+  }
+
+  .navbar-shell[data-compact="true"] .navbar-shell__inner {
+    gap: 0.94rem;
+  }
+
+  .navbar-shell[data-compact="true"] .navbar-logo__mark {
+    width: 2.28rem;
+    height: 2.28rem;
+  }
+
+  .navbar-shell[data-compact="true"] .navbar-logo__title {
+    font-size: 1.16rem;
+  }
+
+  .navbar-shell[data-compact="true"] .navbar-logo__subtitle {
+    font-size: 0.41rem;
+    letter-spacing: 0.16em;
+  }
+
+  .navbar-shell[data-compact="true"] .nav-ribbon {
+    padding: 0.5rem 1.16rem;
+  }
+
+  .navbar-shell[data-compact="true"] .nav-ribbon--auth {
+    padding-inline: 0.94rem;
+  }
+
+  .navbar-shell[data-compact="true"] .nav-link {
+    padding: 0.38rem 0;
+    font-size: 0.74rem;
+  }
+}
+
+@media (max-height: 860px) and (min-width: 781px) {
+  .navbar-shell[data-compact="true"] {
+    padding: 8px 18px;
+  }
+
+  .navbar-shell[data-compact="true"] .navbar-shell__inner {
+    gap: 0.82rem;
+  }
+
+  .navbar-shell[data-compact="true"] .navbar-logo {
+    gap: 0.62rem;
+  }
+
+  .navbar-shell[data-compact="true"] .navbar-logo__mark {
+    width: 2.16rem;
+    height: 2.16rem;
+  }
+
+  .navbar-shell[data-compact="true"] .navbar-logo__title {
+    font-size: 1.08rem;
+  }
+
+  .navbar-shell[data-compact="true"] .navbar-logo__subtitle {
+    margin-top: 0.16rem;
+    font-size: 0.38rem;
+    letter-spacing: 0.14em;
+  }
+
+  .navbar-shell[data-compact="true"] .nav-ribbon {
+    padding: 0.44rem 1rem;
+  }
+
+  .navbar-shell[data-compact="true"] .nav-ribbon--auth {
+    padding-inline: 0.84rem;
+  }
+
+  .navbar-shell[data-compact="true"] .nav-link {
+    padding: 0.34rem 0;
+    font-size: 0.7rem;
+  }
 }
 
 .nav-link {

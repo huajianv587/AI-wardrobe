@@ -3,11 +3,13 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
+
 import { GlowButton } from "@/components/shared/GlowButton";
-import type { ClothingItem } from "@/lib/mockData";
+import type { HomeWardrobeItem } from "@/lib/home-wardrobe";
 
 interface AvatarPanelProps {
-  selectedItem: ClothingItem | null;
+  selectedItem: HomeWardrobeItem | null;
+  onSetLook: () => void;
 }
 
 function FallbackSilhouette() {
@@ -23,7 +25,7 @@ function FallbackSilhouette() {
   );
 }
 
-export function AvatarPanel({ selectedItem }: AvatarPanelProps) {
+export function AvatarPanel({ selectedItem, onSetLook }: AvatarPanelProps) {
   const [highlightKey, setHighlightKey] = useState(0);
   const [manualPulseKey, setManualPulseKey] = useState(0);
   const [imageFailed, setImageFailed] = useState(false);
@@ -38,11 +40,16 @@ export function AvatarPanel({ selectedItem }: AvatarPanelProps) {
       style={{ boxShadow: "inset -20px 0 40px rgba(var(--accent-rose-rgb), 0.08)" }}
     >
       <div className="relative z-10 flex items-center justify-between gap-3 px-4 pb-3 pt-4 md:px-8 md:pb-5 md:pt-24">
-        <span className="font-mono text-[0.58rem] tracking-[0.18em] text-[var(--text-secondary)] md:text-[0.62rem] md:tracking-[0.28em]">MODEL / 2.5D</span>
+        <span className="font-mono text-[0.58rem] tracking-[0.18em] text-[var(--text-secondary)] md:text-[0.62rem] md:tracking-[0.28em]">
+          MODEL / 2.5D
+        </span>
         <GlowButton
           className="shrink-0 px-3 py-2 text-[0.58rem] md:px-4 md:py-2 md:text-[0.64rem]"
           variant="ghost"
-          onClick={() => setManualPulseKey((value) => value + 1)}
+          onClick={() => {
+            setManualPulseKey((value) => value + 1);
+            onSetLook();
+          }}
         >
           SET LOOK
         </GlowButton>
@@ -97,7 +104,7 @@ export function AvatarPanel({ selectedItem }: AvatarPanelProps) {
               transition={{ duration: 0.24 }}
               className="absolute left-1/2 top-4 z-20 w-max max-w-[calc(100%-1.5rem)] -translate-x-1/2 truncate rounded-full border border-[rgba(var(--accent-rose-rgb),0.22)] bg-white/72 px-3 py-2 text-[0.58rem] tracking-[0.16em] text-[var(--text-secondary)] backdrop-blur md:top-5 md:max-w-[calc(100%-2rem)] md:px-4 md:text-[0.65rem] md:tracking-[0.22em]"
             >
-              已试穿 · {selectedItem?.tag ?? "待机展示"}
+              已选中 · {selectedItem?.tag ?? "等待挑选"}
             </motion.div>
           </AnimatePresence>
         </motion.div>
@@ -110,7 +117,9 @@ export function AvatarPanel({ selectedItem }: AvatarPanelProps) {
           className="rounded-[22px] border border-[var(--surface-border)] bg-white/76 p-3.5 shadow-[var(--shadow-card)] backdrop-blur-md md:rounded-[24px] md:p-4"
           data-cursor="hover"
         >
-          <p className="text-[0.6rem] tracking-[0.22em] text-[var(--text-secondary)] md:text-[0.65rem] md:tracking-[0.28em]">CURRENT LOOK</p>
+          <p className="text-[0.6rem] tracking-[0.22em] text-[var(--text-secondary)] md:text-[0.65rem] md:tracking-[0.28em]">
+            CURRENT LOOK
+          </p>
           <AnimatePresence mode="wait">
             <motion.div
               key={`label-${selectedItem?.id ?? 0}`}
@@ -120,11 +129,16 @@ export function AvatarPanel({ selectedItem }: AvatarPanelProps) {
               transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
             >
               <p className="mt-2 text-base font-medium text-[var(--text-primary)] md:text-lg">
-                {selectedItem?.name ?? "挑选一件单品开始试穿"}
+                {selectedItem?.name ?? "挑一件单品开始试穿"}
               </p>
               <p className="mt-1 text-[0.82rem] text-[var(--text-secondary)] md:text-sm">
-                {selectedItem ? `${selectedItem.category} · ${selectedItem.tag}` : "系统会在这里显示当前穿搭反馈"}
+                {selectedItem ? `${selectedItem.categoryLabel} · ${selectedItem.tag}` : "系统会在这里显示当前选中的衣橱单品"}
               </p>
+              {selectedItem?.note ? (
+                <p className="mt-2 text-[0.78rem] leading-6 text-[rgba(var(--text-secondary-rgb),0.76)] md:text-[0.82rem]">
+                  {selectedItem.note}
+                </p>
+              ) : null}
             </motion.div>
           </AnimatePresence>
         </motion.div>

@@ -1,0 +1,25 @@
+stage: stage-1-web-closure
+worker: image-processor
+
+model:
+  primary: briaai/RMBG-2.0
+  optional_upscaler: xinntao/Real-ESRGAN
+
+strategy:
+  stage_1: pretrained-inference-first
+  fine_tune_required_now: false
+
+paths:
+  dataset_dir: model_training/datasets/image-processor
+  test_images_dir: model_training/datasets/image-processor/test-images
+  output_dir: model_training/checkpoints/image-processor
+
+service:
+  env_url: AI_CLEANUP_API_URL
+  local_url_for_host_backend: http://127.0.0.1:9002
+  local_url_for_compose_backend: http://image-processor:9002
+
+notes:
+  - First validate pretrained RMBG / BiRefNet on your real garment photos.
+  - Add Real-ESRGAN only after cutout quality is stable.
+  - Only fine-tune if your private data differs heavily from public e-commerce imagery.

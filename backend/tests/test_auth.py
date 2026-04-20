@@ -1,12 +1,11 @@
 from datetime import datetime
-from urllib.parse import parse_qs, urlparse
 
 from sqlalchemy import select
 
 from app.models.auth_session import AuthSessionToken
 from app.models.user import User
-from app.schemas.auth import AuthSessionResponse, UserSummary
-from services import auth_service, email_service
+from app.schemas.auth import AuthSessionResponse, StatusMessageResponse, UserSummary
+from services import auth_service
 
 
 def _user_summary() -> UserSummary:
@@ -48,18 +47,19 @@ def test_sign_up_endpoint(client, monkeypatch):
         assert display_name is None
         assert redirect_to == "https://www.aiwardrobes.com/login"
         return AuthSessionResponse(
-            access_token=None,
-            refresh_token=None,
-            expires_at=None,
-            expires_in=None,
-            requires_email_confirmation=True,
-            message="Confirm your email first.",
+            access_token="new-access-token",
+            refresh_token="new-refresh-token",
+            expires_at=1899999999,
+            expires_in=3600,
+            requires_email_confirmation=False,
+            message="Account created and signed in.",
             user=UserSummary(
                 id=2,
-                supabase_user_id="supabase-user-test-002",
+                supabase_user_id=None,
                 email="new@ai-wardrobe.dev",
                 avatar_url=None,
                 created_at=datetime.utcnow(),
+                auth_provider="local",
             ),
         )
 
@@ -76,8 +76,10 @@ def test_sign_up_endpoint(client, monkeypatch):
     payload = response.json()
 
     assert response.status_code == 200
-    assert payload["requires_email_confirmation"] is True
+    assert payload["requires_email_confirmation"] is False
+    assert payload["access_token"] == "new-access-token"
     assert payload["user"]["email"] == "new@ai-wardrobe.dev"
+    assert payload["user"]["auth_provider"] == "local"
 
 
 def test_local_email_sign_up_and_login_flow(client):
@@ -86,7 +88,7 @@ def test_local_email_sign_up_and_login_flow(client):
         json={
             "email": "local-user@ai-wardrobe.dev",
             "password": "secret123",
-            "display_name": "本地测试用户",
+            "display_name": "Local Test User",
         },
     )
     sign_up_payload = sign_up_response.json()
@@ -94,8 +96,9 @@ def test_local_email_sign_up_and_login_flow(client):
     assert sign_up_response.status_code == 200
     assert sign_up_payload["access_token"]
     assert sign_up_payload["refresh_token"]
+    assert sign_up_payload["requires_email_confirmation"] is False
     assert sign_up_payload["user"]["email"] == "local-user@ai-wardrobe.dev"
-    assert sign_up_payload["user"]["display_name"] == "本地测试用户"
+    assert sign_up_payload["user"]["display_name"] == "Local Test User"
     assert sign_up_payload["user"]["auth_provider"] == "local"
 
     with client.testing_session_local() as db:
@@ -116,6 +119,28 @@ def test_local_email_sign_up_and_login_flow(client):
     assert login_payload["user"]["auth_provider"] == "local"
 
 
+def test_local_sign_up_session_can_call_me_immediately(client):
+    sign_up_response = client.post(
+        "/api/v1/auth/sign-up",
+        json={
+            "email": "session-check@ai-wardrobe.dev",
+            "password": "secret123",
+            "display_name": "Session Check",
+        },
+    )
+    sign_up_payload = sign_up_response.json()
+
+    assert sign_up_response.status_code == 200
+    assert sign_up_payload["access_token"]
+
+    with client.testing_session_local() as db:
+        user = auth_service.get_current_user_from_token(db, sign_up_payload["access_token"])
+
+    assert user.email == "session-check@ai-wardrobe.dev"
+    assert user.display_name == "Session Check"
+    assert user.auth_provider == "local"
+
+
 def test_local_email_sign_up_rejects_duplicate_email(client):
     first_response = client.post(
         "/api/v1/auth/sign-up",
@@ -130,19 +155,38 @@ def test_local_email_sign_up_rejects_duplicate_email(client):
     duplicate_payload = duplicate_response.json()
 
     assert duplicate_response.status_code == 409
-    assert duplicate_payload["detail"] == "这个邮箱已经注册过了，请直接登录。"
+    assert duplicate_payload["detail"]
+
+
+def test_sign_up_stays_local_even_when_cloud_auth_looks_enabled(client, monkeypatch):
+    def fail_if_called():
+        raise AssertionError("Supabase client should not be called for password sign-up.")
+
+    monkeypatch.setattr(auth_service, "is_enabled", lambda: True)
+    monkeypatch.setattr(auth_service, "_auth_client", fail_if_called)
+
+    response = client.post(
+        "/api/v1/auth/sign-up",
+        json={"email": "local-only@ai-wardrobe.dev", "password": "secret123"},
+    )
+    payload = response.json()
+
+    assert response.status_code == 200
+    assert payload["access_token"]
+    assert payload["user"]["email"] == "local-only@ai-wardrobe.dev"
+    assert payload["user"]["auth_provider"] == "local"
 
 
 def test_password_reset_endpoint(client, monkeypatch):
     def fake_reset(db, email, redirect_to=None):
         assert email == "tester@ai-wardrobe.dev"
         assert redirect_to == "http://localhost:3000/reset-password"
-        return {
-            "status": "queued",
-            "message": "Password reset prepared.",
-            "action_url": None,
-            "action_label": None,
-        }
+        return StatusMessageResponse(
+            status="ready",
+            message="Password reset is ready.",
+            action_url="http://localhost:3000/reset-password?email=tester%40ai-wardrobe.dev",
+            action_label="Open reset password page",
+        )
 
     monkeypatch.setattr(auth_service, "send_password_reset_email", fake_reset)
 
@@ -153,13 +197,11 @@ def test_password_reset_endpoint(client, monkeypatch):
     payload = response.json()
 
     assert response.status_code == 200
-    assert payload["status"] == "queued"
-    assert payload["message"] == "Password reset prepared."
+    assert payload["status"] == "ready"
+    assert payload["action_url"].endswith("email=tester%40ai-wardrobe.dev")
 
 
-def test_local_password_reset_preview_and_confirm_flow(client, monkeypatch):
-    monkeypatch.setattr(email_service, "is_enabled", lambda: False)
-
+def test_local_password_reset_direct_email_flow(client):
     sign_up_response = client.post(
         "/api/v1/auth/sign-up",
         json={"email": "recover@ai-wardrobe.dev", "password": "old-secret-123"},
@@ -176,14 +218,12 @@ def test_local_password_reset_preview_and_confirm_flow(client, monkeypatch):
     reset_payload = reset_response.json()
 
     assert reset_response.status_code == 200
-    assert reset_payload["status"] == "preview"
-    assert reset_payload["action_url"]
-
-    token = parse_qs(urlparse(reset_payload["action_url"]).query)["token"][0]
+    assert reset_payload["status"] == "ready"
+    assert reset_payload["action_url"].endswith("email=recover%40ai-wardrobe.dev")
 
     confirm_response = client.post(
         "/api/v1/auth/password-reset/confirm",
-        json={"token": token, "new_password": "new-secret-456"},
+        json={"email": "recover@ai-wardrobe.dev", "new_password": "new-secret-456"},
     )
     confirm_payload = confirm_response.json()
 
@@ -212,13 +252,6 @@ def test_local_password_reset_preview_and_confirm_flow(client, monkeypatch):
 
     assert fresh_login_response.status_code == 200
     assert fresh_login_payload["access_token"]
-
-    reused_token_response = client.post(
-        "/api/v1/auth/password-reset/confirm",
-        json={"token": token, "new_password": "another-secret-789"},
-    )
-
-    assert reused_token_response.status_code == 400
 
 
 def test_me_endpoint(client):

@@ -1,6 +1,7 @@
 "use client";
 
 import { LoaderCircle, Sparkles, TriangleAlert } from "lucide-react";
+
 import { StoryCluster } from "@/components/ui/story-cluster";
 
 type StateVariant = "loading" | "empty" | "error";
@@ -14,29 +15,32 @@ interface StateCardProps {
 const variantMap = {
   loading: {
     icon: LoaderCircle,
-    badge: "Getting things ready",
+    badge: "正在准备中",
     iconClass: "animate-spin",
-    emoji: "🫖",
+    emoji: "云",
     tone: "sky" as const,
-    chips: ["brewing", "warming up", "almost there"]
+    chips: ["稍等一下", "正在预热", "马上就好"],
   },
   empty: {
     icon: Sparkles,
-    badge: "A soft blank canvas",
+    badge: "留一块柔软的空白",
     iconClass: "",
-    emoji: "🌷",
+    emoji: "空",
     tone: "peach" as const,
-    chips: ["tiny delight", "ready when you are", "start softly"]
+    chips: ["随时开始", "等你填满", "先轻轻放下"],
   },
   error: {
     icon: TriangleAlert,
-    badge: "A tiny hiccup",
+    badge: "出现了一个小波动",
     iconClass: "",
-    emoji: "☁️",
+    emoji: "错",
     tone: "lilac" as const,
-    chips: ["small wobble", "safe to retry", "nothing lost"]
-  }
-} satisfies Record<StateVariant, { icon: React.ComponentType<{ className?: string }>; badge: string; iconClass: string; emoji: string; tone: "sky" | "peach" | "lilac"; chips: string[] }>;
+    chips: ["可以重试", "内容没丢", "先稳住"],
+  },
+} satisfies Record<
+  StateVariant,
+  { icon: React.ComponentType<{ className?: string }>; badge: string; iconClass: string; emoji: string; tone: "sky" | "peach" | "lilac"; chips: string[] }
+>;
 
 export function StateCard({ variant, title, description }: StateCardProps) {
   const config = variantMap[variant];

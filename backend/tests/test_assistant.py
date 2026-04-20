@@ -1,5 +1,7 @@
 import io
 
+from app.api.deps import get_current_user, get_optional_user
+from app.main import app
 from services import assistant_service, weather_service
 
 
@@ -96,7 +98,7 @@ def test_assistant_overview_and_tomorrow_flow(client, monkeypatch):
         "/api/v1/assistant/tomorrow",
         json={
             "location_query": "Shanghai",
-            "schedule": "明天正常上班，晚上和朋友吃饭",
+            "schedule": "Normal workday tomorrow, then dinner with friends in the evening.",
             "has_commute": True,
         },
     )
@@ -204,6 +206,59 @@ def test_assistant_feedback_save_wear_and_packing(client, monkeypatch):
     assert wear_logs_response.status_code == 200
     assert outfits_response.json()[0]["name"] == "Rainy city set"
     assert any(entry["outfit_name"] == "Rainy city set" for entry in wear_logs)
+
+
+def test_assistant_persistence_endpoints_require_auth_header(client):
+    override = app.dependency_overrides.pop(get_current_user, None)
+    optional_override = app.dependency_overrides.pop(get_optional_user, None)
+
+    try:
+        feedback_response = client.post(
+            "/api/v1/assistant/feedback",
+            json={
+                "action": "liked",
+                "item_ids": [1],
+                "metadata_json": {},
+            },
+        )
+        save_response = client.post(
+            "/api/v1/assistant/outfits",
+            json={
+                "name": "Guest look",
+                "item_ids": [1],
+            },
+        )
+        wear_response = client.post(
+            "/api/v1/assistant/wear-log",
+            json={
+                "item_ids": [1],
+            },
+        )
+        profile_response = client.put(
+            "/api/v1/assistant/style-profile",
+            json={
+                "favorite_colors": ["Ivory"],
+                "avoid_colors": [],
+                "favorite_silhouettes": [],
+                "avoid_silhouettes": [],
+                "style_keywords": [],
+                "dislike_keywords": [],
+                "commute_profile": None,
+                "comfort_priorities": [],
+                "wardrobe_rules": [],
+                "personal_note": None,
+            },
+        )
+
+        assert feedback_response.status_code == 401
+        assert save_response.status_code == 401
+        assert wear_response.status_code == 401
+        assert profile_response.status_code == 401
+    finally:
+        if override is not None:
+            app.dependency_overrides[get_current_user] = override
+        if optional_override is not None:
+            app.dependency_overrides[get_optional_user] = optional_override
 
 
 def test_recommendation_survives_assistant_sidecar_failures(client, monkeypatch):

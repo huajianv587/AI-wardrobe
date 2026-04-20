@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { startTransition, useEffect, useMemo, useState } from "react";
 import { Bot, BriefcaseBusiness, CalendarDays, CloudSun, MapPinned, Package2, Sparkles } from "lucide-react";
@@ -22,7 +22,12 @@ import {
 } from "@/lib/api";
 import { seedWardrobeItems, useWardrobeStore } from "@/store/wardrobe-store";
 
-const quickModes = ["上班", "约会", "出门买咖啡", "今天不想费脑"];
+const quickModes = [
+  { label: "通勤", value: "office" },
+  { label: "约会夜", value: "date" },
+  { label: "咖啡出门", value: "coffee" },
+  { label: "帮我决定", value: "low-thought" }
+] as const;
 
 function buildPreviewRecommendation(title: string, rationale: string, itemIds: number[]): RecommendationResult {
   return {
@@ -33,46 +38,46 @@ function buildPreviewRecommendation(title: string, rationale: string, itemIds: n
         rationale,
         itemIds,
         confidence: 0.77,
-        confidenceLabel: "Preview look",
+        confidenceLabel: "预览搭配",
         keyItemId: itemIds[0] ?? null,
         substituteItemIds: itemIds.slice(1, 3),
         reasonBadges: ["preview", "soft", "easy"],
-        charmCopy: "访客预览模式下，这里先展示一套演示搭配逻辑。登录后会替换成你的专属助手结果。",
-        moodEmoji: "☁️"
+        charmCopy: "Preview mode keeps this suggestion local now, then swaps in your personal assistant once you sign in.",
+        moodEmoji: "预览"
       }
     ],
     agentTrace: [
-      { node: "Preview Router", summary: "先用演示衣橱和场景词构造预览结果。" },
-      { node: "Preview Stylist", summary: "保留和正式版一致的结果结构，方便之后直连真实模型。" }
+      { node: "预览路由", summary: "使用演示衣橱和当前场景提示词，先生成一份本地草稿。" },
+      { node: "预览造型师", summary: "保持和真实助理一致的返回结构，确保登录前后的页面行为稳定。" }
     ],
-    profileSummary: "当前是访客预览模式，还没有读取你的个人画像。",
-    closetGaps: ["轻薄外搭", "舒适通勤鞋"],
-    reminderFlags: ["本周重复率偏高", "有一件针织需要洗护"]
+    profileSummary: "预览模式还没有加载你的真实风格画像，所以这份草稿基于本地演示数据生成。",
+    closetGaps: ["轻外搭", "舒服的通勤鞋"],
+    reminderFlags: ["本周重复率偏高", "有一件针织单品该护理了"]
   };
 }
 
 function buildPreviewProfile(): StyleProfile {
   return {
     user_id: 0,
-    favorite_colors: ["奶油白", "柔粉", "浅灰蓝"],
-    avoid_colors: ["荧光绿", "高饱和紫"],
-    favorite_silhouettes: ["高腰", "A字", "轻垂坠"],
-    avoid_silhouettes: ["过紧身", "太硬挺"],
-    style_keywords: ["甜感", "轻盈", "通勤"],
-    dislike_keywords: ["过辣", "过于街头"],
-    commute_profile: "轻正式，不想太板正",
-    comfort_priorities: ["面料柔软", "方便久坐"],
-    wardrobe_rules: ["通勤不超过三个主色", "约会时保留一个柔和亮点"],
-    personal_note: "希望整体是温柔、有呼吸感的。",
+    favorite_colors: ["cream", "soft pink", "mist blue"],
+    avoid_colors: ["neon green", "high-saturation purple"],
+    favorite_silhouettes: ["high waist", "A-line", "soft drape"],
+    avoid_silhouettes: ["too tight", "too stiff"],
+    style_keywords: ["gentle", "light", "commute"],
+    dislike_keywords: ["too sharp", "too streetwear"],
+    commute_profile: "轻正式，但不要显得太板正。",
+    comfort_priorities: ["面料柔软", "久坐也轻松"],
+    wardrobe_rules: ["通勤 look 尽量控制在三种主色以内", "约会时保留一个柔和亮点"],
+    personal_note: "希望整体是温柔、透气、有一点克制精致感的。",
     updated_at: new Date().toISOString()
   };
 }
 
-function buildPreviewOverview() {
+function buildPreviewOverview(): AssistantOverview {
   return {
     tomorrow: {
       weather: {
-        location_name: "上海",
+        location_name: "Shanghai",
         timezone: "Asia/Shanghai",
         date: new Date().toISOString().slice(0, 10),
         weather_code: 1,
@@ -83,39 +88,57 @@ function buildPreviewOverview() {
       },
       morning: {
         period: "morning",
-        summary: "早上通勤稍微偏凉，建议保留一层轻外搭。",
-        recommendation: buildPreviewRecommendation("轻柔通勤早晨", "用浅色衬衫和柔和外搭稳定通勤氛围，同时避免太沉重。", [6, 1, 3, 7])
+        summary: "早晨通勤略有凉意，建议随手带一件轻外套。",
+        recommendation: buildPreviewRecommendation(
+          "柔和通勤开场",
+          "用一件轻衬衫和柔和外层稳住通勤质感，不会显得太重。",
+          [6, 1, 3, 7]
+        )
       },
       evening: {
         period: "evening",
-        summary: "晚上可以更轻松一点，保留一点柔和亮点。",
-        recommendation: buildPreviewRecommendation("下班后的轻松版本", "把白天的稳重感放松一点，保留舒适和精致之间的平衡。", [2, 4, 8, 9])
+        summary: "晚间可以放松一点，但仍然保留一个柔和亮点。",
+        recommendation: buildPreviewRecommendation(
+          "下班后的松弛感",
+          "把白天的结构感稍微放下来，同时保留舒适与精致的平衡。",
+          [2, 4, 8, 9]
+        )
       },
-      commute_tip: "早晚温差轻微，建议准备一件可随时叠穿的外搭。"
+      commute_tip: "今天温差不大，但一件顺手的轻外层依然值得备着。"
     },
     gaps: {
-      summary: "演示衣橱在轻外搭和通勤鞋履上还有补充空间。",
+      summary: "这份演示衣橱还缺一件更轻的外搭，以及一双更适合轮换的通勤鞋。",
       insights: [
-        { title: "缺少薄外搭", description: "天气变化时还缺少轻便的过渡层。", urgency: "中" },
-        { title: "舒适通勤鞋偏少", description: "连续通勤时能轮换的鞋履不够。", urgency: "中" }
+        { title: "轻外搭仍有空缺", description: "天气转场时还需要一件更容易切换的过渡单品。", urgency: "medium" },
+        { title: "通勤鞋轮换不够", description: "重复工作日的鞋履选择仍然偏少。", urgency: "medium" }
       ]
     },
     reminders: {
       repeat_warning: [
-        { title: "重复搭配提醒", description: "最近几次都偏向奶油白 + 深色下装的组合。", tone: "提醒", item_ids: [1, 3] }
+        { title: "重复模式提醒", description: "最近几次穿搭比较依赖浅色上装配深色下装。", tone: "reminder", item_ids: [1, 3] }
       ],
       laundry_and_care: [
-        { title: "洗护提醒", description: "常穿针织建议安排一次轻柔洗护。", tone: "洗护", item_ids: [2] }
+        { title: "护理提醒", description: "有一件高频针织已经到了轻柔清洗的节点。", tone: "care", item_ids: [2] }
       ],
       idle_and_seasonal: [
-        { title: "换季提醒", description: "有一件外搭已经较久没有被重新激活。", tone: "闲置", item_ids: [5] }
+        { title: "换季提醒", description: "有一件外套已经有一段时间没有重新启用。", tone: "idle", item_ids: [5] }
       ]
     },
     style_profile: buildPreviewProfile(),
     recent_saved_outfits: [
-      { id: 1, user_id: null, name: "奶油通勤风", occasion: "通勤", style: "轻正式", item_ids: [1, 3, 7], reasoning: "柔和且稳定。", ai_generated: true, created_at: new Date().toISOString() }
+      {
+        id: 1,
+        user_id: null,
+        name: "奶油通勤编辑",
+        occasion: "commute",
+        style: "柔和通勤",
+        item_ids: [1, 3, 7],
+        reasoning: "平衡、安静，而且容易重复穿。",
+        ai_generated: true,
+        created_at: new Date().toISOString()
+      }
     ]
-  } satisfies AssistantOverview;
+  };
 }
 
 function joinList(values: string[]) {
@@ -154,6 +177,19 @@ function toFormState(profile: StyleProfile | null): StyleProfileFormState {
   };
 }
 
+function quickModeFallbackIds(mode: string) {
+  if (mode === "office") {
+    return [6, 1, 3, 7];
+  }
+  if (mode === "date") {
+    return [5, 4, 9];
+  }
+  if (mode === "coffee") {
+    return [2, 4, 8];
+  }
+  return [1, 3, 7];
+}
+
 export function AssistantDashboard() {
   const { ready: authReady, isAuthenticated } = useAuthSession();
   const items = useWardrobeStore((state) => state.items);
@@ -164,9 +200,9 @@ export function AssistantDashboard() {
   const [overview, setOverview] = useState<AssistantOverview | null>(null);
   const [quickResult, setQuickResult] = useState<RecommendationResult | null>(null);
   const [packingSummary, setPackingSummary] = useState<string>("");
-  const [statusText, setStatusText] = useState("Assistant is warming up...");
-  const [locationQuery, setLocationQuery] = useState("Shanghai");
-  const [schedule, setSchedule] = useState("明天正常上班，早晚有通勤");
+  const [statusText, setStatusText] = useState("搭配助理正在准备今日上下文...");
+  const [locationQuery, setLocationQuery] = useState("上海");
+  const [schedule, setSchedule] = useState("明天是正常通勤日，早晚各有一段通勤路程。");
   const [hasCommute, setHasCommute] = useState(true);
   const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
   const [styleProfile, setStyleProfile] = useState<StyleProfile | null>(null);
@@ -193,10 +229,21 @@ export function AssistantDashboard() {
       setStatusText(
         isAuthenticated
           ? "Loading your weather-aware styling assistant..."
-          : "Loading the public experience assistant workspace..."
+          : "Loading the local preview assistant workspace..."
       );
 
       try {
+        if (!isAuthenticated) {
+          const fallbackOverview = buildPreviewOverview();
+          const fallbackProfile = fallbackOverview.style_profile;
+          setOverview(fallbackOverview);
+          setStyleProfile(fallbackProfile);
+          setFormState(toFormState(fallbackProfile));
+          startTransition(() => replaceItems(seedWardrobeItems));
+          setStatusText("当前是本地预览模式。登录后会载入你的私有衣橱、穿搭历史和真实偏好。");
+          return;
+        }
+
         const [overviewPayload, profilePayload, wardrobePayload] = await Promise.all([
           fetchAssistantOverview(),
           fetchStyleProfile(),
@@ -211,11 +258,7 @@ export function AssistantDashboard() {
         setStyleProfile(profilePayload);
         setFormState(toFormState(profilePayload));
         startTransition(() => replaceItems(wardrobePayload));
-        setStatusText(
-          isAuthenticated
-            ? "Your assistant overview is ready, with tomorrow planning, closet gaps, and gentle reminders."
-            : "公开体验工作台已经就绪。当前页面仍然走真实接口，只是先读取公开体验衣橱；登录后会自动切到你的私人账号。"
-        );
+        setStatusText("搭配助理已准备就绪，明日规划、衣橱缺口和护理提醒都已经同步完成。");
       } catch (error) {
         if (!active) {
           return;
@@ -227,7 +270,7 @@ export function AssistantDashboard() {
         setStyleProfile(fallbackProfile);
         setFormState(toFormState(fallbackProfile));
         startTransition(() => replaceItems(seedWardrobeItems));
-        setStatusText(error instanceof Error ? `${error.message} 已切到本地降级展示。` : "Could not load the assistant overview. Switched to local fallback.");
+        setStatusText(error instanceof Error ? `${error.message} 已切换到本地预览数据。` : "暂时无法载入助理概览，已切换到本地预览模式。");
       } finally {
         if (active) {
           setBusyKey(null);
@@ -246,16 +289,26 @@ export function AssistantDashboard() {
     setBusyKey("location-search");
 
     try {
+      if (previewMode) {
+        setLocationSuggestions([
+          `${locationQuery}, Central`,
+          `${locationQuery}, Riverside`,
+          `${locationQuery}, Downtown`
+        ]);
+        setStatusText("预览模式已刷新本地位置建议。");
+        return;
+      }
+
       const matches = await searchAssistantLocations(locationQuery);
       setLocationSuggestions(matches.map((item) => [item.name, item.admin1, item.country].filter(Boolean).join(", ")));
-      setStatusText(matches.length > 0 ? "地点候选已更新，点一个就能直接生成明日穿搭。" : "没有搜到更合适的地点候选，试试更完整的城市名。");
+      setStatusText(matches.length > 0 ? "位置建议已更新，选择一个城市后可以重新生成明日搭配。" : "暂时没有找到接近的地点，请试试更完整的城市名。");
     } catch (error) {
       setLocationSuggestions([
-        `${locationQuery}, 中国`,
-        `${locationQuery}, 市中心`,
-        `${locationQuery}, 通勤区域`
+        `${locationQuery}, City Center`,
+        `${locationQuery}, Riverside`,
+        `${locationQuery}, Business District`
       ]);
-      setStatusText(error instanceof Error ? `${error.message} 已先给出本地点候选。` : "Could not search locations. Showing local fallback suggestions instead.");
+      setStatusText(error instanceof Error ? `${error.message} 先为你展示本地候选地点。` : "地点搜索暂时不可用，先展示本地候选地点。");
     } finally {
       setBusyKey(null);
     }
@@ -265,13 +318,52 @@ export function AssistantDashboard() {
     setBusyKey("tomorrow");
 
     try {
+      if (previewMode) {
+        const primaryIds = displayItems.slice(0, 4).map((item) => item.id);
+        const secondaryIds = displayItems.slice(1, 5).map((item) => item.id);
+        setOverview((current) => {
+          const base = current ?? buildPreviewOverview();
+          return {
+            ...base,
+            tomorrow: {
+              ...base.tomorrow,
+              weather: {
+                ...base.tomorrow.weather,
+                location_name: locationQuery
+              },
+              morning: {
+                ...base.tomorrow.morning,
+                recommendation: buildPreviewRecommendation(
+                  "预览早晨搭配",
+                  "预览模式会在登录前把明日搭配留在本地生成。",
+                  primaryIds
+                )
+              },
+              evening: {
+                ...base.tomorrow.evening,
+                recommendation: buildPreviewRecommendation(
+                  "预览晚间搭配",
+                  "这是晚间搭配流程的本地预览版本。",
+                  secondaryIds.length > 0 ? secondaryIds : primaryIds
+                )
+              },
+              commute_tip: hasCommute
+                ? "预览模式建议随手备一件轻外层应对通勤温差。"
+                : "预览模式建议在不需要通勤层次时保持更轻盈的搭配。"
+            }
+          };
+        });
+        setStatusText("预览模式已在本地刷新明日搭配草稿。");
+        return;
+      }
+
       const tomorrow = await fetchTomorrowAssistant({
         location_query: locationQuery,
         schedule,
         has_commute: hasCommute
       });
       setOverview((current) => current ? { ...current, tomorrow } : current);
-      setStatusText("明天穿什么助手已经按地点、天气和通勤状态更新好了。");
+      setStatusText("已经结合最新地点、天气和通勤信息刷新了明日搭配建议。");
     } catch (error) {
       setOverview((current) => current ? {
         ...current,
@@ -281,26 +373,45 @@ export function AssistantDashboard() {
             ...current.tomorrow.weather,
             location_name: locationQuery
           },
-          commute_tip: hasCommute ? "降级模式: 先保留一层轻外搭会更稳妥。" : "降级模式: 可以更轻松地收掉外搭。"
+          commute_tip: hasCommute
+            ? "回退模式建议随手备一件轻外层应对通勤温差。"
+            : "回退模式建议在不需要通勤层次时保持更轻盈的搭配。"
         }
       } : current);
-      setStatusText(error instanceof Error ? `${error.message} 已先按当前地点刷新降级结果。` : "Could not generate the tomorrow plan. Switched to a local fallback.");
+      setStatusText(error instanceof Error ? `${error.message} 已切换到本地明日搭配草稿。` : "明日搭配暂时生成失败，已切换到本地草稿。");
     } finally {
       setBusyKey(null);
     }
   }
 
-  async function handleQuickMode(mode: string) {
-    setBusyKey(`quick-${mode}`);
+  async function handleQuickMode(mode: typeof quickModes[number]) {
+    setBusyKey(`quick-${mode.value}`);
 
     try {
-      const recommendation = await runAssistantQuickMode(mode);
+      if (previewMode) {
+        setQuickResult(
+          buildPreviewRecommendation(
+            `${mode.label} 预览`,
+            "预览模式会在登录前把快捷场景留在本地运行。",
+            displayItems.slice(0, 4).map((item) => item.id)
+          )
+        );
+        setStatusText(`预览模式已更新“${mode.label}”快捷场景。`);
+        return;
+      }
+
+      const recommendation = await runAssistantQuickMode(mode.value);
       setQuickResult(recommendation);
-      setStatusText(`少思考模式已切到「${mode}」，现在会更偏向直接给结果。`);
+      setStatusText(`快捷模式已切换到“${mode.label}”场景。`);
     } catch (error) {
-      const ids = mode === "上班" ? [6, 1, 3, 7] : mode === "约会" ? [5, 4, 9] : mode === "出门买咖啡" ? [2, 4, 8] : [1, 3, 7];
-      setQuickResult(buildPreviewRecommendation(`${mode} · 直接给结果`, `真实少思考模式暂时不可用，所以先按当前场景给你一套降级答案。`, ids));
-      setStatusText(error instanceof Error ? `${error.message} 已先切到降级推荐。` : "Could not run quick mode. Switched to local fallback.");
+      setQuickResult(
+        buildPreviewRecommendation(
+          `${mode.label} 回退`,
+          "实时快捷模式暂时不可用，所以先给你一份仍然能直接上身的本地答案。",
+          quickModeFallbackIds(mode.value)
+        )
+      );
+      setStatusText(error instanceof Error ? `${error.message} 已切换到本地快捷场景。` : "快捷模式暂时不可用，已切换到本地场景。");
     } finally {
       setBusyKey(null);
     }
@@ -310,6 +421,13 @@ export function AssistantDashboard() {
     setBusyKey("packing");
 
     try {
+      if (previewMode) {
+        const itemNames = displayItems.slice(0, 4).map((item) => item.name);
+        setPackingSummary(`预览打包清单 · ${locationQuery}：${itemNames.join(" / ")}`);
+        setStatusText("预览模式已生成本地行李清单草稿。");
+        return;
+      }
+
       const result = await fetchPackingPlan({
         city: locationQuery,
         days: 4,
@@ -317,12 +435,12 @@ export function AssistantDashboard() {
         include_commute: false
       });
       const itemNames = result.suggestions.map((entry: { item_id: number }) => displayItems.find((item) => item.id === entry.item_id)?.name ?? `#${entry.item_id}`);
-      setPackingSummary(`${result.capsule_summary} 推荐带上：${itemNames.join(" / ")}`);
-      setStatusText("行李箱模式已经按城市天气和现有衣橱做了胶囊衣橱建议。");
+      setPackingSummary(`${result.capsule_summary} 推荐收纳：${itemNames.join(" / ")}`);
+      setStatusText("打包模式已经结合城市天气和当前衣橱，整理出一份精简清单。");
     } catch (error) {
       const itemNames = displayItems.slice(0, 4).map((item) => item.name);
-      setPackingSummary(`降级模式: 适合 ${locationQuery} 的 4 天胶囊衣橱建议，推荐带上：${itemNames.join(" / ")}`);
-      setStatusText(error instanceof Error ? `${error.message} 已先生成降级版行李箱建议。` : "Could not build the packing plan. Switched to local fallback.");
+      setPackingSummary(`回退打包清单 · ${locationQuery}：${itemNames.join(" / ")}`);
+      setStatusText(error instanceof Error ? `${error.message} 已切换到本地打包草稿。` : "打包清单暂时生成失败，已切换到本地草稿。");
     } finally {
       setBusyKey(null);
     }
@@ -332,6 +450,26 @@ export function AssistantDashboard() {
     setBusyKey("profile");
 
     try {
+      if (previewMode) {
+        const nextProfile = {
+          ...(styleProfile ?? buildPreviewProfile()),
+          favorite_colors: splitList(formState.favoriteColors),
+          avoid_colors: splitList(formState.avoidColors),
+          favorite_silhouettes: splitList(formState.favoriteSilhouettes),
+          avoid_silhouettes: splitList(formState.avoidSilhouettes),
+          style_keywords: splitList(formState.styleKeywords),
+          dislike_keywords: splitList(formState.dislikeKeywords),
+          commute_profile: formState.commuteProfile || null,
+          comfort_priorities: splitList(formState.comfortPriorities),
+          wardrobe_rules: splitList(formState.wardrobeRules),
+          personal_note: formState.personalNote || null
+        };
+        setStyleProfile(nextProfile);
+        setFormState(toFormState(nextProfile));
+        setStatusText("预览模式已把风格记忆保存到本地。登录后就可以同步到你的账号里。");
+        return;
+      }
+
       const nextProfile = await updateStyleProfile({
         favorite_colors: splitList(formState.favoriteColors),
         avoid_colors: splitList(formState.avoidColors),
@@ -346,7 +484,7 @@ export function AssistantDashboard() {
       });
       setStyleProfile(nextProfile);
       setFormState(toFormState(nextProfile));
-      setStatusText(previewMode ? "公开体验画像已经更新。登录后保存时会自动写入你的私人账号。" : "个人风格记忆层已经更新，后续推荐会开始按这份画像重新排序。");
+      setStatusText("你的风格记忆已更新，后续推荐会优先遵循这份画像。");
     } catch (error) {
       const nextProfile = {
         ...(styleProfile ?? buildPreviewProfile()),
@@ -363,7 +501,7 @@ export function AssistantDashboard() {
       };
       setStyleProfile(nextProfile);
       setFormState(toFormState(nextProfile));
-      setStatusText(error instanceof Error ? `${error.message} 已先保留本地修改。` : "Could not update the style profile. Saved locally as a fallback.");
+      setStatusText(error instanceof Error ? `${error.message} 最新编辑已保留在本地。` : "风格画像暂时更新失败，最新编辑已先保存在本地。");
     } finally {
       setBusyKey(null);
     }
@@ -376,43 +514,43 @@ export function AssistantDashboard() {
   return (
     <div className="space-y-6">
       {previewMode ? (
-        <VisitorPreviewNotice description="当前是公开体验模式。这个页面仍然优先请求真实接口，只是暂时读取公开体验衣橱；登录后会自动切到你的私人衣橱、地点和反馈数据。" />
+        <VisitorPreviewNotice description="这里会完全停留在本地预览模式。登录前，助理页面会使用演示衣橱、地点和反馈数据。" />
       ) : null}
 
-      <section className="section-card story-gradient rounded-[36px] p-6">
+      <section className="section-card story-gradient rounded-[36px] p-6" data-testid="assistant-overview">
         <div className="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
           <div>
             <div className="pill mb-4">
               <Bot className="size-4" />
-              Personal styling brain
+              个人搭配中枢
             </div>
             <h3 className="display-title text-3xl font-semibold tracking-[-0.05em] text-[var(--ink-strong)] md:text-4xl">
-              明天穿什么、少思考模式、衣橱提醒，现在都在同一块温柔面板里。
+              明日规划、快捷场景和衣橱提醒，现在都收进了同一个更顺手的助理工作台。
             </h3>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--muted)]">
-              这里把天气、画像、反馈信号、记忆卡、打包模式和穿着记录串成了完整闭环。后续换成你训练好的模型，也能沿用同一套页面与接口。
+              这里把天气、风格记忆、推荐反馈、打包模式和穿着记录串在一起，所以同一个页面既能承接公开预览，也能无缝切到你的私有助理。
             </p>
-            <div className="mt-5 rounded-[24px] border border-[var(--line)] bg-white/85 px-4 py-4 text-sm leading-6 text-[var(--ink)]">
+            <div className="mt-5 rounded-[24px] border border-[var(--line)] bg-white/85 px-4 py-4 text-sm leading-6 text-[var(--ink)]" data-testid="assistant-status">
               {statusText}
             </div>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="metric-tile p-4">
-              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Tomorrow city</p>
-              <p className="mt-2 text-lg font-semibold text-[var(--ink-strong)]">{overview?.tomorrow.weather.location_name ?? "Waiting"}</p>
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">明日城市</p>
+              <p className="mt-2 text-lg font-semibold text-[var(--ink-strong)]">{overview?.tomorrow.weather.location_name ?? "等待中"}</p>
             </div>
             <div className="metric-tile p-4">
-              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Reminders</p>
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">提醒数量</p>
               <p className="mt-2 text-lg font-semibold text-[var(--ink-strong)]">{reminderCount}</p>
             </div>
             <div className="metric-tile p-4">
-              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Saved looks</p>
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">已保存搭配</p>
               <p className="mt-2 text-lg font-semibold text-[var(--ink-strong)]">{overview?.recent_saved_outfits.length ?? 0}</p>
             </div>
             <div className="metric-tile p-4">
-              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Style memory</p>
-              <p className="mt-2 text-lg font-semibold text-[var(--ink-strong)]">{styleProfile?.favorite_colors[0] ?? "Learning"}</p>
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">风格记忆</p>
+              <p className="mt-2 text-lg font-semibold text-[var(--ink-strong)]">{styleProfile?.favorite_colors[0] ?? "学习中"}</p>
             </div>
           </div>
         </div>
@@ -425,21 +563,21 @@ export function AssistantDashboard() {
               <div>
                 <div className="pill mb-3">
                   <CloudSun className="size-4" />
-                  Tomorrow assistant
+                  明日助理
                 </div>
-                <h4 className="text-xl font-semibold text-[var(--ink-strong)]">按天气、日程、通勤生成早晚两套</h4>
+                <h4 className="text-xl font-semibold text-[var(--ink-strong)]">根据天气、日程和通勤场景，提前规划早晚两套顺手搭配</h4>
               </div>
-              <button type="button" onClick={() => void handleTomorrowPlan()} disabled={busyKey === "tomorrow"} className="rounded-full bg-[var(--ink-strong)] px-5 py-3 text-sm text-white disabled:opacity-60">
-                {busyKey === "tomorrow" ? "Generating..." : "Generate tomorrow"}
+              <button type="button" onClick={() => void handleTomorrowPlan()} disabled={busyKey === "tomorrow"} className="rounded-full bg-[var(--ink-strong)] px-5 py-3 text-sm text-white disabled:opacity-60" data-testid="assistant-generate-tomorrow">
+                {busyKey === "tomorrow" ? "生成中..." : "生成明日搭配"}
               </button>
             </div>
 
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-[var(--ink)]">地点</span>
+                <span className="mb-2 block text-sm font-medium text-[var(--ink)]">城市地点</span>
                 <div className="flex gap-2">
-                  <input value={locationQuery} onChange={(event) => setLocationQuery(event.target.value)} className="w-full rounded-[22px] border border-[var(--line)] bg-white/85 px-4 py-3 text-sm outline-none" />
-                  <button type="button" onClick={() => void handleSearchLocation()} className="rounded-full border border-[var(--line)] bg-white/85 px-4 py-3 text-sm text-[var(--ink)]">
+                  <input value={locationQuery} onChange={(event) => setLocationQuery(event.target.value)} className="w-full rounded-[22px] border border-[var(--line)] bg-white/85 px-4 py-3 text-sm outline-none" data-testid="assistant-location-input" />
+                  <button type="button" onClick={() => void handleSearchLocation()} className="rounded-full border border-[var(--line)] bg-white/85 px-4 py-3 text-sm text-[var(--ink)]" data-testid="assistant-location-search">
                     搜索
                   </button>
                 </div>
@@ -453,7 +591,7 @@ export function AssistantDashboard() {
 
             <label className="mt-4 inline-flex items-center gap-3 text-sm text-[var(--ink)]">
               <input type="checkbox" checked={hasCommute} onChange={(event) => setHasCommute(event.target.checked)} />
-              明天要通勤
+              把通勤层次也考虑进去
             </label>
 
             {locationSuggestions.length > 0 ? (
@@ -468,8 +606,8 @@ export function AssistantDashboard() {
             ) : null}
 
             {overview ? (
-              <div className="mt-5 rounded-[24px] border border-[var(--line)] bg-white/80 px-4 py-4 text-sm leading-6 text-[var(--ink)]">
-                {overview.tomorrow.weather.location_name} · {overview.tomorrow.weather.condition_label} · {overview.tomorrow.weather.temperature_min} - {overview.tomorrow.weather.temperature_max}°C
+              <div className="mt-5 rounded-[24px] border border-[var(--line)] bg-white/80 px-4 py-4 text-sm leading-6 text-[var(--ink)]" data-testid="assistant-tomorrow-summary">
+                {overview.tomorrow.weather.location_name} / {overview.tomorrow.weather.condition_label} / {overview.tomorrow.weather.temperature_min} - {overview.tomorrow.weather.temperature_max}°C
                 <div className="mt-2 text-[var(--muted)]">{overview.tomorrow.commute_tip}</div>
               </div>
             ) : null}
@@ -487,13 +625,13 @@ export function AssistantDashboard() {
           <article className="section-card rounded-[32px] p-5">
             <div className="pill mb-3">
               <Sparkles className="size-4" />
-              One-click low-thought mode
+              一键少思考模式
             </div>
-            <h4 className="text-xl font-semibold text-[var(--ink-strong)]">用户只点一个场景，直接给结果</h4>
+            <h4 className="text-xl font-semibold text-[var(--ink-strong)]">点一下场景，就能马上得到一份更轻负担的搭配答案</h4>
             <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
-              {quickModes.map((mode) => (
-                <button key={mode} type="button" onClick={() => void handleQuickMode(mode)} className="tap-card whitespace-nowrap rounded-full border border-[var(--line)] bg-white/85 px-4 py-3 text-sm text-[var(--ink)] shadow-[var(--shadow-soft)]">
-                  {mode}
+              {quickModes.map((mode, modeIndex) => (
+                <button key={mode.value} type="button" onClick={() => void handleQuickMode(mode)} className="tap-card whitespace-nowrap rounded-full border border-[var(--line)] bg-white/85 px-4 py-3 text-sm text-[var(--ink)] shadow-[var(--shadow-soft)]" data-testid={`assistant-quick-mode-${modeIndex}`}>
+                  {mode.label}
                 </button>
               ))}
             </div>
@@ -506,14 +644,14 @@ export function AssistantDashboard() {
           <article className="section-card rounded-[32px] p-5">
             <div className="pill mb-3">
               <Package2 className="size-4" />
-              Packing mode
+              打包模式
             </div>
-            <h4 className="text-xl font-semibold text-[var(--ink-strong)]">按城市、天数、天气生成胶囊衣橱</h4>
-            <button type="button" onClick={() => void handlePackingPlan()} disabled={busyKey === "packing"} className="mt-4 w-full rounded-full border border-[var(--line)] bg-white/85 px-5 py-3 text-sm text-[var(--ink)] shadow-[var(--shadow-soft)] md:w-auto">
-              {busyKey === "packing" ? "Packing..." : "Generate packing plan"}
+            <h4 className="text-xl font-semibold text-[var(--ink-strong)]">根据城市、行程长度和衣橱覆盖度，快速整理一份精简行李清单</h4>
+            <button type="button" onClick={() => void handlePackingPlan()} disabled={busyKey === "packing"} className="mt-4 w-full rounded-full border border-[var(--line)] bg-white/85 px-5 py-3 text-sm text-[var(--ink)] shadow-[var(--shadow-soft)] md:w-auto" data-testid="assistant-generate-packing">
+              {busyKey === "packing" ? "整理中..." : "生成打包清单"}
             </button>
             {packingSummary ? (
-              <div className="mt-4 rounded-[24px] border border-[var(--line)] bg-white/80 px-4 py-4 text-sm leading-6 text-[var(--ink)]">
+              <div className="mt-4 rounded-[24px] border border-[var(--line)] bg-white/80 px-4 py-4 text-sm leading-6 text-[var(--ink)]" data-testid="assistant-packing-summary">
                 {packingSummary}
               </div>
             ) : null}
@@ -525,9 +663,9 @@ export function AssistantDashboard() {
         <article className="section-card rounded-[32px] p-5">
           <div className="pill mb-3">
             <CalendarDays className="size-4" />
-            Closet gaps and reminders
+            衣橱缺口与护理提醒
           </div>
-          <h4 className="text-xl font-semibold text-[var(--ink-strong)]">衣橱缺口、重复穿搭、洗护和换季提醒</h4>
+          <h4 className="text-xl font-semibold text-[var(--ink-strong)]">看看还缺什么、哪些搭配出现得太频繁，以及下一件该护理的单品</h4>
           <div className="mt-5 space-y-3">
             {overview?.gaps.insights.map((insight) => (
               <div key={insight.title} className="rounded-[22px] border border-[var(--line)] bg-white/80 p-4">
@@ -559,24 +697,24 @@ export function AssistantDashboard() {
         <article className="section-card rounded-[32px] p-5">
           <div className="pill mb-3">
             <BriefcaseBusiness className="size-4" />
-            Personal style memory
+            个人风格记忆
           </div>
-          <h4 className="text-xl font-semibold text-[var(--ink-strong)]">个人风格记忆层</h4>
+          <h4 className="text-xl font-semibold text-[var(--ink-strong)]">把颜色、廓形、舒适偏好和备注记下来，让后续推荐更贴近你</h4>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-[var(--ink)]">喜欢的颜色</span>
-              <input value={formState.favoriteColors} onChange={(event) => setFormState((current) => ({ ...current, favoriteColors: event.target.value }))} className="w-full rounded-[22px] border border-[var(--line)] bg-white/85 px-4 py-3 text-sm outline-none" />
+              <span className="mb-2 block text-sm font-medium text-[var(--ink)]">偏爱颜色</span>
+              <input value={formState.favoriteColors} onChange={(event) => setFormState((current) => ({ ...current, favoriteColors: event.target.value }))} className="w-full rounded-[22px] border border-[var(--line)] bg-white/85 px-4 py-3 text-sm outline-none" data-testid="assistant-favorite-colors" />
             </label>
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-[var(--ink)]">避开的颜色</span>
+              <span className="mb-2 block text-sm font-medium text-[var(--ink)]">避开颜色</span>
               <input value={formState.avoidColors} onChange={(event) => setFormState((current) => ({ ...current, avoidColors: event.target.value }))} className="w-full rounded-[22px] border border-[var(--line)] bg-white/85 px-4 py-3 text-sm outline-none" />
             </label>
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-[var(--ink)]">偏好轮廓</span>
+              <span className="mb-2 block text-sm font-medium text-[var(--ink)]">偏爱廓形</span>
               <input value={formState.favoriteSilhouettes} onChange={(event) => setFormState((current) => ({ ...current, favoriteSilhouettes: event.target.value }))} className="w-full rounded-[22px] border border-[var(--line)] bg-white/85 px-4 py-3 text-sm outline-none" />
             </label>
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-[var(--ink)]">不喜欢的轮廓</span>
+              <span className="mb-2 block text-sm font-medium text-[var(--ink)]">避开廓形</span>
               <input value={formState.avoidSilhouettes} onChange={(event) => setFormState((current) => ({ ...current, avoidSilhouettes: event.target.value }))} className="w-full rounded-[22px] border border-[var(--line)] bg-white/85 px-4 py-3 text-sm outline-none" />
             </label>
             <label className="block">
@@ -584,7 +722,7 @@ export function AssistantDashboard() {
               <input value={formState.styleKeywords} onChange={(event) => setFormState((current) => ({ ...current, styleKeywords: event.target.value }))} className="w-full rounded-[22px] border border-[var(--line)] bg-white/85 px-4 py-3 text-sm outline-none" />
             </label>
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-[var(--ink)]">穿搭禁忌</span>
+              <span className="mb-2 block text-sm font-medium text-[var(--ink)]">不喜欢的关键词</span>
               <input value={formState.dislikeKeywords} onChange={(event) => setFormState((current) => ({ ...current, dislikeKeywords: event.target.value }))} className="w-full rounded-[22px] border border-[var(--line)] bg-white/85 px-4 py-3 text-sm outline-none" />
             </label>
           </div>
@@ -595,7 +733,7 @@ export function AssistantDashboard() {
           </label>
 
           <label className="mt-4 block">
-            <span className="mb-2 block text-sm font-medium text-[var(--ink)]">舒适优先项</span>
+            <span className="mb-2 block text-sm font-medium text-[var(--ink)]">舒适优先级</span>
             <input value={formState.comfortPriorities} onChange={(event) => setFormState((current) => ({ ...current, comfortPriorities: event.target.value }))} className="w-full rounded-[22px] border border-[var(--line)] bg-white/85 px-4 py-3 text-sm outline-none" />
           </label>
 
@@ -605,12 +743,12 @@ export function AssistantDashboard() {
           </label>
 
           <label className="mt-4 block">
-            <span className="mb-2 block text-sm font-medium text-[var(--ink)]">私人备注</span>
-            <textarea value={formState.personalNote} onChange={(event) => setFormState((current) => ({ ...current, personalNote: event.target.value }))} className="min-h-32 w-full rounded-[22px] border border-[var(--line)] bg-white/85 px-4 py-3 text-sm outline-none" />
+            <span className="mb-2 block text-sm font-medium text-[var(--ink)]">个人备注</span>
+            <textarea value={formState.personalNote} onChange={(event) => setFormState((current) => ({ ...current, personalNote: event.target.value }))} className="min-h-32 w-full rounded-[22px] border border-[var(--line)] bg-white/85 px-4 py-3 text-sm outline-none" data-testid="assistant-personal-note" />
           </label>
 
-          <button type="button" onClick={() => void handleSaveStyleProfile()} disabled={busyKey === "profile"} className="mt-5 w-full rounded-full bg-[var(--ink-strong)] px-5 py-3 text-sm text-white shadow-[var(--shadow-float)] disabled:opacity-60 md:w-auto">
-            {busyKey === "profile" ? "Saving..." : "Save style memory"}
+          <button type="button" onClick={() => void handleSaveStyleProfile()} disabled={busyKey === "profile"} className="mt-5 w-full rounded-full bg-[var(--ink-strong)] px-5 py-3 text-sm text-white shadow-[var(--shadow-float)] disabled:opacity-60 md:w-auto" data-testid="assistant-save-profile">
+            {busyKey === "profile" ? "保存中..." : "保存风格记忆"}
           </button>
         </article>
       </section>

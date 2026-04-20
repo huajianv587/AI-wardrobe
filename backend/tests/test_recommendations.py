@@ -87,6 +87,27 @@ def test_recommendations_use_remote_worker_when_enabled(monkeypatch):
     assert captured["payload"]["wardrobe_items"][0]["name"] == "Soft Ivory Shirt"
 
 
+def test_recommendations_short_circuit_to_empty_closet_setup_when_no_items(monkeypatch):
+    monkeypatch.setattr(recommendation_service.local_model, "should_use_local_model", lambda feature: False)
+
+    called = {"count": 0}
+
+    def fake_post(*args, **kwargs):
+        called["count"] += 1
+        raise AssertionError("Remote recommender should not be called for an empty wardrobe.")
+
+    monkeypatch.setattr(recommendation_service.httpx, "post", fake_post)
+
+    response = recommendation_service.generate_recommendations(
+        RecommendationRequest(prompt="Office commute tomorrow"),
+        [],
+    )
+
+    assert response.source == "local-empty-closet"
+    assert response.outfits[0].item_ids == []
+    assert called["count"] == 0
+
+
 def test_recommendations_support_openai_compatible_endpoint(monkeypatch):
     monkeypatch.setattr(recommendation_service.local_model, "should_use_local_model", lambda feature: False)
     monkeypatch.setattr(
@@ -141,6 +162,114 @@ def test_recommendations_support_openai_compatible_endpoint(monkeypatch):
     assert captured["headers"]["Authorization"] == "Bearer deepseek-secret"
     assert captured["payload"]["model"] == "deepseek-chat"
     assert captured["payload"]["messages"][0]["role"] == "system"
+
+
+def test_recommendations_retry_long_openai_payload_when_first_response_is_truncated(monkeypatch):
+    monkeypatch.setattr(recommendation_service.local_model, "should_use_local_model", lambda feature: False)
+    monkeypatch.setattr(
+        recommendation_service.local_model,
+        "get_remote_worker_url",
+        lambda feature: "https://api.deepseek.com/v1/chat/completions",
+    )
+    monkeypatch.setattr(recommendation_service.settings, "llm_recommender_api_key", "")
+    monkeypatch.setattr(recommendation_service.settings, "llm_recommender_model_name", "")
+    monkeypatch.setattr(recommendation_service.settings, "deepseek_api_key", "deepseek-secret")
+    monkeypatch.setattr(recommendation_service.settings, "deepseek_multimodal_model", "deepseek-chat")
+
+    captured_max_tokens: list[int] = []
+
+    class DummyResponse:
+        def __init__(self, payload: dict):
+            self._payload = payload
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return self._payload
+
+    def fake_post(url, headers, json, timeout):
+        captured_max_tokens.append(json["max_tokens"])
+        if len(captured_max_tokens) == 1:
+            return DummyResponse(
+                {
+                    "choices": [
+                        {
+                            "finish_reason": "length",
+                            "message": {"content": '{"source":"remote-model","outfits":[{"title":"Truncated"}'},
+                        }
+                    ]
+                }
+            )
+        return DummyResponse(
+            {
+                "choices": [
+                    {
+                        "finish_reason": "stop",
+                        "message": {
+                            "content": (
+                                '{"source":"deepseek-direct","outfits":[{"title":"Soft Office Edit",'
+                                '"rationale":"Recovered after retry.","item_ids":[1,2,3],"confidence":0.89}],'
+                                '"agent_trace":[{"node":"DeepSeek","summary":"Compatible chat completions path."}]}'
+                            )
+                        },
+                    }
+                ]
+            }
+        )
+
+    monkeypatch.setattr(recommendation_service.httpx, "post", fake_post)
+
+    response = recommendation_service.generate_recommendations(
+        RecommendationRequest(prompt="Office commute tomorrow"),
+        _items(),
+    )
+
+    assert response.source == "deepseek-direct"
+    assert captured_max_tokens == [900, 1300]
+
+
+def test_recommendations_match_remote_item_names_with_partial_name_variants(monkeypatch):
+    monkeypatch.setattr(recommendation_service.local_model, "should_use_local_model", lambda feature: False)
+    monkeypatch.setattr(
+        recommendation_service.local_model,
+        "get_remote_worker_url",
+        lambda feature: "https://api.deepseek.com/v1/chat/completions",
+    )
+    monkeypatch.setattr(recommendation_service.settings, "llm_recommender_api_key", "")
+    monkeypatch.setattr(recommendation_service.settings, "llm_recommender_model_name", "")
+    monkeypatch.setattr(recommendation_service.settings, "deepseek_api_key", "deepseek-secret")
+    monkeypatch.setattr(recommendation_service.settings, "deepseek_multimodal_model", "deepseek-chat")
+
+    class DummyResponse:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {
+                "choices": [
+                    {
+                        "finish_reason": "stop",
+                        "message": {
+                            "content": (
+                                '{"source":"deepseek-direct","outfits":[{"title":"Soft Office Edit",'
+                                '"rationale":"Matched by names.","item_names":["Ivory Shirt","Anchor Trouser","White Sneaker"]}],'
+                                '"agent_trace":[{"node":"DeepSeek","summary":"Matched fuzzy names."}]}'
+                            )
+                        },
+                    }
+                ]
+            }
+
+    monkeypatch.setattr(recommendation_service.httpx, "post", lambda *args, **kwargs: DummyResponse())
+
+    response = recommendation_service.generate_recommendations(
+        RecommendationRequest(prompt="Office commute tomorrow"),
+        _items(),
+    )
+
+    assert response.source == "deepseek-direct"
+    assert response.outfits[0].item_ids == [1, 2, 3]
 
 
 def test_recommendations_fall_back_to_local_when_remote_fails(monkeypatch):

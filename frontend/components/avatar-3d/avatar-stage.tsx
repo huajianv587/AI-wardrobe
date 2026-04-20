@@ -2,12 +2,17 @@
 
 import type { Ref } from "react";
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { Canvas } from "@react-three/fiber";
 import { Float, OrbitControls } from "@react-three/drei";
 import { Sparkles } from "lucide-react";
+
 import type { WardrobeItem } from "@/store/wardrobe-store";
 
-type AvatarLayer = Pick<WardrobeItem, "id" | "slot" | "name" | "colorHex" | "processedImageUrl" | "imageUrl" | "isNewArrival">;
+type AvatarLayer = Pick<
+  WardrobeItem,
+  "id" | "slot" | "name" | "colorHex" | "processedImageUrl" | "imageUrl" | "isNewArrival"
+>;
 
 interface AvatarStageProps {
   palette: string[];
@@ -92,14 +97,16 @@ export function AvatarStage({
       animate={{
         scale: dropHovered ? 1.012 + magneticStrength * 0.02 : dropActive ? 1 + magneticStrength * 0.012 : 1,
         rotateX: magneticVector ? -magneticVector.y * (1.2 + magneticStrength * 6) : 0,
-        rotateY: magneticVector ? magneticVector.x * (1.8 + magneticStrength * 7) : 0
+        rotateY: magneticVector ? magneticVector.x * (1.8 + magneticStrength * 7) : 0,
       }}
       transition={{ type: "spring", stiffness: 220, damping: 24, mass: 0.7 }}
       className={`tryon-stage section-card story-gradient magnetic-stage relative h-[460px] overflow-hidden rounded-[28px] p-3 transition sm:h-[520px] sm:rounded-[34px] sm:p-4 ${dropActive ? "shadow-[var(--shadow-glow)]" : ""}`}
       style={{
         transformPerspective: 1400,
         transformStyle: "preserve-3d",
-        boxShadow: dropActive ? `0 20px ${70 + magneticStrength * 22}px color-mix(in srgb, ${dropTone} ${22 + magneticStrength * 18}%, rgba(255,255,255,0.48))` : undefined
+        boxShadow: dropActive
+          ? `0 20px ${70 + magneticStrength * 22}px color-mix(in srgb, ${dropTone} ${22 + magneticStrength * 18}%, rgba(255,255,255,0.48))`
+          : undefined,
       }}
     >
       <div className="hero-glow absolute inset-0 opacity-80" />
@@ -110,13 +117,20 @@ export function AvatarStage({
             animate={{
               rotateY: magneticVector ? magneticVector.x * (3 + magneticStrength * 10) : 0,
               rotateX: magneticVector ? -magneticVector.y * (2 + magneticStrength * 6) : 0,
-              scale: dropHovered ? 1.02 : 1
+              scale: dropHovered ? 1.02 : 1,
             }}
             transition={{ type: "spring", stiffness: 220, damping: 24, mass: 0.72 }}
             className="tryon-stage-photo absolute inset-[11%_15%_12%] z-[4] overflow-hidden rounded-[24px] border border-white/55 bg-white/40 shadow-[0_30px_80px_rgba(54,35,24,0.16)] sm:inset-[10%_17%_10%] sm:rounded-[28px]"
           >
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_14%,rgba(255,255,255,0.58),transparent_42%)]" />
-            <img src={avatarPhotoUrl} alt="Avatar upload" className="h-full w-full object-cover" />
+            <Image
+              src={avatarPhotoUrl}
+              alt="Avatar upload"
+              fill
+              unoptimized
+              sizes="(max-width: 640px) 70vw, 36vw"
+              className="object-cover"
+            />
           </motion.div>
         ) : null}
 
@@ -130,19 +144,29 @@ export function AvatarStage({
               animate={{
                 y: dropHovered ? -4 - index : -index * 2,
                 rotate: item.slot === "accessory" ? 2 : 0,
-                scale: dropHovered ? 1.03 : 1
+                scale: dropHovered ? 1.03 : 1,
               }}
               transition={{ type: "spring", stiffness: 260, damping: 24, mass: 0.66 }}
               className="tryon-stage-layer absolute z-[6] overflow-hidden rounded-[18px] border border-white/60 bg-white/55 shadow-[0_22px_42px_rgba(41,27,21,0.14)] backdrop-blur-md sm:rounded-[22px]"
               style={{
                 ...frame,
-                boxShadow: `0 22px 40px color-mix(in srgb, ${item.colorHex} 16%, rgba(41,27,21,0.12))`
+                boxShadow: `0 22px 40px color-mix(in srgb, ${item.colorHex} 16%, rgba(41,27,21,0.12))`,
               }}
             >
               {src ? (
-                <img src={src} alt={item.name} className="h-full w-full object-contain p-2" />
+                <Image
+                  src={src}
+                  alt={item.name}
+                  fill
+                  unoptimized
+                  sizes="(max-width: 640px) 18vw, 10vw"
+                  className="object-contain p-2"
+                />
               ) : (
-                <div className="flex h-full min-h-[120px] items-center justify-center px-4 py-6 text-center text-xs text-[var(--ink)]" style={{ background: `linear-gradient(145deg, ${item.colorHex}20, rgba(255,255,255,0.96))` }}>
+                <div
+                  className="flex h-full min-h-[120px] items-center justify-center px-4 py-6 text-center text-xs text-[var(--ink)]"
+                  style={{ background: `linear-gradient(145deg, ${item.colorHex}20, rgba(255,255,255,0.96))` }}
+                >
                   {item.name}
                 </div>
               )}
@@ -155,11 +179,15 @@ export function AvatarStage({
           );
         })}
       </div>
+
       {dropActive ? (
         <>
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: dropHovered ? 0.64 + magneticStrength * 0.16 : 0.38 + magneticStrength * 0.18, scale: dropHovered ? 1.05 + magneticStrength * 0.06 : 1 + magneticStrength * 0.04 }}
+            animate={{
+              opacity: dropHovered ? 0.64 + magneticStrength * 0.16 : 0.38 + magneticStrength * 0.18,
+              scale: dropHovered ? 1.05 + magneticStrength * 0.06 : 1 + magneticStrength * 0.04,
+            }}
             className="pointer-events-none absolute inset-[14%] rounded-full blur-3xl"
             style={{ background: `radial-gradient(circle, color-mix(in srgb, ${dropTone} 28%, rgba(255,255,255,0.55)) 0%, transparent 68%)` }}
           />
@@ -169,7 +197,7 @@ export function AvatarStage({
               initial={{ opacity: 0, scale: 0.88 }}
               animate={{
                 opacity: dropHovered ? [0.12, 0.24 + magneticStrength * 0.22, 0.12] : [0.08, 0.16 + magneticStrength * 0.16, 0.08],
-                scale: dropHovered ? [0.94, 1.03 + magneticStrength * 0.06, 0.94] : [0.92, 1 + magneticStrength * 0.05, 0.92]
+                scale: dropHovered ? [0.94, 1.03 + magneticStrength * 0.06, 0.94] : [0.92, 1 + magneticStrength * 0.05, 0.92],
               }}
               transition={{ duration: 2.2, repeat: Infinity, delay: ring * 0.2, ease: "easeInOut" }}
               className="pointer-events-none absolute inset-[18%] rounded-full border"
@@ -178,14 +206,19 @@ export function AvatarStage({
           ))}
         </>
       ) : null}
+
       {dropActive ? (
         <motion.div
           initial={{ opacity: 0.45, scale: 0.98 }}
-          animate={{ opacity: dropHovered ? 0.92 : 0.6 + magneticStrength * 0.14, scale: dropHovered ? 1 : 0.985 + magneticStrength * 0.02 }}
+          animate={{
+            opacity: dropHovered ? 0.92 : 0.6 + magneticStrength * 0.14,
+            scale: dropHovered ? 1 : 0.985 + magneticStrength * 0.02,
+          }}
           className="pointer-events-none absolute inset-6 z-10 rounded-[28px] border-2 border-dashed bg-white/35"
           style={{ borderColor: dropTone }}
         />
       ) : null}
+
       {dropActive ? (
         <motion.div
           initial={{ opacity: 0, scale: 0.92 }}
@@ -196,10 +229,15 @@ export function AvatarStage({
             className={`rounded-full px-4 py-2 text-xs shadow-[var(--shadow-float)] sm:px-5 sm:py-3 sm:text-sm ${dropHovered ? "text-white" : "bg-white/88 text-[var(--ink)]"}`}
             style={dropHovered ? { backgroundColor: dropTone } : undefined}
           >
-            {dropHovered ? "Release and let the stage absorb it" : magneticStrength > 0.45 ? "The stage is starting to lock on" : "Bring it into the avatar's magnetic field"}
+            {dropHovered
+              ? "Release and let the stage absorb it"
+              : magneticStrength > 0.45
+                ? "The stage is starting to lock on"
+                : "Bring it into the avatar's magnetic field"}
           </div>
         </motion.div>
       ) : null}
+
       {absorbActive ? (
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
@@ -216,10 +254,11 @@ export function AvatarStage({
           </div>
         </motion.div>
       ) : null}
+
       <div className="tryon-stage-topline pointer-events-none absolute inset-x-3 top-3 z-10 flex items-center justify-between gap-2 sm:inset-x-4 sm:top-4 sm:gap-3">
         <div className="pill bg-white/85">
           <Sparkles className="size-4" />
-          {dragHint ?? (avatarPhotoUrl ? "拖入右侧单品，直接预览到你的全身照舞台" : "Drag garments here or tap on the right to preview layers")}
+          {dragHint ?? (avatarPhotoUrl ? "拖入右侧单品，直接预览到你的全身照片舞台" : "Drag garments here or tap on the right to preview layers")}
         </div>
         <div
           className={`rounded-full px-3 py-1 text-xs ${dropActive ? "text-white" : "bg-white/80 text-[var(--ink)]"}`}
@@ -228,6 +267,7 @@ export function AvatarStage({
           {dropActive ? `${Math.round((0.35 + magneticStrength * 0.65) * 100)}% locked` : `${palette.length} active layers`}
         </div>
       </div>
+
       <div className="tryon-stage-note pointer-events-none absolute inset-x-3 bottom-3 z-10 sm:inset-x-6 sm:bottom-5">
         <div className="mx-auto max-w-md rounded-full border border-white/70 bg-white/72 px-4 py-3 text-center text-xs leading-5 text-[var(--muted)] shadow-[var(--shadow-soft)]">
           {avatarPhotoUrl
@@ -246,6 +286,7 @@ export function AvatarStage({
           ))}
         </div>
       </div>
+
       <div className="absolute inset-0" style={{ opacity: canvasOpacity }}>
         <Canvas camera={{ position: [0, 0.2, 5.2], fov: 34 }}>
           <ambientLight intensity={1.4} />

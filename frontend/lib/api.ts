@@ -1,7 +1,8 @@
-import { AuthSessionResponse, AuthUserSummary, clearStoredSession, getStoredAccessToken } from "@/lib/auth-session";
+import { AuthSessionResponse, AuthUserSummary, getStoredAccessToken } from "@/lib/auth-session";
+import { API_BASE_URL, ApiError, apiRequest, extractErrorMessage } from "@/lib/api-core";
 import { categoryToSlot, ClothingMemoryCard, colorToHex, FilterCategory, WardrobeCategory, WardrobeItem, WardrobeSlot } from "@/store/wardrobe-store";
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000").replace(/\/$/, "");
+export { ApiError } from "@/lib/api-core";
 
 interface ApiWardrobeItem {
   id: number;
@@ -132,10 +133,6 @@ interface ApiAiDemoRunResponse {
   artifacts: ApiAiDemoArtifact[];
 }
 
-interface ApiRequestOptions {
-  skipAuth?: boolean;
-}
-
 interface ApiImageUploadPlan {
   upload_url: string;
   public_url: string;
@@ -156,6 +153,7 @@ export interface PasswordResetPayload {
 }
 
 export interface PasswordResetConfirmPayload {
+  email?: string;
   token?: string;
   access_token?: string;
   new_password: string;
@@ -211,6 +209,24 @@ export interface WeatherSummary {
   temperature_max: number;
   temperature_min: number;
   precipitation_probability_max: number | null;
+}
+
+export interface CurrentWeatherResult {
+  location_name: string;
+  timezone: string;
+  current_time: string;
+  weather_code: number;
+  condition_label: string;
+  condition_label_zh: string;
+  temperature: number;
+  apparent_temperature: number | null;
+  wind_speed: number | null;
+  is_day: boolean | null;
+  precipitation: number | null;
+  temperature_max: number | null;
+  temperature_min: number | null;
+  precipitation_probability_max: number | null;
+  outfit_hint: string;
 }
 
 export interface TomorrowPlanBlock {
@@ -614,79 +630,6 @@ function mapTryOnRenderResult(payload: ApiTryOnRenderResponse): TryOnRenderResul
   };
 }
 
-function extractErrorMessage(payload: unknown, status: number) {
-  if (typeof payload === "string" && payload.trim().length > 0) {
-    return payload;
-  }
-
-  if (payload && typeof payload === "object") {
-    const record = payload as Record<string, unknown>;
-
-    if (typeof record.detail === "string") {
-      return record.detail;
-    }
-
-    if (typeof record.message === "string") {
-      return record.message;
-    }
-  }
-
-  return `Request failed with status ${status}`;
-}
-
-export class ApiError extends Error {
-  readonly status: number;
-  readonly payload: unknown;
-
-  constructor(message: string, status: number, payload: unknown) {
-    super(message);
-    this.name = "ApiError";
-    this.status = status;
-    this.payload = payload;
-  }
-}
-
-async function apiRequest<T>(path: string, init?: RequestInit, options?: ApiRequestOptions): Promise<T> {
-  const isFormData = init?.body instanceof FormData;
-  const headers = new Headers(init?.headers);
-  const accessToken = options?.skipAuth ? null : getStoredAccessToken();
-
-  if (!isFormData && !headers.has("Content-Type")) {
-    headers.set("Content-Type", "application/json");
-  }
-
-  if (accessToken && !headers.has("Authorization")) {
-    headers.set("Authorization", `Bearer ${accessToken}`);
-  }
-
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    cache: "no-store",
-    headers
-  });
-
-  const text = await response.text();
-  const payload = text
-    ? (() => {
-      try {
-        return JSON.parse(text) as unknown;
-      } catch {
-        return text;
-      }
-    })()
-    : null;
-
-  if (!response.ok) {
-    if (response.status === 401) {
-      clearStoredSession();
-    }
-
-    throw new ApiError(extractErrorMessage(payload, response.status), response.status, payload);
-  }
-
-  return payload as T;
-}
-
 export function mapApiWardrobeItem(item: ApiWardrobeItem): WardrobeItem {
   const category = normalizeCategory(item.category);
   const seasonTags = item.memory_card?.season_tags?.length
@@ -994,6 +937,40 @@ export async function fetchAssistantOverview() {
 export async function searchAssistantLocations(query: string) {
   const encodedQuery = encodeURIComponent(query.trim());
   return apiRequest<GeoLocationOption[]>(`/api/v1/assistant/location-search?q=${encodedQuery}`);
+}
+
+export async function fetchCurrentWeather(payload: {
+  location_query?: string;
+  latitude?: number;
+  longitude?: number;
+  timezone?: string | null;
+  location_name?: string | null;
+}) {
+  const response = await fetch("/api/home/current-weather", {
+    method: "POST",
+    cache: "no-store",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const text = await response.text();
+  const parsedPayload = text
+    ? (() => {
+      try {
+        return JSON.parse(text) as unknown;
+      } catch {
+        return text;
+      }
+    })()
+    : null;
+
+  if (!response.ok) {
+    throw new ApiError(extractErrorMessage(parsedPayload, response.status), response.status, parsedPayload);
+  }
+
+  return parsedPayload as CurrentWeatherResult;
 }
 
 export async function fetchTomorrowAssistant(payload: {

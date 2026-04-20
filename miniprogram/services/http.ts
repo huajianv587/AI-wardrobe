@@ -1,6 +1,6 @@
 import Taro from "@tarojs/taro";
 
-const API_BASE_URL = process.env.TARO_APP_API_BASE_URL ?? "http://localhost:8000";
+import { MINI_PROGRAM_API_BASE_URL } from "./config";
 
 export async function request<T>(options: {
   path: string;
@@ -9,7 +9,7 @@ export async function request<T>(options: {
   accessToken?: string;
 }) {
   const response = await Taro.request<T>({
-    url: `${API_BASE_URL}${options.path}`,
+    url: `${MINI_PROGRAM_API_BASE_URL}${options.path}`,
     method: options.method ?? "GET",
     data: options.data,
     header: {

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import base64
 from collections import Counter
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import json
 import logging
 import mimetypes
@@ -12,6 +12,7 @@ from typing import Callable, TypeVar
 import httpx
 from fastapi import HTTPException, status
 from sqlalchemy import desc, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models.assistant import AssistantTask, ClothingMemoryCard, RecommendationSignal, StyleProfile, WearLog
@@ -21,6 +22,8 @@ from app.models.wardrobe import ClothingItem
 from app.schemas.assistant import (
     AssistantOverviewResponse,
     ClosetGapResponse,
+    CurrentWeatherRequest,
+    CurrentWeatherResponse,
     GapInsight,
     MemoryCardEnvelope,
     PackingRequest,
@@ -42,10 +45,18 @@ from app.schemas.assistant import (
 from app.schemas.recommendation import RecommendationRequest, RecommendationResponse
 from core import local_model
 from core.config import settings
-from services import recommendation_service, storage_service, weather_service, wardrobe_service
+from services import assistant_task_service, recommendation_service, storage_service, weather_service, wardrobe_service
 
 logger = logging.getLogger(__name__)
 T = TypeVar("T")
+
+
+def _as_utc_naive(value: datetime | None) -> datetime | None:
+    if value is None:
+        return None
+    if value.tzinfo is None or value.tzinfo.utcoffset(value) is None:
+        return value
+    return value.astimezone(timezone.utc).replace(tzinfo=None)
 
 LOW_THOUGHT_MODES = {
     "上班": "Office commute tomorrow, polished and easy to repeat",
@@ -405,7 +416,14 @@ def _ensure_style_profile(db: Session, user: User) -> StyleProfile:
     items = wardrobe_service.list_items(db, user.id)
     profile = _build_style_profile_snapshot(user.id, items)
     db.add(profile)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        existing = db.scalar(select(StyleProfile).where(StyleProfile.user_id == user.id))
+        if existing is not None:
+            return existing
+        raise
     db.refresh(profile)
     return profile
 
@@ -419,27 +437,27 @@ def _infer_memory_card(item: ClothingItem) -> ClothingMemoryCard:
     season_tags: list[str] = []
 
     if color in {"ivory", "cream", "white", "pearl"}:
-        highlights.extend(["显气色", "适合拍照"])
-        avoid_contexts.append("下雨别穿")
+        highlights.extend(["brightens the complexion", "photographs well"])
+        avoid_contexts.append("skip on rainy days")
 
     if "knit" in item_text or "sweater" in item_text:
-        highlights.append("冷气房友好")
+        highlights.append("comfortable in cooler air")
         season_tags.extend(["autumn", "winter"])
 
     if "coat" in item_text or "blazer" in item_text or item.slot == "outerwear":
-        highlights.append("通勤气场稳定")
+        highlights.append("steady commuter polish")
         season_tags.extend(["autumn", "winter", "spring"])
 
     if item.slot == "shoes":
-        highlights.append("赶时间也能直接搭")
+        highlights.append("easy to reach for when time is tight")
         if color in {"white", "ivory", "cream"}:
-            avoid_contexts.append("泥地慎穿")
+            avoid_contexts.append("be careful on muddy ground")
 
     if "date" in item_text or "elegant" in item_text:
-        highlights.append("约会很加分")
+        highlights.append("adds a polished date-night note")
 
     if item.slot == "top" and color in {"mint", "pink", "dusty rose"}:
-        highlights.append("靠近脸部会更柔和")
+        highlights.append("softens the tone near the face")
 
     if not season_tags:
         season_tags.extend(["spring", "summer"] if item.slot in {"top", "accessory"} else ["all-season"])
@@ -447,23 +465,35 @@ def _infer_memory_card(item: ClothingItem) -> ClothingMemoryCard:
     return ClothingMemoryCard(
         user_id=item.user_id or 0,
         item_id=item.id,
-        highlights=_unique_preserve(highlights or ["这件单品很会撑起整体气质"]),
+        highlights=_unique_preserve(highlights or ["gives the outfit a reliable center"]),
         avoid_contexts=_unique_preserve(avoid_contexts),
         care_status="fresh",
-        care_note="默认由 AI 记忆卡生成，可随时改成更像你的表达。",
+        care_note="Default AI memory card. Update it any time to match your own wording.",
         season_tags=_unique_preserve(season_tags),
     )
+
+
+def _refresh_memory_card_defaults(card: ClothingMemoryCard, item: ClothingItem, user_id: int) -> ClothingMemoryCard:
+    inferred = _infer_memory_card(item)
+    card.user_id = user_id
+    card.item_id = item.id
+    card.highlights = inferred.highlights
+    card.avoid_contexts = inferred.avoid_contexts
+    card.care_status = inferred.care_status
+    card.care_note = inferred.care_note
+    card.season_tags = inferred.season_tags
+    return card
 
 
 def attach_memory_cards(db: Session, items: list[ClothingItem], user_id: int) -> list[ClothingItem]:
     if not items:
         return items
 
+    item_ids = [item.id for item in items]
     cards = list(
         db.scalars(
             select(ClothingMemoryCard).where(
-                ClothingMemoryCard.user_id == user_id,
-                ClothingMemoryCard.item_id.in_([item.id for item in items]),
+                ClothingMemoryCard.item_id.in_(item_ids),
             )
         ).all()
     )
@@ -471,24 +501,34 @@ def attach_memory_cards(db: Session, items: list[ClothingItem], user_id: int) ->
 
     for item in items:
         card = cards_by_item_id.get(item.id)
-        if card is None:
-            card = _infer_memory_card(item)
-            card.user_id = user_id
-            db.add(card)
-            db.flush()
-            cards_by_item_id[item.id] = card
-        item.memory_card = cards_by_item_id[item.id]
-
-    db.commit()
-    for item in items:
-        db.refresh(item)
-        item.memory_card = cards_by_item_id[item.id]
+        if card is not None and card.user_id != user_id:
+            card = None
+        item.memory_card = card
     return items
 
 
 def attach_memory_card(db: Session, item: ClothingItem, user_id: int) -> ClothingItem:
-    attach_memory_cards(db, [item], user_id)
+    materialize_memory_card(db, item, user_id)
     return item
+
+
+def materialize_memory_card(db: Session, item: ClothingItem, user_id: int) -> ClothingMemoryCard:
+    card = db.scalar(
+        select(ClothingMemoryCard).where(
+            ClothingMemoryCard.item_id == item.id,
+        )
+    )
+    if card is None:
+        card = _infer_memory_card(item)
+        card.user_id = user_id
+        db.add(card)
+    elif card.user_id != user_id:
+        _refresh_memory_card_defaults(card, item, user_id)
+
+    db.commit()
+    db.refresh(card)
+    item.memory_card = card
+    return card
 
 
 def get_memory_card(db: Session, item_id: int, user: User) -> MemoryCardEnvelope:
@@ -578,9 +618,9 @@ def auto_enrich_item(
 
 def _build_profile_summary(profile: StyleProfile) -> str:
     favorite_colors = " / ".join(profile.favorite_colors[:3]) if profile.favorite_colors else "soft versatile tones"
-    silhouettes = "、".join(profile.favorite_silhouettes[:3]) if profile.favorite_silhouettes else "柔和有秩序的轮廓"
-    note = profile.personal_note or "还在慢慢学习你的风格偏好。"
-    return f"偏爱 {favorite_colors}，常用轮廓是 {silhouettes}。{note}"
+    silhouettes = " / ".join(profile.favorite_silhouettes[:3]) if profile.favorite_silhouettes else "soft, balanced silhouettes"
+    note = profile.personal_note or "Still learning your style preferences."
+    return f"Leans toward {favorite_colors}, usually prefers {silhouettes}. {note}"
 
 
 def _preference_scores(
@@ -744,8 +784,9 @@ def _build_reminder_response(db: Session, items: list[ClothingItem], user_id: in
                 )
             )
 
-        last_worn = last_worn_map.get(item.id)
-        if last_worn is None and item.created_at <= datetime.utcnow() - timedelta(days=90):
+        last_worn = _as_utc_naive(last_worn_map.get(item.id))
+        created_at = _as_utc_naive(item.created_at) or datetime.utcnow()
+        if last_worn is None and created_at <= datetime.utcnow() - timedelta(days=90):
             idle_and_seasonal.append(
                 ReminderCard(
                     title=f"{item.name} 已经很久没出现",
@@ -941,7 +982,13 @@ def _enrich_recommendation(
     return response
 
 
-def generate_recommendation(db: Session, user: User, payload: RecommendationRequest) -> RecommendationResponse:
+def generate_recommendation(
+    db: Session,
+    user: User,
+    payload: RecommendationRequest,
+    *,
+    local_only: bool = False,
+) -> RecommendationResponse:
     items = wardrobe_service.list_items(db, user.id)
     _safe_attach_memory_cards(db, items, user.id)
     profile = _safe_style_profile(db, user, items)
@@ -949,7 +996,11 @@ def generate_recommendation(db: Session, user: User, payload: RecommendationRequ
     recent_wear_logs = _safe_recent_wear_logs(db, user.id)
     preference_scores = _preference_scores(items, profile, recent_signals, recent_wear_logs, payload.prompt)
     sorted_items = sorted(items, key=lambda item: preference_scores.get(item.id, 0.0), reverse=True)
-    response = recommendation_service.generate_recommendations(payload, sorted_items)
+    response = (
+        recommendation_service._local_recommendations(payload, sorted_items)
+        if local_only
+        else recommendation_service.generate_recommendations(payload, sorted_items)
+    )
     gap_response = _build_gap_response(items)
     reminder_response = _safe_reminder_response(db, items, user.id)
     return _enrich_recommendation(response, items, profile, gap_response, reminder_response, preference_scores, payload.prompt)
@@ -957,6 +1008,41 @@ def generate_recommendation(db: Session, user: User, payload: RecommendationRequ
 
 def search_locations(query: str):
     return weather_service.search_locations(query)
+
+
+def get_current_weather(payload: CurrentWeatherRequest) -> CurrentWeatherResponse:
+    location = weather_service.resolve_location(
+        location_query=payload.location_query or payload.location_name,
+        latitude=payload.latitude,
+        longitude=payload.longitude,
+        timezone_name=payload.timezone,
+    )
+    resolved_location_name = payload.location_name or ", ".join(
+        part for part in [location.name, location.admin1, location.country] if part
+    )
+    current = weather_service.fetch_current_weather(
+        latitude=location.latitude,
+        longitude=location.longitude,
+        location_name=resolved_location_name or "当前位置",
+        timezone_name=location.timezone or payload.timezone,
+    )
+    return CurrentWeatherResponse(
+        location_name=current.location_name,
+        timezone=current.timezone,
+        current_time=current.current_time,
+        weather_code=current.weather_code,
+        condition_label=current.condition_label,
+        condition_label_zh=current.condition_label_zh,
+        temperature=current.temperature,
+        apparent_temperature=current.apparent_temperature,
+        wind_speed=current.wind_speed,
+        is_day=current.is_day,
+        precipitation=current.precipitation,
+        temperature_max=current.temperature_max,
+        temperature_min=current.temperature_min,
+        precipitation_probability_max=current.precipitation_probability_max,
+        outfit_hint=current.outfit_hint,
+    )
 
 
 def _weather_summary_from_forecast(forecast: weather_service.DailyForecast) -> WeatherSummary:
@@ -1218,30 +1304,70 @@ def generate_packing_plan(db: Session, user: User, payload: PackingRequest) -> P
 def build_overview(db: Session, user: User) -> AssistantOverviewResponse:
     items = wardrobe_service.list_items(db, user.id)
     profile = _safe_style_profile(db, user, items)
+    fallback_weather = WeatherSummary(
+        location_name="Shanghai",
+        timezone="Asia/Shanghai",
+        date=(datetime.utcnow() + timedelta(days=1)).date().isoformat(),
+        weather_code=2,
+        condition_label="Partly cloudy",
+        temperature_max=24,
+        temperature_min=15,
+        precipitation_probability_max=20,
+    )
+
+    weather = fallback_weather
     try:
-        tomorrow = generate_tomorrow_plan(
-            db,
-            user,
-            TomorrowAssistantRequest(location_query="Shanghai", schedule="Tomorrow's regular routine", has_commute=True),
+        location = weather_service.resolve_location(location_query="Shanghai")
+        forecast = weather_service.fetch_daily_forecast(
+            latitude=location.latitude,
+            longitude=location.longitude,
+            location_name=", ".join(part for part in [location.name, location.admin1, location.country] if part),
+            timezone_name=location.timezone,
         )
-    except HTTPException:
-        fallback_weather = WeatherSummary(
-            location_name="Shanghai",
-            timezone="Asia/Shanghai",
-            date=(datetime.utcnow() + timedelta(days=1)).date().isoformat(),
-            weather_code=2,
-            condition_label="Partly cloudy",
-            temperature_max=24,
-            temperature_min=15,
-            precipitation_probability_max=20,
-        )
-        fallback_recommendation = generate_quick_mode(db, user, QuickModeRequest(mode="今天不想费脑"))
-        tomorrow = TomorrowAssistantResponse(
-            weather=fallback_weather,
-            morning=TomorrowPlanBlock(period="morning", summary="默认天气卡片不可用时的温柔 fallback。", recommendation=fallback_recommendation),
-            evening=TomorrowPlanBlock(period="evening", summary="晚间建议沿用同一主角单品，但换一个更松弛的收尾。", recommendation=fallback_recommendation),
-            commute_tip="天气接口暂时不可用，所以这里先给你一套稳妥版建议。",
-        )
+        weather = _weather_summary_from_forecast(forecast)
+    except Exception as exc:
+        logger.warning("assistant.overview.weather_fallback", exc_info=exc)
+
+    weather_text = f"{weather.condition_label}, {weather.temperature_min:.0f}-{weather.temperature_max:.0f}C"
+    morning_request = RecommendationRequest(
+        prompt=f"Tomorrow morning commute. Weather: {weather_text}. Need a stable and polished start.",
+        weather=weather.condition_label,
+        scene="overview-morning",
+        style="gentle-practical",
+    )
+    evening_request = RecommendationRequest(
+        prompt=f"Tomorrow evening. Weather: {weather_text}. Need a softer after-work refresh.",
+        weather=weather.condition_label,
+        scene="overview-evening",
+        style="soft-refresh",
+    )
+
+    try:
+        morning_recommendation = generate_recommendation(db, user, morning_request, local_only=True)
+    except Exception as exc:
+        logger.warning("assistant.overview.morning_fallback", exc_info=exc)
+        morning_recommendation = generate_quick_mode(db, user, QuickModeRequest(mode="low-thought"))
+
+    try:
+        evening_recommendation = generate_recommendation(db, user, evening_request, local_only=True)
+    except Exception as exc:
+        logger.warning("assistant.overview.evening_fallback", exc_info=exc)
+        evening_recommendation = generate_quick_mode(db, user, QuickModeRequest(mode="date"))
+
+    tomorrow = TomorrowAssistantResponse(
+        weather=weather,
+        morning=TomorrowPlanBlock(
+            period="morning",
+            summary="以通勤稳定、好打理为先，先把明天白天穿得轻松又体面。",
+            recommendation=morning_recommendation,
+        ),
+        evening=TomorrowPlanBlock(
+            period="evening",
+            summary="晚间沿用同一套衣橱逻辑，切到更轻盈一点的收尾方式。",
+            recommendation=evening_recommendation,
+        ),
+        commute_tip=_commute_tip(weather, True),
+    )
 
     return AssistantOverviewResponse(
         tomorrow=tomorrow,
@@ -1253,51 +1379,21 @@ def build_overview(db: Session, user: User) -> AssistantOverviewResponse:
 
 
 def create_task(db: Session, user: User, task_type: str, input_payload: dict) -> AssistantTask:
-    task = AssistantTask(user_id=user.id, task_type=task_type, status="queued", input_payload=input_payload)
-    db.add(task)
-    db.commit()
-    db.refresh(task)
+    task, _ = assistant_task_service.create_or_reuse_task(db, user, task_type, input_payload)
     return task
 
 
 def mark_task_running(db: Session, task_id: int) -> AssistantTask:
-    task = db.get(AssistantTask, task_id)
-    if task is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assistant task not found.")
-    task.status = "running"
-    db.commit()
-    db.refresh(task)
-    return task
+    return assistant_task_service.mark_task_running(db, task_id)
 
 
 def complete_task(db: Session, task_id: int, result_payload: dict) -> AssistantTask:
-    task = db.get(AssistantTask, task_id)
-    if task is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assistant task not found.")
-    task.status = "completed"
-    task.result_payload = result_payload
-    task.completed_at = datetime.utcnow()
-    task.updated_at = datetime.utcnow()
-    db.commit()
-    db.refresh(task)
-    return task
+    return assistant_task_service.complete_task(db, task_id, result_payload)
 
 
 def fail_task(db: Session, task_id: int, error_message: str) -> AssistantTask:
-    task = db.get(AssistantTask, task_id)
-    if task is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assistant task not found.")
-    task.status = "failed"
-    task.error_message = error_message
-    task.updated_at = datetime.utcnow()
-    task.completed_at = datetime.utcnow()
-    db.commit()
-    db.refresh(task)
-    return task
+    return assistant_task_service.fail_task(db, task_id, error_message)
 
 
 def get_task(db: Session, task_id: int, user: User) -> AssistantTask:
-    task = db.get(AssistantTask, task_id)
-    if task is None or task.user_id != user.id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assistant task not found.")
-    return task
+    return assistant_task_service.get_task(db, task_id, user)

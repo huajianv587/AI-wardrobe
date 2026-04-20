@@ -10,3 +10,5 @@ httpx
 pytest
 boto3
 pillow
+redis
+rq

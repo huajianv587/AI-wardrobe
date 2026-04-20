@@ -22,8 +22,6 @@ from app.models.user import User
 from app.schemas.auth import AuthSessionResponse, MiniProgramAuthOptionsResponse, OAuthStartResponse, StatusMessageResponse, UserSummary
 from core.config import settings
 from db.session import SessionLocal
-from services import email_service
-
 logger = logging.getLogger(__name__)
 
 LOCAL_PASSWORD_SCHEME = "pbkdf2_sha256"
@@ -42,12 +40,21 @@ def _utcnow() -> datetime:
     return datetime.utcnow()
 
 
+def _as_utc_naive(value: datetime | None) -> datetime | None:
+    if value is None:
+        return None
+    if value.tzinfo is None or value.tzinfo.utcoffset(value) is None:
+        return value
+    return value.astimezone(timezone.utc).replace(tzinfo=None)
+
+
 def _normalize_email(email: str) -> str:
     return email.strip().lower()
 
 
 def _epoch_seconds(value: datetime) -> int:
-    return int(value.replace(tzinfo=timezone.utc).timestamp())
+    normalized = _as_utc_naive(value) or value
+    return int(normalized.replace(tzinfo=timezone.utc).timestamp())
 
 
 def _hash_token(token: str) -> str:
@@ -127,6 +134,18 @@ def _create_local_password_user(db: Session, email: str, password: str, *, displ
     db.commit()
     db.refresh(user)
     return user
+
+
+def _can_use_direct_password_reset(user: User | None) -> bool:
+    if user is None:
+        return False
+    return user.auth_provider != "wechat-mini"
+
+
+def _set_local_password(user: User, new_password: str) -> None:
+    user.password_hash = _hash_local_password(new_password)
+    if user.auth_provider != "wechat-mini":
+        user.auth_provider = "local"
 
 
 def _require_configured() -> None:
@@ -229,22 +248,6 @@ def _mark_password_reset_tokens_used(db: Session, user_id: int, *, skip_token_ha
         token.used_at = now
 
 
-def _create_local_password_reset_token(db: Session, user: User) -> str:
-    token = _new_token("aw_reset")
-    now = _utcnow()
-    _mark_password_reset_tokens_used(db, user.id)
-    db.add(
-        PasswordResetToken(
-            user_id=user.id,
-            token_hash=_hash_token(token),
-            expires_at=now + timedelta(minutes=settings.local_password_reset_ttl_minutes),
-            created_at=now,
-        )
-    )
-    db.commit()
-    return token
-
-
 def _password_reset_base_url(redirect_to: str | None = None) -> str:
     fallback = f"{settings.next_public_app_url.rstrip('/')}/reset-password"
     target = (redirect_to or "").strip() or fallback
@@ -280,21 +283,6 @@ def _signup_email_redirect_url(redirect_to: str | None = None) -> str:
     return urlunsplit((parts.scheme, parts.netloc, path, parts.query, ""))
 
 
-def _local_password_reset_status(reset_url: str) -> StatusMessageResponse:
-    if email_service.is_enabled():
-        return StatusMessageResponse(
-            status="queued",
-            message="密码重置邮件已经发出，请检查你的邮箱和垃圾邮件箱。",
-        )
-
-    return StatusMessageResponse(
-        status="preview",
-        message="当前环境未配置邮件服务，已为你生成可直接打开的重置链接。",
-        action_url=reset_url,
-        action_label="打开重置密码页面",
-    )
-
-
 def _response_to_dict(response: object) -> dict:
     if hasattr(response, "model_dump"):
         dumped = response.model_dump()
@@ -309,74 +297,6 @@ def _response_to_dict(response: object) -> dict:
             if not key.startswith("_")
         }
     return {}
-
-
-def _supabase_generate_recovery_link(email: str, redirect_to: str) -> str | None:
-    admin_client = _service_client()
-    if admin_client is None:
-        return None
-
-    admin = admin_client.auth.admin
-    if not hasattr(admin, "generate_link"):
-        return None
-
-    try:
-        response = admin.generate_link(
-            {
-                "type": "recovery",
-                "email": email,
-                "options": {"redirect_to": redirect_to},
-            }
-        )
-    except Exception as exc:
-        logger.warning("Supabase admin recovery link generation failed for %s: %s", email, exc)
-        return None
-
-    payload = _response_to_dict(response)
-    properties = payload.get("properties") or {}
-    if isinstance(properties, dict):
-        action_link = properties.get("action_link")
-        if action_link:
-            return str(action_link)
-
-    action_link = payload.get("action_link")
-    if action_link:
-        return str(action_link)
-    return None
-
-
-def _send_supabase_recovery_link_email(email: str, reset_url: str) -> StatusMessageResponse:
-    if email_service.is_enabled():
-        subject = "AI Wardrobe 密码重置"
-        text_body = (
-            "我们收到了你的密码重置请求。\n\n"
-            "请打开下面的链接设置新密码：\n"
-            f"{reset_url}\n\n"
-            "如果这不是你本人操作，可以直接忽略这封邮件。"
-        )
-        html_body = (
-            "<p>我们收到了你的密码重置请求。</p>"
-            "<p>请打开下面的链接设置新密码：</p>"
-            f"<p><a href=\"{reset_url}\">{reset_url}</a></p>"
-            "<p>如果这不是你本人操作，可以直接忽略这封邮件。</p>"
-        )
-        email_service.send_email(
-            to_email=email,
-            subject=subject,
-            text_body=text_body,
-            html_body=html_body,
-        )
-        return StatusMessageResponse(
-            status="queued",
-            message="密码重置邮件已经发出，请检查你的邮箱和垃圾邮件箱。",
-        )
-
-    return StatusMessageResponse(
-        status="preview",
-        message="Supabase 邮件发送暂时不可用，已为你生成可直接打开的恢复链接。",
-        action_url=reset_url,
-        action_label="打开恢复链接",
-    )
 
 
 def _local_user_from_supabase(db: Session, supabase_user: SupabaseUser) -> User:
@@ -543,34 +463,6 @@ def sign_up_with_password(
     if _find_local_user_by_email(db, normalized_email) is not None:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="这个邮箱已经注册过了，请直接登录。")
 
-    if is_enabled():
-        try:
-            sign_up_payload = {
-                "email": normalized_email,
-                "password": password,
-                "options": {
-                    "email_redirect_to": _signup_email_redirect_url(redirect_to),
-                },
-            }
-            if display_name:
-                sign_up_payload["options"]["data"] = {"full_name": display_name.strip()}
-            auth_response = _auth_client().auth.sign_up(sign_up_payload)
-        except Exception as exc:
-            logger.warning("Supabase sign-up failed for %s: %s", normalized_email, exc)
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-
-        response = _build_session_response(
-            db,
-            auth_response,
-            fallback_message="Account created. If email confirmation is enabled in Supabase, confirm your inbox before signing in.",
-        )
-        if display_name:
-            local_user = _find_local_user_by_email(db, normalized_email)
-            if local_user is not None:
-                local_user = _upsert_local_display_name(db, local_user, display_name)
-                return response.model_copy(update={"user": build_user_summary(local_user)})
-        return response
-
     user = _create_local_password_user(db, normalized_email, password, display_name=display_name)
     return _build_local_session_response(
         db,
@@ -616,121 +508,74 @@ def sign_in_with_password(db: Session, email: str, password: str) -> AuthSession
     return _build_session_response(db, auth_response)
 
 
-def _legacy_send_password_reset_email(email: str, redirect_to: str | None = None) -> StatusMessageResponse:
-    if not is_enabled():
-        return StatusMessageResponse(
-            status="unavailable",
-            message="当前为本地邮箱登录模式，暂未配置自动密码重置邮件。",
-        )
-
-    try:
-        options = {"redirect_to": redirect_to} if redirect_to else {}
-        _auth_client().auth.reset_password_email(email, options)
-    except Exception as exc:
-        logger.warning("Supabase password reset failed for %s: %s", email, exc)
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Could not start password reset email delivery.") from exc
-
-    return StatusMessageResponse(
-        status="queued",
-        message="密码重置邮件已经发出，请检查你的邮箱和垃圾邮件箱。",
-    )
-
-
 def send_password_reset_email(db: Session, email: str, redirect_to: str | None = None) -> StatusMessageResponse:
     normalized_email = _normalize_email(email)
     reset_base_url = _password_reset_base_url(redirect_to)
+    user = _find_local_user_by_email(db, normalized_email)
 
-    if not is_enabled():
-        user = _find_local_user_by_email(db, normalized_email)
-        if user is None or not _is_local_password_hash(user.password_hash):
-            return StatusMessageResponse(
-                status="queued",
-                message="如果这个邮箱已经注册，我们已经准备好了密码重置方式，请继续检查邮箱或重试。",
-            )
+    if not _can_use_direct_password_reset(user):
+        return StatusMessageResponse(
+            status="unavailable",
+            message="This email account does not support direct password reset.",
+        )
 
-        reset_token = _create_local_password_reset_token(db, user)
-        reset_url = _append_query_params(reset_base_url, token=reset_token)
-
-        if email_service.is_enabled():
-            subject = "AI Wardrobe 密码重置"
-            text_body = (
-                f"你好，{user.display_name or user.email}。\n\n"
-                "我们收到了你的密码重置请求。请在 30 分钟内打开下面的链接设置新密码：\n"
-                f"{reset_url}\n\n"
-                "如果这不是你本人操作，可以直接忽略这封邮件。"
-            )
-            html_body = (
-                f"<p>你好，{user.display_name or user.email}。</p>"
-                "<p>我们收到了你的密码重置请求。请在 30 分钟内打开下面的链接设置新密码：</p>"
-                f"<p><a href=\"{reset_url}\">{reset_url}</a></p>"
-                "<p>如果这不是你本人操作，可以直接忽略这封邮件。</p>"
-            )
-            try:
-                email_service.send_email(
-                    to_email=normalized_email,
-                    subject=subject,
-                    text_body=text_body,
-                    html_body=html_body,
-                )
-            except Exception as exc:
-                logger.warning("Local password reset email delivery failed for %s: %s", normalized_email, exc)
-                if settings.app_env == "production":
-                    raise HTTPException(
-                        status_code=status.HTTP_502_BAD_GATEWAY,
-                        detail="密码重置邮件暂时发送失败，请稍后重试。",
-                    ) from exc
-
-        return _local_password_reset_status(reset_url)
-
-    try:
-        _auth_client().auth.reset_password_email(normalized_email, {"redirect_to": reset_base_url})
-    except Exception as exc:
-        logger.warning("Supabase password reset failed for %s: %s", normalized_email, exc)
-        recovery_link = _supabase_generate_recovery_link(normalized_email, reset_base_url)
-        if recovery_link:
-            try:
-                return _send_supabase_recovery_link_email(normalized_email, recovery_link)
-            except Exception as mail_exc:
-                logger.warning("Fallback SMTP recovery email delivery failed for %s: %s", normalized_email, mail_exc)
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Could not start password reset email delivery.") from exc
-
+    reset_url = _append_query_params(reset_base_url, email=normalized_email)
     return StatusMessageResponse(
-        status="queued",
-        message="密码重置邮件已经发出，请检查你的邮箱和垃圾邮件箱。",
+        status="ready",
+        message="Password reset is ready. Open the reset page and set a new password directly.",
+        action_url=reset_url,
+        action_label="Open reset password page",
     )
 
 
 def reset_password_with_token(
     db: Session,
     *,
+    email: str | None = None,
     token: str | None = None,
     access_token: str | None = None,
     new_password: str,
 ) -> StatusMessageResponse:
+    normalized_email = _normalize_email(email) if email else ""
+    if normalized_email:
+        user = _find_local_user_by_email(db, normalized_email)
+        if not _can_use_direct_password_reset(user):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No resettable account was found for this email.")
+
+        _set_local_password(user, new_password)
+        _mark_password_reset_tokens_used(db, user.id)
+        _mark_user_sessions_revoked(db, user.id)
+        db.commit()
+        return StatusMessageResponse(
+            status="updated",
+            message="Password updated successfully. Please sign in again with the new password.",
+        )
+
     normalized_token = (token or "").strip()
     if normalized_token:
         reset_token = _find_local_password_reset_token(db, normalized_token)
-        if reset_token is None or reset_token.used_at is not None or reset_token.expires_at <= _utcnow():
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="重置链接无效或已过期，请重新申请。")
+        expires_at = _as_utc_naive(reset_token.expires_at) if reset_token is not None else None
+        if reset_token is None or reset_token.used_at is not None or expires_at is None or expires_at <= _utcnow():
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The password reset token is invalid or expired.")
 
         user = db.get(User, reset_token.user_id)
-        if user is None or not _is_local_password_hash(user.password_hash):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="当前账号暂不支持这种密码重置方式。")
+        if not _can_use_direct_password_reset(user):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This account does not support token-based password reset.")
 
-        user.password_hash = _hash_local_password(new_password)
+        _set_local_password(user, new_password)
         reset_token.used_at = _utcnow()
         _mark_password_reset_tokens_used(db, user.id, skip_token_hash=reset_token.token_hash)
         _mark_user_sessions_revoked(db, user.id)
         db.commit()
         return StatusMessageResponse(
             status="updated",
-            message="密码已经重置完成，请使用新密码重新登录。",
+            message="Password updated successfully. Please sign in again with the new password.",
         )
 
     normalized_access_token = (access_token or "").strip()
     if normalized_access_token:
         if not is_enabled():
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="当前环境没有启用云端密码重置。")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cloud password recovery is not enabled in this environment.")
 
         admin_client = _service_client()
         if admin_client is None:
@@ -747,12 +592,19 @@ def reset_password_with_token(
             logger.warning("Supabase password recovery update failed: %s", exc)
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Could not update the password from the recovery link.") from exc
 
+        local_user = _find_local_user_by_email(db, _extract_email(response.user))
+        if local_user is not None and _can_use_direct_password_reset(local_user):
+            _set_local_password(local_user, new_password)
+            _mark_password_reset_tokens_used(db, local_user.id)
+            _mark_user_sessions_revoked(db, local_user.id)
+            db.commit()
+
         return StatusMessageResponse(
             status="updated",
-            message="密码已经更新完成，请返回登录页继续登录。",
+            message="Password updated successfully. Please sign in again with the new password.",
         )
 
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="缺少有效的密码重置凭证。")
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing a valid password reset credential.")
 
 
 def build_oauth_start_url(provider: str, redirect_to: str | None = None) -> OAuthStartResponse:
@@ -781,7 +633,8 @@ def _refresh_local_session(
         return None
 
     now = _utcnow()
-    if session.refresh_expires_at <= now or session.revoked_at is not None:
+    refresh_expires_at = _as_utc_naive(session.refresh_expires_at)
+    if refresh_expires_at is None or refresh_expires_at <= now or session.revoked_at is not None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token is invalid or expired.")
 
     if access_token:
@@ -869,7 +722,8 @@ def _get_user_from_local_access_token(db: Session, access_token: str) -> User | 
     if session is None:
         return None
 
-    if session.expires_at <= _utcnow():
+    expires_at = _as_utc_naive(session.expires_at)
+    if expires_at is None or expires_at <= _utcnow():
         _revoke_local_session(db, session)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Local access token has expired. Refresh the session and try again.")
 

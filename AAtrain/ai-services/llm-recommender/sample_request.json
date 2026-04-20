@@ -1,0 +1,45 @@
+{
+  "prompt": "明天去办公室开会，想看起来温柔但专业一点。",
+  "weather": "26C cloudy",
+  "scene": "office",
+  "style": "soft formal",
+  "wardrobe_items": [
+    {
+      "id": 101,
+      "name": "奶油白针织上衣",
+      "slot": "top",
+      "category": "knit top",
+      "color": "cream",
+      "tags": ["office", "soft", "layering"],
+      "occasions": ["office", "meeting"],
+      "style_notes": "soft-formal"
+    },
+    {
+      "id": 203,
+      "name": "深灰直筒西裤",
+      "slot": "bottom",
+      "category": "trousers",
+      "color": "charcoal",
+      "tags": ["office", "formal", "repeat-friendly"],
+      "occasions": ["office"]
+    },
+    {
+      "id": 305,
+      "name": "米色短款西装外套",
+      "slot": "outerwear",
+      "category": "blazer",
+      "color": "beige",
+      "tags": ["meeting", "smart", "soft-formal"],
+      "occasions": ["office", "meeting"]
+    },
+    {
+      "id": 407,
+      "name": "黑色乐福鞋",
+      "slot": "shoes",
+      "category": "loafers",
+      "color": "black",
+      "tags": ["office", "commute"],
+      "occasions": ["office", "commute"]
+    }
+  ]
+}

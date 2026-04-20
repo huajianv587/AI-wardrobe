@@ -1,0 +1,3 @@
+split,source_id,image_path,garment_name,category,dominant_color,color_family,fabric_guess,silhouette,season,mood,tags,occasions,style_notes
+train,sku-cream-cardigan-001,/absolute/or/relative/path/to/cream-cardigan.jpg,奶油色针织开衫,cardigan,cream,light-neutral,knit,soft drape,autumn-winter,calm refined,outerwear|cardigan|cream|light-neutral|knit|minimal,office|weekend,这件奶油色针织开衫轮廓柔和，叠穿稳定，适合通勤与周末的轻松层次搭配。
+eval,sku-black-loafer-001,/absolute/or/relative/path/to/black-loafer.jpg,黑色乐福鞋,loafers,black,dark-neutral,leather,refined shape,all-season,sharp polished,shoes|loafers|black|dark-neutral|leather|tailored,office|meeting,这双黑色乐福鞋线条利落、皮面干净，适合通勤和见人时压住整体造型。

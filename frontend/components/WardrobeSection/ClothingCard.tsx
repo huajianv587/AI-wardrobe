@@ -1,15 +1,17 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
-import type { ClothingItem } from "@/lib/mockData";
+
+import type { HomeWardrobeItem } from "@/lib/home-wardrobe";
 
 interface ClothingCardProps {
   index: number;
   isSelected: boolean;
-  item: ClothingItem;
-  onSelect: (item: ClothingItem) => void;
+  item: HomeWardrobeItem;
+  onSelect: (item: HomeWardrobeItem) => void;
 }
 
 const sparkleOffsets = [
@@ -93,12 +95,22 @@ export function ClothingCard({ index, isSelected, item, onSelect }: ClothingCard
       <div
         className="relative flex h-[62%] items-center justify-center overflow-hidden md:h-[65%]"
         style={{
-          background: `linear-gradient(160deg, ${hexToRgba(item.color, 0.96)} 0%, ${item.secondaryColor ?? hexToRgba(item.color, 0.24)} 58%, rgba(255,255,255,0.92) 100%)`
+          background: `linear-gradient(160deg, ${hexToRgba(item.primaryColor, 0.96)} 0%, ${item.secondaryColor ?? hexToRgba(item.primaryColor, 0.24)} 58%, rgba(255,255,255,0.92) 100%)`
         }}
       >
+        {item.imageUrl ? (
+          <Image
+            src={item.imageUrl}
+            alt={item.name}
+            fill
+            unoptimized
+            sizes="(max-width: 768px) 50vw, 20vw"
+            className="object-cover"
+          />
+        ) : null}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.72),transparent_42%)]" />
         <div className="relative flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-full border border-white/65 bg-white/42 text-[2.25rem] shadow-[0_18px_32px_rgba(255,255,255,0.18)] backdrop-blur-md md:h-20 md:w-20 md:text-[2.5rem]">
-          {item.emoji}
+          {item.imageUrl ? "✨" : item.emoji}
         </div>
       </div>
 
@@ -123,9 +135,9 @@ export function ClothingCard({ index, isSelected, item, onSelect }: ClothingCard
 
       {showBurst ? (
         <div key={burstKey} className="card-burst">
-          {sparkleOffsets.map((offset, index) => (
+          {sparkleOffsets.map((offset, sparkleIndex) => (
             <span
-              key={`${item.id}-${burstKey}-${index}`}
+              key={`${item.id}-${burstKey}-${sparkleIndex}`}
               className="sparkle-dot"
               style={
                 {

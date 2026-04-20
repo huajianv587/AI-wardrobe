@@ -3,6 +3,9 @@ node_modules/
 .next/
 out/
 *.tsbuildinfo
+artifacts/
+frontend/test-results/
+playwright-report/
 
 # Python
 __pycache__/
@@ -15,6 +18,14 @@ backend/scripts/__pycache__/
 # Environment
 .env
 .env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.staging
+.env.staging.local
+.env.production
+.env.production.local
 env_mini
 env_mini.*
 .env.mini
@@ -22,7 +33,11 @@ env_mini.*
 
 # Data / models
 backend/data/
+data/*.db
+data/assets/
 data/models/
+infra/runtime/*
+!infra/runtime/.gitkeep
 yolo26n.pt
 model_training/datasets/**
 !model_training/datasets/
@@ -31,6 +46,8 @@ model_training/datasets/**
 !model_training/datasets/**/.gitkeep
 model_training/checkpoints/
 model_training/outputs/
+model_training/raw-sources/
+model_training/cache/
 
 # Editors / OS
 .DS_Store

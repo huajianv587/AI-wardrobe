@@ -43,5 +43,6 @@
   "explorer.autoReveal": true,
   "git.autorefresh": true,
   "files.autoSave": "afterDelay",
-  "files.autoSaveDelay": 1200
+  "files.autoSaveDelay": 1200,
+  "git.ignoreLimitWarning": true
 }

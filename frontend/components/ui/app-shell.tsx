@@ -12,18 +12,18 @@ import { useMobile } from "@/hooks/use-mobile";
 const navItems = [
   { href: "/", label: "首页", shortLabel: "首页", icon: Home },
   { href: "/wardrobe", label: "衣橱管理", shortLabel: "衣橱", icon: Shirt },
-  { href: "/smart-wardrobe", label: "智能衣物", shortLabel: "智能", icon: Sparkles },
-  { href: "/outfit-diary", label: "穿搭日志", shortLabel: "日志", icon: BookHeart },
+  { href: "/smart-wardrobe", label: "智能衣橱", shortLabel: "智能", icon: Sparkles },
+  { href: "/outfit-diary", label: "穿搭日记", shortLabel: "日记", icon: BookHeart },
   { href: "/closet-analysis", label: "衣橱分析", shortLabel: "分析", icon: BarChart3 },
-  { href: "/style-profile", label: "风格雷达", shortLabel: "雷达", icon: ScanFace }
+  { href: "/style-profile", label: "风格画像", shortLabel: "画像", icon: ScanFace }
 ];
 
 const mobileDockItems = [
   { href: "/", label: "首页", icon: Home },
   { href: "/wardrobe", label: "衣橱", icon: Shirt },
   { href: "/smart-wardrobe", label: "智能", icon: Sparkles },
-  { href: "/outfit-diary", label: "日志", icon: BookHeart },
-  { href: "/style-profile", label: "雷达", icon: ScanFace }
+  { href: "/outfit-diary", label: "日记", icon: BookHeart },
+  { href: "/style-profile", label: "画像", icon: ScanFace }
 ];
 
 interface AppShellProps {
@@ -74,7 +74,7 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <div className="pill mb-3">文文的衣橱 · 分页面工作台</div>
+              <div className="pill mb-3">Wenwen Wardrobe | 分页工作台</div>
               <h1 className="app-shell-title display-title text-[2.2rem] font-semibold leading-[0.96] tracking-[-0.04em] text-[var(--ink-strong)] md:text-[3.45rem]">
                 {title}
               </h1>

@@ -1,5 +1,6 @@
 .shell {
   position: relative;
+  --experience-top-offset: 84px;
   height: 100vh;
   min-height: 100vh;
   height: 100dvh;
@@ -13,24 +14,36 @@
 
 .pageWrap {
   height: 100%;
-  padding-top: 92px;
+  padding-top: var(--experience-top-offset);
 }
 
 .pageViewport {
-  height: calc(100dvh - 92px);
+  height: calc(100dvh - var(--experience-top-offset));
   overflow-y: auto;
   overscroll-behavior-y: contain;
   scrollbar-gutter: stable both-edges;
   -webkit-overflow-scrolling: touch;
 }
 
+@media (max-height: 940px) and (min-width: 1181px) {
+  .shell {
+    --experience-top-offset: 78px;
+  }
+}
+
+@media (max-height: 860px) and (min-width: 1181px) {
+  .shell {
+    --experience-top-offset: 72px;
+  }
+}
+
 @media (max-width: 1180px) {
-  .pageWrap {
-    padding-top: 130px;
+  .shell {
+    --experience-top-offset: 130px;
   }
 
   .pageViewport {
-    height: calc(100dvh - 130px);
+    height: calc(100dvh - var(--experience-top-offset));
   }
 }
 

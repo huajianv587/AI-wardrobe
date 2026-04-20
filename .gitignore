@@ -48,6 +48,13 @@ model_training/checkpoints/
 model_training/outputs/
 model_training/raw-sources/
 model_training/cache/
+AAtrain/staged-tars/*.tar
+AAtrain/model_training/raw-sources/**/archives/
+AAtrain/model_training/raw-sources/**/*.zip
+logs/**
+!logs/
+!logs/5090-serial/
+!logs/5090-serial/.gitkeep
 
 # Editors / OS
 .DS_Store

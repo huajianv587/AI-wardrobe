@@ -5,13 +5,16 @@ import logging
 
 from fastapi import HTTPException, UploadFile, status
 from sqlalchemy import create_engine
-from sqlalchemy import or_, select
+from sqlalchemy import delete, or_, select
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import sessionmaker
 
+from app.models.assistant import ClothingMemoryCard
 from app.models.user import User
 from app.models.wardrobe import ClothingItem
 from app.schemas.wardrobe import ClothingItemCreate, ClothingItemUpdate
+from core.config import settings
+from services import assistant_task_service, task_queue_service
 from services import image_pipeline_service, storage_service, supabase_service
 
 CLEANUP_TAGS = {"processed", "white-background", "cleanup-placeholder", "cleanup-fallback", "cleanup-remote", "cleanup-local"}
@@ -300,14 +303,25 @@ def process_item_image(db: Session, item_id: int, user: User, *, prefer_local: b
 
 def queue_image_processing_task(db: Session, item_id: int, user: User):
     item = get_item(db, item_id, user.id)
-    from services import assistant_service
-
-    return assistant_service.create_task(
+    task, created = assistant_task_service.create_or_reuse_task(
         db,
         user,
         "image-cleanup",
         {"item_id": item.id, "item_name": item.name},
+        dedupe_fields={"item_id": item.id},
     )
+    enqueue_result = task_queue_service.enqueue_call(
+        "services.wardrobe_service.run_image_processing_task",
+        task.id,
+        item.id,
+        user.id,
+        str(db.get_bind().url),
+        queue_name=settings.task_queue_image_cleanup_name,
+        job_id=f"assistant-task-{task.id}",
+        timeout=settings.task_queue_image_cleanup_timeout_seconds,
+        reused_existing=not created,
+    )
+    return task, enqueue_result
 
 
 def run_image_processing_task(task_id: int, item_id: int, user_id: int, database_url: str) -> None:
@@ -346,6 +360,7 @@ def delete_item(db: Session, item_id: int, user: User) -> int:
     image_url = item.image_url
     processed_image_url = item.processed_image_url
 
+    db.execute(delete(ClothingMemoryCard).where(ClothingMemoryCard.item_id == item.id))
     db.delete(item)
     db.commit()
 

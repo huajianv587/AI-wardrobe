@@ -1,10 +1,14 @@
 from pathlib import Path
 
+from app.api.deps import get_optional_user
+from app.main import app
 from app.models.user import User
 from services import auth_service, experience_service, r2_storage_service, storage_service
 
 
 def test_assets_resolve_requires_owner_for_private_user_assets(client, monkeypatch):
+    optional_override = app.dependency_overrides.pop(get_optional_user, None)
+
     with client.testing_session_local() as db:
         owner = User(email="asset-owner@ai-wardrobe.dev", password_hash="local-managed")
         stranger = User(email="asset-stranger@ai-wardrobe.dev", password_hash="local-managed")
@@ -34,18 +38,22 @@ def test_assets_resolve_requires_owner_for_private_user_assets(client, monkeypat
 
     monkeypatch.setattr(auth_service, "get_current_user_from_token", fake_get_current_user_from_token)
 
-    owner_response = client.get(
-        "/api/v1/assets/resolve",
-        params={"asset_url": f"/api/v1/assets/{asset_relative_path}", "access_token": owner_token},
-    )
-    assert owner_response.status_code == 200
-    assert owner_response.content == b"private-image"
+    try:
+        owner_response = client.get(
+            "/api/v1/assets/resolve",
+            params={"asset_url": f"/api/v1/assets/{asset_relative_path}", "access_token": owner_token},
+        )
+        assert owner_response.status_code == 200
+        assert owner_response.content == b"private-image"
 
-    stranger_response = client.get(
-        "/api/v1/assets/resolve",
-        params={"asset_url": f"/api/v1/assets/{asset_relative_path}", "access_token": stranger_token},
-    )
-    assert stranger_response.status_code == 403
+        stranger_response = client.get(
+            "/api/v1/assets/resolve",
+            params={"asset_url": f"/api/v1/assets/{asset_relative_path}", "access_token": stranger_token},
+        )
+        assert stranger_response.status_code == 403
+    finally:
+        if optional_override is not None:
+            app.dependency_overrides[get_optional_user] = optional_override
 
 
 def test_assets_resolve_allows_public_demo_assets_without_auth(client):

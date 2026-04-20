@@ -1,0 +1,196 @@
+{
+  "updated_at": "2026-04-12T15:07:08+0800",
+  "jobs": [
+    {
+      "dataset": "deepfashion-multimodal",
+      "pid": 48728,
+      "alive": false
+    },
+    {
+      "dataset": "deepfashion2",
+      "pid": 10152,
+      "alive": false
+    },
+    {
+      "dataset": "shift15m",
+      "pid": 57312,
+      "alive": false
+    }
+  ],
+  "datasets": {
+    "deepfashion-multimodal": {
+      "files": [
+        {
+          "expected_path": "model_training/raw-sources/deepfashion-multimodal/archives/image.zip",
+          "state": "complete",
+          "path": "model_training/raw-sources/deepfashion-multimodal/archives/image.zip",
+          "bytes": 6822188210
+        },
+        {
+          "expected_path": "model_training/raw-sources/deepfashion-multimodal/archives/parsing.zip",
+          "state": "complete",
+          "path": "model_training/raw-sources/deepfashion-multimodal/archives/parsing.zip",
+          "bytes": 94904514
+        },
+        {
+          "expected_path": "model_training/raw-sources/deepfashion-multimodal/archives/keypoints.zip",
+          "state": "complete",
+          "path": "model_training/raw-sources/deepfashion-multimodal/archives/keypoints.zip",
+          "bytes": 978992
+        },
+        {
+          "expected_path": "model_training/raw-sources/deepfashion-multimodal/archives/densepose.zip",
+          "state": "complete",
+          "path": "model_training/raw-sources/deepfashion-multimodal/archives/densepose.zip",
+          "bytes": 5996952087
+        },
+        {
+          "expected_path": "model_training/raw-sources/deepfashion-multimodal/archives/labels.zip",
+          "state": "complete",
+          "path": "model_training/raw-sources/deepfashion-multimodal/archives/labels.zip",
+          "bytes": 588902
+        },
+        {
+          "expected_path": "model_training/raw-sources/deepfashion-multimodal/archives/textual_descriptions.json",
+          "state": "complete",
+          "path": "model_training/raw-sources/deepfashion-multimodal/archives/textual_descriptions.json",
+          "bytes": 11968792
+        }
+      ],
+      "feature_progress": null,
+      "complete": true
+    },
+    "deepfashion2": {
+      "files": [
+        {
+          "expected_path": "model_training/raw-sources/deepfashion2/archives/json_for_validation.zip",
+          "state": "complete",
+          "path": "model_training/raw-sources/deepfashion2/archives/json_for_validation.zip",
+          "bytes": 14895000
+        },
+        {
+          "expected_path": "model_training/raw-sources/deepfashion2/archives/test.zip",
+          "state": "complete",
+          "path": "model_training/raw-sources/deepfashion2/archives/test.zip",
+          "bytes": 3341995077
+        },
+        {
+          "expected_path": "model_training/raw-sources/deepfashion2/archives/train.zip",
+          "state": "complete",
+          "path": "model_training/raw-sources/deepfashion2/archives/train.zip",
+          "bytes": 10633411064
+        },
+        {
+          "expected_path": "model_training/raw-sources/deepfashion2/archives/validation.zip",
+          "state": "complete",
+          "path": "model_training/raw-sources/deepfashion2/archives/validation.zip",
+          "bytes": 1816223824
+        }
+      ],
+      "feature_progress": null,
+      "complete": true
+    },
+    "shift15m": {
+      "files": [
+        {
+          "expected_path": "model_training/raw-sources/shift15m/label/iqon_outfits.json",
+          "state": "complete",
+          "path": "model_training/raw-sources/shift15m/label/iqon_outfits.json",
+          "bytes": 2676568181
+        },
+        {
+          "expected_path": "model_training/raw-sources/shift15m/label/iqon_outfits_with_tags.json",
+          "state": "complete",
+          "path": "model_training/raw-sources/shift15m/label/iqon_outfits_with_tags.json",
+          "bytes": 2783503523
+        },
+        {
+          "expected_path": "model_training/raw-sources/shift15m/num_likes_regression/xy_00.pickle",
+          "state": "complete",
+          "path": "model_training/raw-sources/shift15m/num_likes_regression/xy_00.pickle",
+          "bytes": 53118455
+        },
+        {
+          "expected_path": "model_training/raw-sources/shift15m/num_likes_regression/xy_01.pickle",
+          "state": "complete",
+          "path": "model_training/raw-sources/shift15m/num_likes_regression/xy_01.pickle",
+          "bytes": 53139671
+        },
+        {
+          "expected_path": "model_training/raw-sources/shift15m/num_likes_regression/xy_02.pickle",
+          "state": "complete",
+          "path": "model_training/raw-sources/shift15m/num_likes_regression/xy_02.pickle",
+          "bytes": 53333319
+        },
+        {
+          "expected_path": "model_training/raw-sources/shift15m/num_likes_regression/xy_03.pickle",
+          "state": "complete",
+          "path": "model_training/raw-sources/shift15m/num_likes_regression/xy_03.pickle",
+          "bytes": 53246999
+        },
+        {
+          "expected_path": "model_training/raw-sources/shift15m/num_likes_regression/xy_04.pickle",
+          "state": "complete",
+          "path": "model_training/raw-sources/shift15m/num_likes_regression/xy_04.pickle",
+          "bytes": 53406535
+        },
+        {
+          "expected_path": "model_training/raw-sources/shift15m/num_likes_regression/xy_05.pickle",
+          "state": "complete",
+          "path": "model_training/raw-sources/shift15m/num_likes_regression/xy_05.pickle",
+          "bytes": 53019239
+        },
+        {
+          "expected_path": "model_training/raw-sources/shift15m/num_likes_regression/xy_06.pickle",
+          "state": "complete",
+          "path": "model_training/raw-sources/shift15m/num_likes_regression/xy_06.pickle",
+          "bytes": 53062919
+        },
+        {
+          "expected_path": "model_training/raw-sources/shift15m/num_likes_regression/xy_07.pickle",
+          "state": "complete",
+          "path": "model_training/raw-sources/shift15m/num_likes_regression/xy_07.pickle",
+          "bytes": 53160471
+        },
+        {
+          "expected_path": "model_training/raw-sources/shift15m/num_likes_regression/xy_08.pickle",
+          "state": "complete",
+          "path": "model_training/raw-sources/shift15m/num_likes_regression/xy_08.pickle",
+          "bytes": 53123655
+        },
+        {
+          "expected_path": "model_training/raw-sources/shift15m/num_likes_regression/xy_09.pickle",
+          "state": "complete",
+          "path": "model_training/raw-sources/shift15m/num_likes_regression/xy_09.pickle",
+          "bytes": 52896519
+        },
+        {
+          "expected_path": "model_training/raw-sources/shift15m/sum_prices_regression/sumprices.pickle",
+          "state": "complete",
+          "path": "model_training/raw-sources/shift15m/sum_prices_regression/sumprices.pickle",
+          "bytes": 40885269
+        },
+        {
+          "expected_path": "model_training/raw-sources/shift15m/year_classification/year_classification_labels.tar.gz",
+          "state": "complete",
+          "path": "model_training/raw-sources/shift15m/year_classification/year_classification_labels.tar.gz",
+          "bytes": 1034259
+        },
+        {
+          "expected_path": "model_training/raw-sources/shift15m/item_category_prediction/item_catalog.txt",
+          "state": "complete",
+          "path": "model_training/raw-sources/shift15m/item_category_prediction/item_catalog.txt",
+          "bytes": 52060493
+        }
+      ],
+      "feature_progress": {
+        "tar_count": 0,
+        "partial_tar_count": 0,
+        "extracted_ok_count": 200,
+        "feature_file_count": 2335598,
+        "expected_feature_tar_count": 200
+      },
+      "complete": true
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "started_at": "2026-04-12T11:27:08+0800",
+  "jobs": [
+    {
+      "dataset": "deepfashion-multimodal",
+      "pid": 48728,
+      "monitor_path": "model_training/raw-sources/deepfashion-multimodal/archives/image.ziptc5ekr_x.part"
+    },
+    {
+      "dataset": "deepfashion2",
+      "pid": 10152,
+      "monitor_path": "model_training/raw-sources/deepfashion2/archives/test.zipp62yo0hp.part"
+    },
+    {
+      "dataset": "shift15m",
+      "pid": 57312,
+      "monitor_path": "model_training/raw-sources/shift15m/label/iqon_outfits.json.part"
+    }
+  ],
+  "watcher": {
+    "pid": 11920,
+    "started_at": "2026-04-12T11:45:02+0800",
+    "script": "training/data-prep/watch_internal_research_downloads.py"
+  }
+}

@@ -1,0 +1,2324 @@
+{
+  "started_at": "2026-04-12T11:27:08+0800",
+  "project_root": "E:\\项目夹\\AI-wardrobe-clean-0418",
+  "datasets": {
+    "shift15m": {
+      "root": "model_training\\raw-sources\\shift15m",
+      "official_url": "https://github.com/st-tech/zozo-shift15m",
+      "downloads": [
+        {
+          "path": "model_training\\raw-sources\\shift15m\\label\\iqon_outfits.json",
+          "bytes": 2676568181,
+          "skipped": false,
+          "label": "SHIFT15M outfits"
+        },
+        {
+          "path": "model_training\\raw-sources\\shift15m\\label\\iqon_outfits_with_tags.json",
+          "bytes": 2783503523,
+          "skipped": false,
+          "label": "SHIFT15M outfits with tags"
+        },
+        {
+          "path": "model_training\\raw-sources\\shift15m\\num_likes_regression\\xy_00.pickle",
+          "bytes": 53118455,
+          "skipped": false,
+          "label": "shift15m:num_likes_regression/xy_00.pickle"
+        },
+        {
+          "path": "model_training\\raw-sources\\shift15m\\num_likes_regression\\xy_01.pickle",
+          "bytes": 53139671,
+          "skipped": false,
+          "label": "shift15m:num_likes_regression/xy_01.pickle"
+        },
+        {
+          "path": "model_training\\raw-sources\\shift15m\\num_likes_regression\\xy_02.pickle",
+          "bytes": 53333319,
+          "skipped": false,
+          "label": "shift15m:num_likes_regression/xy_02.pickle"
+        },
+        {
+          "path": "model_training\\raw-sources\\shift15m\\num_likes_regression\\xy_03.pickle",
+          "bytes": 53246999,
+          "skipped": false,
+          "label": "shift15m:num_likes_regression/xy_03.pickle"
+        },
+        {
+          "path": "model_training\\raw-sources\\shift15m\\num_likes_regression\\xy_04.pickle",
+          "bytes": 53406535,
+          "skipped": false,
+          "label": "shift15m:num_likes_regression/xy_04.pickle"
+        },
+        {
+          "path": "model_training\\raw-sources\\shift15m\\num_likes_regression\\xy_05.pickle",
+          "bytes": 53019239,
+          "skipped": false,
+          "label": "shift15m:num_likes_regression/xy_05.pickle"
+        },
+        {
+          "path": "model_training\\raw-sources\\shift15m\\num_likes_regression\\xy_06.pickle",
+          "bytes": 53062919,
+          "skipped": false,
+          "label": "shift15m:num_likes_regression/xy_06.pickle"
+        },
+        {
+          "path": "model_training\\raw-sources\\shift15m\\num_likes_regression\\xy_07.pickle",
+          "bytes": 53160471,
+          "skipped": false,
+          "label": "shift15m:num_likes_regression/xy_07.pickle"
+        },
+        {
+          "path": "model_training\\raw-sources\\shift15m\\num_likes_regression\\xy_08.pickle",
+          "bytes": 53123655,
+          "skipped": false,
+          "label": "shift15m:num_likes_regression/xy_08.pickle"
+        },
+        {
+          "path": "model_training\\raw-sources\\shift15m\\num_likes_regression\\xy_09.pickle",
+          "bytes": 52896519,
+          "skipped": false,
+          "label": "shift15m:num_likes_regression/xy_09.pickle"
+        },
+        {
+          "path": "model_training\\raw-sources\\shift15m\\sum_prices_regression\\sumprices.pickle",
+          "bytes": 40885269,
+          "skipped": false,
+          "label": "shift15m:sum_prices_regression/sumprices.pickle"
+        },
+        {
+          "path": "model_training\\raw-sources\\shift15m\\year_classification\\year_classification_labels.tar.gz",
+          "bytes": 1034259,
+          "skipped": false,
+          "label": "shift15m:year_classification/year_classification_labels.tar.gz"
+        },
+        {
+          "path": "model_training\\raw-sources\\shift15m\\item_category_prediction\\item_catalog.txt",
+          "bytes": 52060493,
+          "skipped": false,
+          "label": "shift15m:item_category_prediction/item_catalog.txt"
+        }
+      ],
+      "notes": [
+        "The official SHIFT15M release provides outfit metadata, task labels, and VGG16 feature shards.",
+        "The upstream release does not expose a raw product image dump through the published download scripts."
+      ],
+      "features": {
+        "tar_dir": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars",
+        "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+        "feature_tar_count": 200,
+        "downloads": [
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\0f9olnyq-00021-of-00200.tar.gz",
+            "bytes": 447521316,
+            "skipped": false,
+            "label": "shift15m:0f9olnyq-00021-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\0fm3kgkj-00137-of-00200.tar.gz",
+            "bytes": 447518007,
+            "skipped": false,
+            "label": "shift15m:0fm3kgkj-00137-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\0t7709nt-00186-of-00200.tar.gz",
+            "bytes": 447510596,
+            "skipped": false,
+            "label": "shift15m:0t7709nt-00186-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\144c8z50-00029-of-00200.tar.gz",
+            "bytes": 447476868,
+            "skipped": false,
+            "label": "shift15m:144c8z50-00029-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\15jf_16p-00112-of-00200.tar.gz",
+            "bytes": 447486203,
+            "skipped": false,
+            "label": "shift15m:15jf_16p-00112-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\16vwf955-00086-of-00200.tar.gz",
+            "bytes": 447557737,
+            "skipped": false,
+            "label": "shift15m:16vwf955-00086-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\18j3brjf-00065-of-00200.tar.gz",
+            "bytes": 447496719,
+            "skipped": false,
+            "label": "shift15m:18j3brjf-00065-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\1aw92p2o-00145-of-00200.tar.gz",
+            "bytes": 447463044,
+            "skipped": false,
+            "label": "shift15m:1aw92p2o-00145-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\1e7kf_i9-00150-of-00200.tar.gz",
+            "bytes": 447511765,
+            "skipped": false,
+            "label": "shift15m:1e7kf_i9-00150-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\1eu94hj2-00082-of-00200.tar.gz",
+            "bytes": 447506486,
+            "skipped": false,
+            "label": "shift15m:1eu94hj2-00082-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\1i0w0paj-00101-of-00200.tar.gz",
+            "bytes": 447528176,
+            "skipped": false,
+            "label": "shift15m:1i0w0paj-00101-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\1njcfgec-00155-of-00200.tar.gz",
+            "bytes": 447527354,
+            "skipped": false,
+            "label": "shift15m:1njcfgec-00155-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\1oj0uupo-00106-of-00200.tar.gz",
+            "bytes": 447459681,
+            "skipped": false,
+            "label": "shift15m:1oj0uupo-00106-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\1wg6mxz5-00152-of-00200.tar.gz",
+            "bytes": 447553644,
+            "skipped": false,
+            "label": "shift15m:1wg6mxz5-00152-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\278pc41i-00072-of-00200.tar.gz",
+            "bytes": 447491324,
+            "skipped": false,
+            "label": "shift15m:278pc41i-00072-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\27bzawmf-00078-of-00200.tar.gz",
+            "bytes": 447515158,
+            "skipped": false,
+            "label": "shift15m:27bzawmf-00078-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\2epc76yr-00107-of-00200.tar.gz",
+            "bytes": 447552752,
+            "skipped": false,
+            "label": "shift15m:2epc76yr-00107-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\2l0txxw1-00103-of-00200.tar.gz",
+            "bytes": 447512185,
+            "skipped": false,
+            "label": "shift15m:2l0txxw1-00103-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\2p8fj4yp-00174-of-00200.tar.gz",
+            "bytes": 447620826,
+            "skipped": false,
+            "label": "shift15m:2p8fj4yp-00174-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\2qjrp3y1-00133-of-00200.tar.gz",
+            "bytes": 447512548,
+            "skipped": false,
+            "label": "shift15m:2qjrp3y1-00133-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\2qt1urup-00083-of-00200.tar.gz",
+            "bytes": 447554433,
+            "skipped": false,
+            "label": "shift15m:2qt1urup-00083-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\2ra0k7hd-00176-of-00200.tar.gz",
+            "bytes": 447534293,
+            "skipped": false,
+            "label": "shift15m:2ra0k7hd-00176-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\392cs3u7-00143-of-00200.tar.gz",
+            "bytes": 447545532,
+            "skipped": false,
+            "label": "shift15m:392cs3u7-00143-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\3cmgjyab-00159-of-00200.tar.gz",
+            "bytes": 447511139,
+            "skipped": false,
+            "label": "shift15m:3cmgjyab-00159-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\3e2w0j9r-00170-of-00200.tar.gz",
+            "bytes": 447567125,
+            "skipped": false,
+            "label": "shift15m:3e2w0j9r-00170-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\3gs19f12-00165-of-00200.tar.gz",
+            "bytes": 447561988,
+            "skipped": false,
+            "label": "shift15m:3gs19f12-00165-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\3qz2h370-00158-of-00200.tar.gz",
+            "bytes": 447491401,
+            "skipped": false,
+            "label": "shift15m:3qz2h370-00158-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\3udysbqp-00121-of-00200.tar.gz",
+            "bytes": 447547894,
+            "skipped": false,
+            "label": "shift15m:3udysbqp-00121-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\3y4srbjt-00132-of-00200.tar.gz",
+            "bytes": 447559719,
+            "skipped": false,
+            "label": "shift15m:3y4srbjt-00132-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\4b2g43z8-00167-of-00200.tar.gz",
+            "bytes": 447490830,
+            "skipped": false,
+            "label": "shift15m:4b2g43z8-00167-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\4ia9q7_t-00130-of-00200.tar.gz",
+            "bytes": 447532786,
+            "skipped": false,
+            "label": "shift15m:4ia9q7_t-00130-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\4ll6xum7-00015-of-00200.tar.gz",
+            "bytes": 447503851,
+            "skipped": false,
+            "label": "shift15m:4ll6xum7-00015-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\4mk1_3as-00156-of-00200.tar.gz",
+            "bytes": 447504852,
+            "skipped": false,
+            "label": "shift15m:4mk1_3as-00156-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\4ncalgbw-00139-of-00200.tar.gz",
+            "bytes": 447499911,
+            "skipped": false,
+            "label": "shift15m:4ncalgbw-00139-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\4zsyhwt1-00047-of-00200.tar.gz",
+            "bytes": 447514580,
+            "skipped": false,
+            "label": "shift15m:4zsyhwt1-00047-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\50623lok-00108-of-00200.tar.gz",
+            "bytes": 447549048,
+            "skipped": false,
+            "label": "shift15m:50623lok-00108-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\5g722_i7-00074-of-00200.tar.gz",
+            "bytes": 447534162,
+            "skipped": false,
+            "label": "shift15m:5g722_i7-00074-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\5s9py2je-00087-of-00200.tar.gz",
+            "bytes": 447549009,
+            "skipped": false,
+            "label": "shift15m:5s9py2je-00087-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\5wfhtsjf-00193-of-00200.tar.gz",
+            "bytes": 447521456,
+            "skipped": false,
+            "label": "shift15m:5wfhtsjf-00193-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\6_gbbay9-00060-of-00200.tar.gz",
+            "bytes": 447564360,
+            "skipped": false,
+            "label": "shift15m:6_gbbay9-00060-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\6j3f29mz-00179-of-00200.tar.gz",
+            "bytes": 447558749,
+            "skipped": false,
+            "label": "shift15m:6j3f29mz-00179-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\6lr3szxn-00008-of-00200.tar.gz",
+            "bytes": 447500796,
+            "skipped": false,
+            "label": "shift15m:6lr3szxn-00008-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\6zeuz22h-00064-of-00200.tar.gz",
+            "bytes": 447550392,
+            "skipped": false,
+            "label": "shift15m:6zeuz22h-00064-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\71_pt0cr-00000-of-00200.tar.gz",
+            "bytes": 447459546,
+            "skipped": false,
+            "label": "shift15m:71_pt0cr-00000-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\79zfh__p-00093-of-00200.tar.gz",
+            "bytes": 447584544,
+            "skipped": false,
+            "label": "shift15m:79zfh__p-00093-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\7pnvepjm-00071-of-00200.tar.gz",
+            "bytes": 447485143,
+            "skipped": false,
+            "label": "shift15m:7pnvepjm-00071-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\7suvmu3s-00129-of-00200.tar.gz",
+            "bytes": 447524216,
+            "skipped": false,
+            "label": "shift15m:7suvmu3s-00129-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\7u7j4t__-00018-of-00200.tar.gz",
+            "bytes": 447537278,
+            "skipped": false,
+            "label": "shift15m:7u7j4t__-00018-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\7w1cqkha-00077-of-00200.tar.gz",
+            "bytes": 447584017,
+            "skipped": false,
+            "label": "shift15m:7w1cqkha-00077-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\839pnur4-00110-of-00200.tar.gz",
+            "bytes": 447468851,
+            "skipped": false,
+            "label": "shift15m:839pnur4-00110-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\8hukwf8b-00062-of-00200.tar.gz",
+            "bytes": 447526247,
+            "skipped": false,
+            "label": "shift15m:8hukwf8b-00062-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\8jaj8_80-00058-of-00200.tar.gz",
+            "bytes": 447534261,
+            "skipped": false,
+            "label": "shift15m:8jaj8_80-00058-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\8wkrjmkl-00057-of-00200.tar.gz",
+            "bytes": 447580813,
+            "skipped": false,
+            "label": "shift15m:8wkrjmkl-00057-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\8zt7_jz0-00019-of-00200.tar.gz",
+            "bytes": 447502010,
+            "skipped": false,
+            "label": "shift15m:8zt7_jz0-00019-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\903_dhwx-00070-of-00200.tar.gz",
+            "bytes": 447519856,
+            "skipped": false,
+            "label": "shift15m:903_dhwx-00070-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\944eqj4k-00140-of-00200.tar.gz",
+            "bytes": 447425668,
+            "skipped": false,
+            "label": "shift15m:944eqj4k-00140-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\9kqhlsa4-00168-of-00200.tar.gz",
+            "bytes": 447495224,
+            "skipped": false,
+            "label": "shift15m:9kqhlsa4-00168-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\9si7fgqm-00171-of-00200.tar.gz",
+            "bytes": 447504579,
+            "skipped": false,
+            "label": "shift15m:9si7fgqm-00171-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\9zkfebj5-00118-of-00200.tar.gz",
+            "bytes": 447520069,
+            "skipped": false,
+            "label": "shift15m:9zkfebj5-00118-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\_3jiwejx-00181-of-00200.tar.gz",
+            "bytes": 447545485,
+            "skipped": false,
+            "label": "shift15m:_3jiwejx-00181-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\_83a4z_y-00017-of-00200.tar.gz",
+            "bytes": 447521002,
+            "skipped": false,
+            "label": "shift15m:_83a4z_y-00017-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\_jpbalm4-00024-of-00200.tar.gz",
+            "bytes": 447548755,
+            "skipped": false,
+            "label": "shift15m:_jpbalm4-00024-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\_p65ros8-00182-of-00200.tar.gz",
+            "bytes": 447575933,
+            "skipped": false,
+            "label": "shift15m:_p65ros8-00182-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\_ugt2edr-00031-of-00200.tar.gz",
+            "bytes": 447459898,
+            "skipped": false,
+            "label": "shift15m:_ugt2edr-00031-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\a2snvuo7-00075-of-00200.tar.gz",
+            "bytes": 447534754,
+            "skipped": false,
+            "label": "shift15m:a2snvuo7-00075-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\abjov6ah-00009-of-00200.tar.gz",
+            "bytes": 447487477,
+            "skipped": false,
+            "label": "shift15m:abjov6ah-00009-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\at2bpzdw-00160-of-00200.tar.gz",
+            "bytes": 447532547,
+            "skipped": false,
+            "label": "shift15m:at2bpzdw-00160-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ay9dd3hy-00063-of-00200.tar.gz",
+            "bytes": 447492619,
+            "skipped": false,
+            "label": "shift15m:ay9dd3hy-00063-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\b5vcot8_-00026-of-00200.tar.gz",
+            "bytes": 447477568,
+            "skipped": false,
+            "label": "shift15m:b5vcot8_-00026-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\bdeyjy_o-00006-of-00200.tar.gz",
+            "bytes": 447512619,
+            "skipped": false,
+            "label": "shift15m:bdeyjy_o-00006-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\bditudcc-00079-of-00200.tar.gz",
+            "bytes": 447495063,
+            "skipped": false,
+            "label": "shift15m:bditudcc-00079-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\bmgqxlek-00194-of-00200.tar.gz",
+            "bytes": 447472059,
+            "skipped": false,
+            "label": "shift15m:bmgqxlek-00194-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\bqouqz7z-00126-of-00200.tar.gz",
+            "bytes": 447532544,
+            "skipped": false,
+            "label": "shift15m:bqouqz7z-00126-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\c6tjqr63-00128-of-00200.tar.gz",
+            "bytes": 447516909,
+            "skipped": false,
+            "label": "shift15m:c6tjqr63-00128-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\c_1xtcg1-00149-of-00200.tar.gz",
+            "bytes": 447577091,
+            "skipped": false,
+            "label": "shift15m:c_1xtcg1-00149-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\chu3ey7k-00013-of-00200.tar.gz",
+            "bytes": 447560209,
+            "skipped": false,
+            "label": "shift15m:chu3ey7k-00013-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\cp01x57k-00141-of-00200.tar.gz",
+            "bytes": 447520472,
+            "skipped": false,
+            "label": "shift15m:cp01x57k-00141-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\cp0_k106-00046-of-00200.tar.gz",
+            "bytes": 447529821,
+            "skipped": false,
+            "label": "shift15m:cp0_k106-00046-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\cvt2z706-00068-of-00200.tar.gz",
+            "bytes": 447581429,
+            "skipped": false,
+            "label": "shift15m:cvt2z706-00068-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\d7f4sw0q-00059-of-00200.tar.gz",
+            "bytes": 447505344,
+            "skipped": false,
+            "label": "shift15m:d7f4sw0q-00059-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\dlvnfgdy-00003-of-00200.tar.gz",
+            "bytes": 447503967,
+            "skipped": false,
+            "label": "shift15m:dlvnfgdy-00003-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\dnjioo72-00102-of-00200.tar.gz",
+            "bytes": 447535757,
+            "skipped": false,
+            "label": "shift15m:dnjioo72-00102-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\e0q35999-00005-of-00200.tar.gz",
+            "bytes": 447518417,
+            "skipped": false,
+            "label": "shift15m:e0q35999-00005-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\e1x_6ek4-00115-of-00200.tar.gz",
+            "bytes": 447494040,
+            "skipped": false,
+            "label": "shift15m:e1x_6ek4-00115-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\e9sen86h-00177-of-00200.tar.gz",
+            "bytes": 447497006,
+            "skipped": false,
+            "label": "shift15m:e9sen86h-00177-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\e_lr1wae-00127-of-00200.tar.gz",
+            "bytes": 447522558,
+            "skipped": false,
+            "label": "shift15m:e_lr1wae-00127-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\edqnuhz1-00052-of-00200.tar.gz",
+            "bytes": 447527574,
+            "skipped": false,
+            "label": "shift15m:edqnuhz1-00052-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ep93talr-00184-of-00200.tar.gz",
+            "bytes": 447537714,
+            "skipped": false,
+            "label": "shift15m:ep93talr-00184-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\erhyzrix-00197-of-00200.tar.gz",
+            "bytes": 447500696,
+            "skipped": false,
+            "label": "shift15m:erhyzrix-00197-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\f9nq6rms-00185-of-00200.tar.gz",
+            "bytes": 447526708,
+            "skipped": false,
+            "label": "shift15m:f9nq6rms-00185-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ffdcxgil-00111-of-00200.tar.gz",
+            "bytes": 447495189,
+            "skipped": false,
+            "label": "shift15m:ffdcxgil-00111-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\fitioyj5-00099-of-00200.tar.gz",
+            "bytes": 447571554,
+            "skipped": false,
+            "label": "shift15m:fitioyj5-00099-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\fkzmmfwb-00166-of-00200.tar.gz",
+            "bytes": 447507304,
+            "skipped": false,
+            "label": "shift15m:fkzmmfwb-00166-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\foefb6o0-00081-of-00200.tar.gz",
+            "bytes": 447550923,
+            "skipped": false,
+            "label": "shift15m:foefb6o0-00081-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\fy49exit-00188-of-00200.tar.gz",
+            "bytes": 447519929,
+            "skipped": false,
+            "label": "shift15m:fy49exit-00188-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\fzz5zjd9-00109-of-00200.tar.gz",
+            "bytes": 447543822,
+            "skipped": false,
+            "label": "shift15m:fzz5zjd9-00109-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\g4ffp49c-00113-of-00200.tar.gz",
+            "bytes": 447491117,
+            "skipped": false,
+            "label": "shift15m:g4ffp49c-00113-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\g6y2d7ue-00001-of-00200.tar.gz",
+            "bytes": 447513421,
+            "skipped": false,
+            "label": "shift15m:g6y2d7ue-00001-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\gg09pl4e-00004-of-00200.tar.gz",
+            "bytes": 447480104,
+            "skipped": false,
+            "label": "shift15m:gg09pl4e-00004-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\gn7z4m1k-00022-of-00200.tar.gz",
+            "bytes": 447517233,
+            "skipped": false,
+            "label": "shift15m:gn7z4m1k-00022-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\gusklivm-00116-of-00200.tar.gz",
+            "bytes": 447517169,
+            "skipped": false,
+            "label": "shift15m:gusklivm-00116-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\gz3hb6o_-00191-of-00200.tar.gz",
+            "bytes": 447533847,
+            "skipped": false,
+            "label": "shift15m:gz3hb6o_-00191-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\gzxjqc2l-00169-of-00200.tar.gz",
+            "bytes": 447521653,
+            "skipped": false,
+            "label": "shift15m:gzxjqc2l-00169-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\h4jblf_2-00105-of-00200.tar.gz",
+            "bytes": 447506658,
+            "skipped": false,
+            "label": "shift15m:h4jblf_2-00105-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\h7pobr9t-00023-of-00200.tar.gz",
+            "bytes": 447509173,
+            "skipped": false,
+            "label": "shift15m:h7pobr9t-00023-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\h8g8ytxi-00045-of-00200.tar.gz",
+            "bytes": 447475591,
+            "skipped": false,
+            "label": "shift15m:h8g8ytxi-00045-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\hm7q_cm0-00053-of-00200.tar.gz",
+            "bytes": 447496807,
+            "skipped": false,
+            "label": "shift15m:hm7q_cm0-00053-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\hyjm4cgu-00027-of-00200.tar.gz",
+            "bytes": 447551290,
+            "skipped": false,
+            "label": "shift15m:hyjm4cgu-00027-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\i__2kias-00020-of-00200.tar.gz",
+            "bytes": 447463395,
+            "skipped": false,
+            "label": "shift15m:i__2kias-00020-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\iw_4j0w4-00050-of-00200.tar.gz",
+            "bytes": 447504547,
+            "skipped": false,
+            "label": "shift15m:iw_4j0w4-00050-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ixahfaqw-00014-of-00200.tar.gz",
+            "bytes": 447559556,
+            "skipped": false,
+            "label": "shift15m:ixahfaqw-00014-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\j1paiscc-00148-of-00200.tar.gz",
+            "bytes": 447517276,
+            "skipped": false,
+            "label": "shift15m:j1paiscc-00148-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\jbse0bom-00120-of-00200.tar.gz",
+            "bytes": 447505559,
+            "skipped": false,
+            "label": "shift15m:jbse0bom-00120-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\jgprjhjz-00041-of-00200.tar.gz",
+            "bytes": 447567930,
+            "skipped": false,
+            "label": "shift15m:jgprjhjz-00041-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\jhg986nj-00196-of-00200.tar.gz",
+            "bytes": 447489851,
+            "skipped": false,
+            "label": "shift15m:jhg986nj-00196-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\jv6hitpy-00067-of-00200.tar.gz",
+            "bytes": 447475590,
+            "skipped": false,
+            "label": "shift15m:jv6hitpy-00067-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\k5t90aub-00173-of-00200.tar.gz",
+            "bytes": 447531047,
+            "skipped": false,
+            "label": "shift15m:k5t90aub-00173-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\k5ueuc4t-00044-of-00200.tar.gz",
+            "bytes": 447544256,
+            "skipped": false,
+            "label": "shift15m:k5ueuc4t-00044-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\k8t9trr6-00151-of-00200.tar.gz",
+            "bytes": 447580623,
+            "skipped": false,
+            "label": "shift15m:k8t9trr6-00151-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\kc5x90r6-00123-of-00200.tar.gz",
+            "bytes": 447491113,
+            "skipped": false,
+            "label": "shift15m:kc5x90r6-00123-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\kii62ft6-00076-of-00200.tar.gz",
+            "bytes": 447528297,
+            "skipped": false,
+            "label": "shift15m:kii62ft6-00076-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\kmy80pge-00119-of-00200.tar.gz",
+            "bytes": 447440770,
+            "skipped": false,
+            "label": "shift15m:kmy80pge-00119-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\kter5bb8-00048-of-00200.tar.gz",
+            "bytes": 447562424,
+            "skipped": false,
+            "label": "shift15m:kter5bb8-00048-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ldfhs7he-00042-of-00200.tar.gz",
+            "bytes": 447563897,
+            "skipped": false,
+            "label": "shift15m:ldfhs7he-00042-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\llz61t3c-00037-of-00200.tar.gz",
+            "bytes": 447473988,
+            "skipped": false,
+            "label": "shift15m:llz61t3c-00037-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\m4b1wmp2-00097-of-00200.tar.gz",
+            "bytes": 447533418,
+            "skipped": false,
+            "label": "shift15m:m4b1wmp2-00097-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\mdgbz1tw-00114-of-00200.tar.gz",
+            "bytes": 447541220,
+            "skipped": false,
+            "label": "shift15m:mdgbz1tw-00114-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\mh4x26yq-00090-of-00200.tar.gz",
+            "bytes": 447599297,
+            "skipped": false,
+            "label": "shift15m:mh4x26yq-00090-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\msyknfmb-00198-of-00200.tar.gz",
+            "bytes": 447441216,
+            "skipped": false,
+            "label": "shift15m:msyknfmb-00198-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\mzo2iyf_-00161-of-00200.tar.gz",
+            "bytes": 447524198,
+            "skipped": false,
+            "label": "shift15m:mzo2iyf_-00161-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\n7w4xr6i-00061-of-00200.tar.gz",
+            "bytes": 447581147,
+            "skipped": false,
+            "label": "shift15m:n7w4xr6i-00061-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\netlvaoi-00178-of-00200.tar.gz",
+            "bytes": 447488243,
+            "skipped": false,
+            "label": "shift15m:netlvaoi-00178-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\nr2ckb2k-00010-of-00200.tar.gz",
+            "bytes": 447479870,
+            "skipped": false,
+            "label": "shift15m:nr2ckb2k-00010-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ns4kmplh-00189-of-00200.tar.gz",
+            "bytes": 447490613,
+            "skipped": false,
+            "label": "shift15m:ns4kmplh-00189-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\nsqnhpen-00146-of-00200.tar.gz",
+            "bytes": 447474054,
+            "skipped": false,
+            "label": "shift15m:nsqnhpen-00146-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\nt4y0_fd-00172-of-00200.tar.gz",
+            "bytes": 447493529,
+            "skipped": false,
+            "label": "shift15m:nt4y0_fd-00172-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\nycozbpo-00125-of-00200.tar.gz",
+            "bytes": 447537431,
+            "skipped": false,
+            "label": "shift15m:nycozbpo-00125-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\o7jb486r-00183-of-00200.tar.gz",
+            "bytes": 447542474,
+            "skipped": false,
+            "label": "shift15m:o7jb486r-00183-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\o7lfpz7e-00142-of-00200.tar.gz",
+            "bytes": 447499600,
+            "skipped": false,
+            "label": "shift15m:o7lfpz7e-00142-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\odeadulb-00134-of-00200.tar.gz",
+            "bytes": 447521686,
+            "skipped": false,
+            "label": "shift15m:odeadulb-00134-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ostznpsm-00136-of-00200.tar.gz",
+            "bytes": 447507738,
+            "skipped": false,
+            "label": "shift15m:ostznpsm-00136-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ouono4y9-00016-of-00200.tar.gz",
+            "bytes": 447459817,
+            "skipped": false,
+            "label": "shift15m:ouono4y9-00016-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ozqaysty-00073-of-00200.tar.gz",
+            "bytes": 447470533,
+            "skipped": false,
+            "label": "shift15m:ozqaysty-00073-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\p2g1zqv3-00192-of-00200.tar.gz",
+            "bytes": 447504440,
+            "skipped": false,
+            "label": "shift15m:p2g1zqv3-00192-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\pafdw7go-00051-of-00200.tar.gz",
+            "bytes": 447498215,
+            "skipped": false,
+            "label": "shift15m:pafdw7go-00051-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\plnmtyeh-00025-of-00200.tar.gz",
+            "bytes": 447586686,
+            "skipped": false,
+            "label": "shift15m:plnmtyeh-00025-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ptm30hc6-00028-of-00200.tar.gz",
+            "bytes": 447473040,
+            "skipped": false,
+            "label": "shift15m:ptm30hc6-00028-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\pvcjcth0-00190-of-00200.tar.gz",
+            "bytes": 447510736,
+            "skipped": false,
+            "label": "shift15m:pvcjcth0-00190-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\pyhazrzp-00069-of-00200.tar.gz",
+            "bytes": 447471625,
+            "skipped": false,
+            "label": "shift15m:pyhazrzp-00069-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\q0d0ur6i-00036-of-00200.tar.gz",
+            "bytes": 447543324,
+            "skipped": false,
+            "label": "shift15m:q0d0ur6i-00036-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\q3y0pozn-00092-of-00200.tar.gz",
+            "bytes": 447512289,
+            "skipped": false,
+            "label": "shift15m:q3y0pozn-00092-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\q69cd2w1-00195-of-00200.tar.gz",
+            "bytes": 447556954,
+            "skipped": false,
+            "label": "shift15m:q69cd2w1-00195-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\quoj87wr-00138-of-00200.tar.gz",
+            "bytes": 447510433,
+            "skipped": false,
+            "label": "shift15m:quoj87wr-00138-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\quz19bvy-00054-of-00200.tar.gz",
+            "bytes": 447527582,
+            "skipped": false,
+            "label": "shift15m:quz19bvy-00054-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\qzn3vg26-00055-of-00200.tar.gz",
+            "bytes": 447495910,
+            "skipped": false,
+            "label": "shift15m:qzn3vg26-00055-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\r3b7yy4m-00199-of-00200.tar.gz",
+            "bytes": 447425298,
+            "skipped": false,
+            "label": "shift15m:r3b7yy4m-00199-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\r3qzrfxk-00098-of-00200.tar.gz",
+            "bytes": 447468686,
+            "skipped": false,
+            "label": "shift15m:r3qzrfxk-00098-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\rch16ovw-00080-of-00200.tar.gz",
+            "bytes": 447511083,
+            "skipped": false,
+            "label": "shift15m:rch16ovw-00080-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\rjvnbs00-00091-of-00200.tar.gz",
+            "bytes": 447513528,
+            "skipped": false,
+            "label": "shift15m:rjvnbs00-00091-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ros4l3w7-00135-of-00200.tar.gz",
+            "bytes": 447519691,
+            "skipped": false,
+            "label": "shift15m:ros4l3w7-00135-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\s5u8g7cz-00144-of-00200.tar.gz",
+            "bytes": 447543521,
+            "skipped": false,
+            "label": "shift15m:s5u8g7cz-00144-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\s949a90e-00040-of-00200.tar.gz",
+            "bytes": 447577594,
+            "skipped": false,
+            "label": "shift15m:s949a90e-00040-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\sk3k9xpx-00157-of-00200.tar.gz",
+            "bytes": 447568407,
+            "skipped": false,
+            "label": "shift15m:sk3k9xpx-00157-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\slyzwxkk-00095-of-00200.tar.gz",
+            "bytes": 447536315,
+            "skipped": false,
+            "label": "shift15m:slyzwxkk-00095-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\svlki4gi-00035-of-00200.tar.gz",
+            "bytes": 447485495,
+            "skipped": false,
+            "label": "shift15m:svlki4gi-00035-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\tbhafndv-00039-of-00200.tar.gz",
+            "bytes": 447524159,
+            "skipped": false,
+            "label": "shift15m:tbhafndv-00039-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\tchchjdp-00187-of-00200.tar.gz",
+            "bytes": 447484086,
+            "skipped": false,
+            "label": "shift15m:tchchjdp-00187-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\tqayz3k5-00012-of-00200.tar.gz",
+            "bytes": 447510498,
+            "skipped": false,
+            "label": "shift15m:tqayz3k5-00012-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\u443naqo-00180-of-00200.tar.gz",
+            "bytes": 447591782,
+            "skipped": false,
+            "label": "shift15m:u443naqo-00180-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\u4jxul1b-00088-of-00200.tar.gz",
+            "bytes": 447552808,
+            "skipped": false,
+            "label": "shift15m:u4jxul1b-00088-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\u9t5v93j-00032-of-00200.tar.gz",
+            "bytes": 447474880,
+            "skipped": false,
+            "label": "shift15m:u9t5v93j-00032-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ubtz4888-00122-of-00200.tar.gz",
+            "bytes": 447481984,
+            "skipped": false,
+            "label": "shift15m:ubtz4888-00122-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\uqcmvx1f-00124-of-00200.tar.gz",
+            "bytes": 447511439,
+            "skipped": false,
+            "label": "shift15m:uqcmvx1f-00124-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\uuwhh2hm-00007-of-00200.tar.gz",
+            "bytes": 447480492,
+            "skipped": false,
+            "label": "shift15m:uuwhh2hm-00007-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\uz6vbf_2-00084-of-00200.tar.gz",
+            "bytes": 447532415,
+            "skipped": false,
+            "label": "shift15m:uz6vbf_2-00084-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\v1diz26z-00030-of-00200.tar.gz",
+            "bytes": 447494902,
+            "skipped": false,
+            "label": "shift15m:v1diz26z-00030-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\v6jszs8b-00043-of-00200.tar.gz",
+            "bytes": 447520150,
+            "skipped": false,
+            "label": "shift15m:v6jszs8b-00043-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\v79olbnt-00049-of-00200.tar.gz",
+            "bytes": 447502795,
+            "skipped": false,
+            "label": "shift15m:v79olbnt-00049-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\vaa51qfs-00038-of-00200.tar.gz",
+            "bytes": 447529110,
+            "skipped": false,
+            "label": "shift15m:vaa51qfs-00038-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\voxirtvp-00104-of-00200.tar.gz",
+            "bytes": 447533239,
+            "skipped": false,
+            "label": "shift15m:voxirtvp-00104-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\vqx5glg9-00056-of-00200.tar.gz",
+            "bytes": 447585188,
+            "skipped": false,
+            "label": "shift15m:vqx5glg9-00056-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\vvh71_47-00154-of-00200.tar.gz",
+            "bytes": 447527739,
+            "skipped": false,
+            "label": "shift15m:vvh71_47-00154-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\w5_zpnws-00096-of-00200.tar.gz",
+            "bytes": 447569660,
+            "skipped": false,
+            "label": "shift15m:w5_zpnws-00096-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\w9wjxnga-00131-of-00200.tar.gz",
+            "bytes": 447502586,
+            "skipped": false,
+            "label": "shift15m:w9wjxnga-00131-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\w_9cepj0-00162-of-00200.tar.gz",
+            "bytes": 447487527,
+            "skipped": false,
+            "label": "shift15m:w_9cepj0-00162-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\wbjo3vpr-00094-of-00200.tar.gz",
+            "bytes": 447499054,
+            "skipped": false,
+            "label": "shift15m:wbjo3vpr-00094-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\wbzdyj0d-00147-of-00200.tar.gz",
+            "bytes": 447535329,
+            "skipped": false,
+            "label": "shift15m:wbzdyj0d-00147-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\why_iowl-00117-of-00200.tar.gz",
+            "bytes": 447442715,
+            "skipped": false,
+            "label": "shift15m:why_iowl-00117-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\wkdbzsw6-00153-of-00200.tar.gz",
+            "bytes": 447531009,
+            "skipped": false,
+            "label": "shift15m:wkdbzsw6-00153-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\wlavldvw-00011-of-00200.tar.gz",
+            "bytes": 447506052,
+            "skipped": false,
+            "label": "shift15m:wlavldvw-00011-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\wux4a7z7-00085-of-00200.tar.gz",
+            "bytes": 447559153,
+            "skipped": false,
+            "label": "shift15m:wux4a7z7-00085-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\xsui01w6-00164-of-00200.tar.gz",
+            "bytes": 447559412,
+            "skipped": false,
+            "label": "shift15m:xsui01w6-00164-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\xt8ir5eb-00002-of-00200.tar.gz",
+            "bytes": 447580338,
+            "skipped": false,
+            "label": "shift15m:xt8ir5eb-00002-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\xtgceonv-00089-of-00200.tar.gz",
+            "bytes": 447541931,
+            "skipped": false,
+            "label": "shift15m:xtgceonv-00089-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\y3k3gpu_-00175-of-00200.tar.gz",
+            "bytes": 447545818,
+            "skipped": false,
+            "label": "shift15m:y3k3gpu_-00175-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ye13_2jp-00100-of-00200.tar.gz",
+            "bytes": 447599658,
+            "skipped": false,
+            "label": "shift15m:ye13_2jp-00100-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\yu4trxtd-00034-of-00200.tar.gz",
+            "bytes": 447502059,
+            "skipped": false,
+            "label": "shift15m:yu4trxtd-00034-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\yvqhsl04-00033-of-00200.tar.gz",
+            "bytes": 447519407,
+            "skipped": false,
+            "label": "shift15m:yvqhsl04-00033-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\z_h9g1gn-00066-of-00200.tar.gz",
+            "bytes": 447559430,
+            "skipped": false,
+            "label": "shift15m:z_h9g1gn-00066-of-00200.tar.gz"
+          },
+          {
+            "path": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\zg2s97df-00163-of-00200.tar.gz",
+            "bytes": 447535545,
+            "skipped": false,
+            "label": "shift15m:zg2s97df-00163-of-00200.tar.gz"
+          }
+        ],
+        "extracted": [
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\0f9olnyq-00021-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\0fm3kgkj-00137-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\0t7709nt-00186-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\144c8z50-00029-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\15jf_16p-00112-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\16vwf955-00086-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\18j3brjf-00065-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\1aw92p2o-00145-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\1e7kf_i9-00150-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\1eu94hj2-00082-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\1i0w0paj-00101-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\1njcfgec-00155-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\1oj0uupo-00106-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\1wg6mxz5-00152-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\278pc41i-00072-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\27bzawmf-00078-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\2epc76yr-00107-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\2l0txxw1-00103-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\2p8fj4yp-00174-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\2qjrp3y1-00133-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\2qt1urup-00083-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\2ra0k7hd-00176-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\392cs3u7-00143-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\3cmgjyab-00159-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\3e2w0j9r-00170-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\3gs19f12-00165-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\3qz2h370-00158-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\3udysbqp-00121-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\3y4srbjt-00132-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\4b2g43z8-00167-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\4ia9q7_t-00130-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\4ll6xum7-00015-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\4mk1_3as-00156-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\4ncalgbw-00139-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\4zsyhwt1-00047-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\50623lok-00108-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\5g722_i7-00074-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\5s9py2je-00087-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\5wfhtsjf-00193-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\6_gbbay9-00060-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\6j3f29mz-00179-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\6lr3szxn-00008-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\6zeuz22h-00064-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\71_pt0cr-00000-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\79zfh__p-00093-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\7pnvepjm-00071-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\7suvmu3s-00129-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\7u7j4t__-00018-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\7w1cqkha-00077-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\839pnur4-00110-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\8hukwf8b-00062-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\8jaj8_80-00058-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\8wkrjmkl-00057-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\8zt7_jz0-00019-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\903_dhwx-00070-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\944eqj4k-00140-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\9kqhlsa4-00168-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\9si7fgqm-00171-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\9zkfebj5-00118-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\_3jiwejx-00181-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\_83a4z_y-00017-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\_jpbalm4-00024-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\_p65ros8-00182-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\_ugt2edr-00031-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\a2snvuo7-00075-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\abjov6ah-00009-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\at2bpzdw-00160-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ay9dd3hy-00063-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\b5vcot8_-00026-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\bdeyjy_o-00006-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\bditudcc-00079-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\bmgqxlek-00194-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\bqouqz7z-00126-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\c6tjqr63-00128-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\c_1xtcg1-00149-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\chu3ey7k-00013-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\cp01x57k-00141-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\cp0_k106-00046-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\cvt2z706-00068-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\d7f4sw0q-00059-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\dlvnfgdy-00003-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\dnjioo72-00102-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\e0q35999-00005-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\e1x_6ek4-00115-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\e9sen86h-00177-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\e_lr1wae-00127-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\edqnuhz1-00052-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ep93talr-00184-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\erhyzrix-00197-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\f9nq6rms-00185-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ffdcxgil-00111-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\fitioyj5-00099-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\fkzmmfwb-00166-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\foefb6o0-00081-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\fy49exit-00188-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\fzz5zjd9-00109-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\g4ffp49c-00113-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\g6y2d7ue-00001-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\gg09pl4e-00004-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\gn7z4m1k-00022-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\gusklivm-00116-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\gz3hb6o_-00191-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\gzxjqc2l-00169-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\h4jblf_2-00105-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\h7pobr9t-00023-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\h8g8ytxi-00045-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\hm7q_cm0-00053-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\hyjm4cgu-00027-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\i__2kias-00020-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\iw_4j0w4-00050-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ixahfaqw-00014-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\j1paiscc-00148-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\jbse0bom-00120-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\jgprjhjz-00041-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\jhg986nj-00196-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\jv6hitpy-00067-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\k5t90aub-00173-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\k5ueuc4t-00044-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\k8t9trr6-00151-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\kc5x90r6-00123-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\kii62ft6-00076-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\kmy80pge-00119-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\kter5bb8-00048-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ldfhs7he-00042-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\llz61t3c-00037-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\m4b1wmp2-00097-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\mdgbz1tw-00114-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\mh4x26yq-00090-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\msyknfmb-00198-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\mzo2iyf_-00161-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\n7w4xr6i-00061-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\netlvaoi-00178-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\nr2ckb2k-00010-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ns4kmplh-00189-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\nsqnhpen-00146-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\nt4y0_fd-00172-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\nycozbpo-00125-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\o7jb486r-00183-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\o7lfpz7e-00142-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\odeadulb-00134-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ostznpsm-00136-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ouono4y9-00016-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ozqaysty-00073-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\p2g1zqv3-00192-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\pafdw7go-00051-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\plnmtyeh-00025-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ptm30hc6-00028-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\pvcjcth0-00190-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\pyhazrzp-00069-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\q0d0ur6i-00036-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\q3y0pozn-00092-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\q69cd2w1-00195-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\quoj87wr-00138-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\quz19bvy-00054-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\qzn3vg26-00055-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\r3b7yy4m-00199-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\r3qzrfxk-00098-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\rch16ovw-00080-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\rjvnbs00-00091-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ros4l3w7-00135-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\s5u8g7cz-00144-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\s949a90e-00040-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\sk3k9xpx-00157-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\slyzwxkk-00095-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\svlki4gi-00035-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\tbhafndv-00039-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\tchchjdp-00187-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\tqayz3k5-00012-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\u443naqo-00180-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\u4jxul1b-00088-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\u9t5v93j-00032-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ubtz4888-00122-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\uqcmvx1f-00124-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\uuwhh2hm-00007-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\uz6vbf_2-00084-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\v1diz26z-00030-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\v6jszs8b-00043-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\v79olbnt-00049-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\vaa51qfs-00038-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\voxirtvp-00104-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\vqx5glg9-00056-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\vvh71_47-00154-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\w5_zpnws-00096-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\w9wjxnga-00131-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\w_9cepj0-00162-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\wbjo3vpr-00094-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\wbzdyj0d-00147-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\why_iowl-00117-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\wkdbzsw6-00153-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\wlavldvw-00011-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\wux4a7z7-00085-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\xsui01w6-00164-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\xt8ir5eb-00002-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\xtgceonv-00089-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\y3k3gpu_-00175-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\ye13_2jp-00100-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\yu4trxtd-00034-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\yvqhsl04-00033-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\z_h9g1gn-00066-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          },
+          {
+            "archive": "model_training\\raw-sources\\shift15m\\downloads\\feature_tars\\zg2s97df-00163-of-00200.tar.gz",
+            "feature_dir": "model_training\\raw-sources\\shift15m\\features",
+            "skipped": false
+          }
+        ],
+        "cleanup_tars": true
+      },
+      "year_classification_extract": [
+        {
+          "archive": "model_training\\raw-sources\\shift15m\\year_classification\\year_classification_labels.tar.gz",
+          "output_dir": "model_training\\raw-sources\\shift15m\\year_classification\\extracted\\year_classification_labels",
+          "skipped": false
+        }
+      ]
+    }
+  },
+  "finished_at": "2026-04-12T15:06:19+0800"
+}

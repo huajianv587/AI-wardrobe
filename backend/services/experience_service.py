@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import Counter
 from copy import deepcopy
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import html
 import httpx
 import json
@@ -12,9 +12,9 @@ from typing import Any
 from urllib.parse import urljoin, urlparse
 from fastapi import HTTPException, UploadFile, status
 
-from sqlalchemy import desc, select
+from sqlalchemy import create_engine, desc, select
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
 
 from app.models.experience_state import ExperienceUserState
 from app.models.assistant import RecommendationSignal, WearLog
@@ -36,13 +36,31 @@ from app.schemas.experience import (
     ExperienceWardrobeItemPayload,
 )
 from app.schemas.wardrobe import ClothingItemCreate, ClothingItemUpdate, ImageUploadFinalizeRequest, ImageUploadPrepareRequest
+from core.config import settings
 from db.session import SessionLocal
-from services import assistant_service, fashion_decomposition_service, storage_service, wardrobe_service
+from services import (
+    assistant_service,
+    assistant_task_service,
+    fashion_decomposition_service,
+    storage_service,
+    task_queue_service,
+    wardrobe_service,
+)
 
 DEMO_USER_EMAIL = "guest@wenwen-wardrobe.local"
 DEMO_USER_NAME = "文文的衣橱 · 公开体验"
 DEFAULT_YEAR = 2026
 DEFAULT_MONTH = 4
+
+SMART_TASK_TYPES = {
+    "run-all": "smart-run-all",
+    "run-background": "smart-background",
+    "run-enrich": "smart-enrich",
+    "retry": "smart-retry",
+    "fallback": "smart-fallback",
+    "reanalyze": "smart-reanalyze",
+    "prioritize": "smart-priority",
+}
 
 SMART_PIPELINE_LABELS = [
     "人像定位",
@@ -246,6 +264,14 @@ DIRECT_IMAGE_SUFFIXES = (".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp")
 
 def _now() -> datetime:
     return datetime.utcnow()
+
+
+def _as_utc_naive(value: datetime | None) -> datetime | None:
+    if value is None:
+        return None
+    if value.tzinfo is None or value.tzinfo.utcoffset(value) is None:
+        return value
+    return value.astimezone(timezone.utc).replace(tzinfo=None)
 
 
 def _state_path() -> Path:
@@ -1042,7 +1068,8 @@ def _apply_item_filters(
 
 def _map_wardrobe_item(item: ClothingItem, source_meta: dict[str, Any] | None = None) -> dict[str, Any]:
     tags = _unique([_slot_label(item), item.color, *(_unique(item.tags)[:3])])
-    badge_label = "AI 已识别" if "processed" in (item.tags or []) or item.processed_image_url else "新增" if item.created_at >= _now() - timedelta(days=21) else "待识别"
+    created_at = _as_utc_naive(item.created_at) or _now()
+    badge_label = "AI 已识别" if "processed" in (item.tags or []) or item.processed_image_url else "新增" if created_at >= _now() - timedelta(days=21) else "待识别"
     badge_tone = "bai" if badge_label == "AI 已识别" else "bnew" if badge_label == "新增" else "bwarn"
     return {
         "id": item.id,
@@ -1468,29 +1495,6 @@ def _smart_services_panel(config: dict[str, Any]) -> list[dict[str, str]]:
         {"name": "用户识别链路", "status": "on", "badge": f"{config['person_detector']} + {config['face_selector']}"},
         {"name": "服饰分割", "status": "pri", "badge": config["garment_segmenter"]},
         {"name": "白底图输出", "status": "on", "badge": config["primary_service"]},
-        {"name": "标签补全", "status": "local" if "规则" in config["label_model"] else "on", "badge": config["label_model"]},
-        {"name": "本地 fallback", "status": "local", "badge": config["fallback_strategy"]},
-    ]
-
-
-def _smart_action_models(config: dict[str, Any]) -> dict[str, dict[str, str]]:
-    return {
-        "background": {
-            "label": "批量识别人像服饰",
-            "model": f"{config['person_detector']} + {config['face_selector']} + {config['garment_segmenter']}",
-        },
-        "enrich": {
-            "label": "批量补全标签",
-            "model": config["label_model"],
-        },
-    }
-
-
-def _smart_services_panel(config: dict[str, Any]) -> list[dict[str, str]]:
-    return [
-        {"name": "用户识别链路", "status": "on", "badge": f"{config['person_detector']} + {config['face_selector']}"},
-        {"name": "服饰分割", "status": "pri", "badge": config["garment_segmenter"]},
-        {"name": "白底图输出", "status": "on", "badge": config["primary_service"]},
         {"name": "标签识别链", "status": "on", "badge": _recognition_chain_badge(config)},
         {"name": "本地 fallback", "status": "local", "badge": config["fallback_strategy"]},
     ]
@@ -1515,31 +1519,6 @@ def _smart_result_state(item: ClothingItem, config: dict[str, Any], *, prefer_lo
     if item.processed_image_url or "processed" in (item.tags or []):
         return "done", config["primary_service"]
     return "raw", "待上传原图"
-
-
-def _process_smart_item_background(
-    db: Session,
-    user: User,
-    item: ClothingItem,
-    config: dict[str, Any],
-    *,
-    prefer_local: bool = False,
-    priority: bool | None = None,
-) -> ClothingItem:
-    if item.image_url:
-        item = wardrobe_service.process_item_image(db, item.id, user, prefer_local=prefer_local)
-        status, provider = _smart_result_state(item, config, prefer_local=prefer_local)
-        _update_smart_item_state(
-            user,
-            item.id,
-            status=status,
-            provider=provider,
-            priority=priority if priority is not None else False,
-        )
-        return item
-
-    _update_smart_item_state(user, item.id, status="raw", provider="待上传原图", priority=priority if priority is not None else False)
-    return item
 
 
 def get_smart_wardrobe_overview(db: Session, user: User, *, query: str | None = None, status: str | None = None) -> dict[str, Any]:
@@ -1623,26 +1602,221 @@ def _update_smart_item_state(user: User, item_id: int, **patch: Any) -> None:
     _save_state(state)
 
 
+def _smart_task_type(action: str) -> str:
+    try:
+        return SMART_TASK_TYPES[action]
+    except KeyError as exc:  # pragma: no cover - guarded by API routing
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="不支持的智能处理动作。") from exc
+
+
+def _smart_task_should_process_image(action: str) -> bool:
+    return action in {"run-all", "run-background", "retry", "fallback", "prioritize"}
+
+
+def _smart_task_should_enrich(action: str) -> bool:
+    return action in {"run-all", "run-enrich", "retry", "fallback", "reanalyze", "prioritize"}
+
+
+def _smart_waiting_provider(action: str, *, has_image: bool, priority: bool) -> str:
+    if not has_image and _smart_task_should_process_image(action):
+        return "待上传原图"
+    if action == "fallback":
+        return "等待进入本地 fallback 队列"
+    if action in {"run-enrich", "reanalyze"}:
+        return "等待标签补全"
+    if priority:
+        return "已进入优先队列"
+    return "等待进入处理队列"
+
+
+def _smart_running_provider(action: str, config: dict[str, Any], *, has_image: bool) -> str:
+    if not has_image and _smart_task_should_process_image(action):
+        return "待上传原图"
+    if action == "fallback":
+        return "本地白底预览生成中"
+    if action in {"run-enrich", "reanalyze"}:
+        return config["label_model"]
+    return config["primary_service"]
+
+
+def _smart_completion_message(action: str, item: ClothingItem) -> str:
+    messages = {
+        "run-all": f"{item.name} 已完成识别与标签补全。",
+        "run-background": f"{item.name} 已完成人像服饰识别。",
+        "run-enrich": f"{item.name} 已完成标签补全。",
+        "retry": f"{item.name} 已重新处理完成。",
+        "fallback": f"{item.name} 已切换到本地 fallback 处理。",
+        "reanalyze": f"{item.name} 已重新发起 AI 分析。",
+        "prioritize": f"{item.name} 已优先完成用户服饰识别。",
+    }
+    return messages[action]
+
+
+def _queue_smart_item_task(
+    db: Session,
+    user: User,
+    item: ClothingItem,
+    action: str,
+    *,
+    priority: bool = False,
+    replace_existing: bool = False,
+) -> tuple[Any, task_queue_service.EnqueueResult]:
+    task_type = _smart_task_type(action)
+    task, created = assistant_task_service.create_or_reuse_task(
+        db,
+        user,
+        task_type,
+        {
+            "item_id": item.id,
+            "item_name": item.name,
+            "action": action,
+            "priority": priority,
+        },
+        dedupe_fields={"item_id": item.id},
+        replace_existing=replace_existing,
+    )
+
+    waiting_status = "waiting"
+    if not item.image_url and _smart_task_should_process_image(action):
+        waiting_status = "raw"
+
+    _update_smart_item_state(
+        user,
+        item.id,
+        status=waiting_status,
+        provider=_smart_waiting_provider(action, has_image=bool(item.image_url), priority=priority),
+        confirmed=False,
+        priority=priority,
+        task_id=task.id,
+        task_type=task.task_type,
+        last_error=None,
+    )
+
+    enqueue_result = task_queue_service.enqueue_call(
+        "services.experience_service.run_smart_item_task",
+        task.id,
+        item.id,
+        user.id,
+        str(db.get_bind().url),
+        action,
+        priority,
+        queue_name=settings.task_queue_smart_priority_name if priority else settings.task_queue_smart_default_name,
+        job_id=f"assistant-task-{task.id}",
+        timeout=settings.task_queue_smart_timeout_seconds,
+        reused_existing=not created,
+    )
+    return task, enqueue_result
+
+
+def run_smart_item_task(
+    task_id: int,
+    item_id: int,
+    user_id: int,
+    database_url: str,
+    action: str,
+    priority: bool = False,
+) -> None:
+    connect_args = {"check_same_thread": False} if database_url.startswith("sqlite") else {}
+    engine = create_engine(database_url, connect_args=connect_args, future=True)
+    session_local = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
+    db = session_local()
+    user: User | None = None
+    try:
+        task = assistant_task_service.mark_task_running(db, task_id)
+        user = db.get(User, user_id)
+        if user is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found for smart wardrobe task.")
+
+        item = wardrobe_service.get_item(db, item_id, user.id)
+        _, user_state = _load_user_state(user)
+        config = _normalize_smart_services(user_state["smart"].get("services"))
+
+        _update_smart_item_state(
+            user,
+            item.id,
+            status="running" if item.image_url or not _smart_task_should_process_image(action) else "raw",
+            provider=_smart_running_provider(action, config, has_image=bool(item.image_url)),
+            confirmed=False,
+            priority=priority,
+            task_id=task.id,
+            task_type=task.task_type,
+            last_error=None,
+        )
+
+        prefer_local = action == "fallback"
+        if _smart_task_should_process_image(action) and item.image_url:
+            item = wardrobe_service.process_item_image(db, item.id, user, prefer_local=prefer_local)
+
+        if _smart_task_should_enrich(action):
+            item = assistant_service.auto_enrich_item(db, item, user, config)
+
+        final_status, provider = _smart_result_state(item, config, prefer_local=prefer_local)
+        if not item.image_url and final_status == "raw" and (item.occasions or item.style_notes) and _smart_task_should_enrich(action):
+            provider = "标签补全已完成"
+
+        _update_smart_item_state(
+            user,
+            item.id,
+            status=final_status,
+            provider=provider,
+            confirmed=action == "run-all",
+            priority=priority,
+            task_id=task.id,
+            task_type=task.task_type,
+            last_error=None,
+        )
+        assistant_task_service.complete_task(
+            db,
+            task.id,
+            {
+                "item": _map_wardrobe_item(item),
+                "status": final_status,
+                "provider": provider,
+                "action": action,
+                "message": _smart_completion_message(action, item),
+            },
+        )
+    except Exception as exc:  # pragma: no cover - background task failure path
+        if user is not None:
+            _update_smart_item_state(
+                user,
+                item_id,
+                status="error",
+                provider="处理失败",
+                priority=priority,
+                last_error=str(exc),
+            )
+        assistant_task_service.fail_task(db, task_id, str(exc))
+    finally:
+        db.close()
+        engine.dispose()
+
+
 def run_smart_action(db: Session, user: User, action: str) -> dict[str, Any]:
+    if action not in {"run-all", "run-background", "run-enrich"}:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="不支持的智能处理动作。")
+
     items = _all_user_items(db, user)
-    _, user_state = _load_user_state(user)
-    config = _normalize_smart_services(user_state["smart"].get("services"))
+    task_ids: list[int] = []
+    queued_count = 0
+    reused_count = 0
+    touched_item_ids: list[int] = []
 
-    if action in {"run-all", "run-background"}:
-        for item in items:
-            item = _process_smart_item_background(db, user, item, config)
-            if action == "run-all":
-                assistant_service.auto_enrich_item(db, item, user, config)
-                current_status, provider = _smart_result_state(item, config)
-                _update_smart_item_state(user, item.id, confirmed=True, status=current_status, provider=provider)
+    for item in items:
+        if action == "run-background" and not item.image_url:
+            _update_smart_item_state(user, item.id, status="raw", provider="待上传原图", confirmed=False)
+            continue
 
-    if action in {"run-all", "run-enrich"}:
-        for item in items:
-            assistant_service.auto_enrich_item(db, item, user, config)
-            current_status, provider = _smart_result_state(item, config)
-            if not item.image_url and current_status == "raw" and (item.occasions or item.style_notes):
-                provider = "标签补全已完成"
-            _update_smart_item_state(user, item.id, status=current_status, confirmed=(action == "run-all"), provider=provider)
+        task, enqueue_result = _queue_smart_item_task(db, user, item, action)
+        task_ids.append(task.id)
+        touched_item_ids.append(item.id)
+        if enqueue_result.reused_existing:
+            reused_count += 1
+        else:
+            queued_count += 1
+
+    if touched_item_ids:
+        _track_recent_smart_items(user, touched_item_ids)
 
     return {
         "status": "queued",
@@ -1651,6 +1825,9 @@ def run_smart_action(db: Session, user: User, action: str) -> dict[str, Any]:
             "run-background": "批量用户服饰抠图任务已提交。",
             "run-enrich": "批量标签补全任务已提交。",
         }[action],
+        "task_ids": task_ids,
+        "queued_count": queued_count,
+        "reused_count": reused_count,
     }
 
 
@@ -1689,6 +1866,8 @@ def upload_smart_batch(db: Session, user: User, payload: ExperienceUploadBatchPa
         )
         _update_smart_item_state(user, item.id, status="raw", confirmed=False, priority=False)
         created.append(item)
+    if created:
+        _track_recent_smart_items(user, [item.id for item in created])
     state, user_state = _load_user_state(user)
     user_state["smart"]["last_upload_mode"] = {**payload.model_dump(), "count": len(created), "uploaded_at": _now().isoformat()}
     _save_state(state)
@@ -1705,6 +1884,9 @@ def upload_smart_batch_files(
 ) -> dict[str, Any]:
     created = []
     previews = []
+    task_ids: list[int] = []
+    queued_count = 0
+    reused_count = 0
     category, slot = _smart_category_defaults(default_category)
     auto_decompose = "解构" in mode or "抠图" in mode or "识别" in mode
     _, user_state = _load_user_state(user)
@@ -1765,9 +1947,17 @@ def upload_smart_batch_files(
             user,
         )
         item = wardrobe_service.attach_item_image(db, item.id, upload, user)
-        _update_smart_item_state(user, item.id, status="waiting", provider="等待进入处理队列", confirmed=False, priority=False)
+        task, enqueue_result = _queue_smart_item_task(db, user, item, "run-all")
+        task_ids.append(task.id)
+        if enqueue_result.reused_existing:
+            reused_count += 1
+        else:
+            queued_count += 1
         created.append(_map_wardrobe_item(item))
 
+    created_item_ids = [int(item["id"]) for item in created] if created else []
+    if created_item_ids:
+        _track_recent_smart_items(user, created_item_ids)
     state, user_state = _load_user_state(user)
     user_state["smart"]["last_upload_mode"] = {
         "mode": mode,
@@ -1787,30 +1977,26 @@ def upload_smart_batch_files(
         "message": action_message,
         "items": created,
         "previews": previews,
-        "focus_item_ids": [int(item["id"]) for item in created] if auto_decompose else [],
+        "focus_item_ids": created_item_ids if auto_decompose else created_item_ids,
         "try_on_url": "/try-on" if auto_decompose and created else None,
+        "task_ids": task_ids,
+        "queued_count": queued_count,
+        "reused_count": reused_count,
     }
 
 
 def retry_smart_item(db: Session, user: User, item_id: int) -> dict[str, Any]:
     item = wardrobe_service.get_item(db, item_id, user.id)
-    _, user_state = _load_user_state(user)
-    config = _normalize_smart_services(user_state["smart"].get("services"))
-    item = _process_smart_item_background(db, user, item, config)
-    assistant_service.auto_enrich_item(db, item, user, config)
-    status_value, provider = _smart_result_state(item, config)
-    _update_smart_item_state(user, item.id, status=status_value, provider=provider, confirmed=False, priority=False)
-    return {"status": "completed", "message": f"{item.name} 已重新处理完成。"}
+    task, _ = _queue_smart_item_task(db, user, item, "retry", replace_existing=True)
+    _track_recent_smart_items(user, [item.id])
+    return {"status": "queued", "message": f"{item.name} 已重新加入智能处理队列。", "task_id": task.id}
 
 
 def fallback_smart_item(db: Session, user: User, item_id: int) -> dict[str, Any]:
     item = wardrobe_service.get_item(db, item_id, user.id)
-    _, user_state = _load_user_state(user)
-    config = _normalize_smart_services(user_state["smart"].get("services"))
-    item = wardrobe_service.process_item_image(db, item.id, user, prefer_local=True)
-    assistant_service.auto_enrich_item(db, item, user, config)
-    _update_smart_item_state(user, item.id, status="fallback", provider="本地白底预览", confirmed=False, priority=False)
-    return {"status": "completed", "message": f"{item.name} 已切换到本地 fallback 处理。"}
+    task, _ = _queue_smart_item_task(db, user, item, "fallback", replace_existing=True)
+    _track_recent_smart_items(user, [item.id])
+    return {"status": "queued", "message": f"{item.name} 已加入本地 fallback 队列。", "task_id": task.id}
 
 
 def confirm_smart_enrich(db: Session, user: User, item_id: int) -> dict[str, Any]:
@@ -1838,25 +2024,20 @@ def update_smart_enrich(db: Session, user: User, item_id: int, payload: Experien
 
 def reanalyze_smart_item(db: Session, user: User, item_id: int) -> dict[str, Any]:
     item = wardrobe_service.get_item(db, item_id, user.id)
-    _, user_state = _load_user_state(user)
-    config = _normalize_smart_services(user_state["smart"].get("services"))
-    assistant_service.auto_enrich_item(db, item, user, config)
-    provider = "本地白底预览" if "cleanup-fallback" in (item.tags or []) else _get_item_status(item, _load_user_state(user)[1])["provider"]
-    _update_smart_item_state(user, item.id, status="done" if item.processed_image_url else "raw", confirmed=False, provider=provider)
-    return {"status": "completed", "message": f"{item.name} 已重新发起 AI 分析。"}
+    task, _ = _queue_smart_item_task(db, user, item, "reanalyze", replace_existing=True)
+    _track_recent_smart_items(user, [item.id])
+    return {"status": "queued", "message": f"{item.name} 已重新加入 AI 分析队列。", "task_id": task.id}
 
 
 def prioritize_pending_item(db: Session, user: User, item_id: int) -> dict[str, Any]:
     item = wardrobe_service.get_item(db, item_id, user.id)
-    _, user_state = _load_user_state(user)
-    config = _normalize_smart_services(user_state["smart"].get("services"))
-    if item.image_url:
-        item = _process_smart_item_background(db, user, item, config, priority=True)
-        assistant_service.auto_enrich_item(db, item, user, config)
-        return {"status": "completed", "message": f"{item.name} 已优先完成用户服饰识别。"}
+    if not item.image_url:
+        _update_smart_item_state(user, item_id, priority=True, status="raw", provider="待上传原图", confirmed=False)
+        return {"status": "queued", "message": "该单品已标记为优先处理，等待上传原图。"}
 
-    _update_smart_item_state(user, item_id, priority=True, status="running")
-    return {"status": "queued", "message": "该单品已提升到优先队列。"}
+    task, _ = _queue_smart_item_task(db, user, item, "prioritize", priority=True, replace_existing=True)
+    _track_recent_smart_items(user, [item.id])
+    return {"status": "queued", "message": f"{item.name} 已提升到优先处理队列。", "task_id": task.id}
 
 
 def _month_logs(logs: list[WearLog], year: int, month: int) -> list[WearLog]:
@@ -1902,7 +2083,8 @@ def get_outfit_diary_overview(db: Session, user: User, *, year: int = DEFAULT_YE
     month_logs = _month_logs(logs, year, month)
     wear_counts = Counter(item_id for log in month_logs for item_id in log.item_ids)
     favorite_items = sum(1 for _, count in wear_counts.items() if count >= 2)
-    new_items = sum(1 for item in items if item.created_at >= datetime(year, month, 1) - timedelta(days=30))
+    new_item_cutoff = datetime(year, month, 1) - timedelta(days=30)
+    new_items = sum(1 for item in items if (_as_utc_naive(item.created_at) or _now()) >= new_item_cutoff)
     details = {str(log.worn_on.day): _map_diary_detail(log, items_by_id) for log in month_logs}
     _, user_state = _load_user_state(user)
     diary_state = user_state["diary"]
@@ -2138,7 +2320,8 @@ def get_closet_analysis_overview(db: Session, user: User, *, season: str | None 
     wear_counter = Counter(item_id for log in logs for item_id in log.item_ids)
     for item in items:
         last = last_worn.get(item.id)
-        idle_days = (datetime(DEFAULT_YEAR, DEFAULT_MONTH, 30) - (last or item.created_at)).days
+        idle_reference = _as_utc_naive(last or item.created_at) or _now()
+        idle_days = (datetime(DEFAULT_YEAR, DEFAULT_MONTH, 30) - idle_reference).days
         if idle_days >= 90:
             action_copy = _idle_action_copy(idle_actions.get(str(item.id), {}).get("action"))
             idle_items.append(
@@ -2623,7 +2806,8 @@ def get_closet_analysis_overview(db: Session, user: User, *, season: str | None 
     idle_items = []
     for item in items:
         last = last_worn.get(item.id)
-        idle_days = (datetime(DEFAULT_YEAR, DEFAULT_MONTH, 30) - (last or item.created_at)).days
+        idle_reference = _as_utc_naive(last or item.created_at) or _now()
+        idle_days = (datetime(DEFAULT_YEAR, DEFAULT_MONTH, 30) - idle_reference).days
         if idle_days >= 90:
             action_copy = _idle_action_copy(idle_actions.get(str(item.id), {}).get("action"))
             idle_items.append(

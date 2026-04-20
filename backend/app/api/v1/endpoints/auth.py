@@ -48,6 +48,7 @@ def password_reset(payload: PasswordResetRequest, db: Session = Depends(get_db))
 def confirm_password_reset(payload: PasswordResetConfirmRequest, db: Session = Depends(get_db)) -> StatusMessageResponse:
     return auth_service.reset_password_with_token(
         db,
+        email=payload.email,
         token=payload.token,
         access_token=payload.access_token,
         new_password=payload.new_password,

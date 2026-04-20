@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { PanelSkeleton } from "@/components/ui/panel-skeleton";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import {
   ApiError,
@@ -11,7 +12,6 @@ import {
   fetchExperienceStyleProfile,
   updateExperienceStyleProfile
 } from "@/lib/api";
-import { PanelSkeleton } from "@/components/ui/panel-skeleton";
 
 import styles from "./style-profile-experience.module.css";
 
@@ -47,56 +47,68 @@ interface ToastState {
   tone: "soft" | "error";
 }
 
-const SILHOUETTE_ICON_MAP: Record<string, string> = {
-  H型: "📐",
-  V型: "🔺",
-  X型: "⏳",
-  宽松廓形: "🔷",
-  修身: "📏",
-  A型: "🌊"
-};
-
-const STYLE_PROFILE_DEMO_STORAGE_KEY = "ai-wardrobe:experience-style-profile-demo";
-
-const STYLE_PROFILE_DEMO_DRAFT: ExperienceStyleProfileDraft = {
-  favorite_colors: ["奶油白", "柔粉", "浅灰蓝"],
-  avoid_colors: ["荧光绿", "高饱和紫"],
-  favorite_silhouettes: ["H型", "A型", "宽松廓形"],
-  avoid_silhouettes: ["修身"],
-  style_keywords: ["甜感", "轻盈", "通勤", "安静精致"],
-  dislike_keywords: ["太街头", "过度张扬"],
-  commute_profile: "轻正式，但不要显得太板正",
-  comfort_priorities: ["面料柔软", "方便久坐", "不勒腰"],
-  wardrobe_rules: ["通勤 look 不超过三个主色", "约会时保留一个柔和亮点", "配饰只选一个重点"],
-  personal_note: "希望整体是温柔、有呼吸感的，不想为了精致而显得太用力。"
-};
-
-const STYLE_PROFILE_COLOR_HEX: Record<string, string> = {
-  奶油白: "#F5EBDD",
-  柔粉: "#E7B8B0",
-  浅灰蓝: "#B9C8D6",
-  荧光绿: "#A4FF00",
-  高饱和紫: "#8A34D6",
-  驼色: "#C8A27A",
-  深蓝: "#4C628A",
-  米白: "#F2E6D8"
-};
-
-const STYLE_PROFILE_SILHOUETTE_DESC: Record<string, string> = {
-  H型: "线条平衡，适合日常通勤和长期穿着",
-  V型: "上提比例，更显精神和利落感",
-  X型: "强调腰线，适合轻正式和约会场景",
-  A型: "下摆轻盈有呼吸感，走动更柔和",
-  宽松廓形: "松弛不压身，适合久坐和叠搭",
-  修身: "强调曲线，但容易显得拘束"
-};
-
-const STYLE_PROFILE_KEYWORD_TONES = ["primary", "primary", "secondary", "secondary", "tertiary", "tertiary"] as const;
-
 interface DemoStyleProfileStorage {
   draft: ExperienceStyleProfileDraft;
   updatedAt: string | null;
 }
+
+const STYLE_PROFILE_DEMO_STORAGE_KEY = "ai-wardrobe:experience-style-profile-demo";
+
+const SILHOUETTE_ICON_MAP: Record<string, string> = {
+  "H型": "🟫",
+  "V型": "🔻",
+  "X型": "✨",
+  "A型": "🔺",
+  "宽松直筒": "🧥",
+  "合体修身": "📐"
+};
+
+const STYLE_PROFILE_DEMO_DRAFT: ExperienceStyleProfileDraft = {
+  favorite_colors: ["奶油白", "雾粉", "浅灰蓝"],
+  avoid_colors: ["荧光绿", "高饱和紫"],
+  favorite_silhouettes: ["H型", "A型", "宽松直筒"],
+  avoid_silhouettes: ["合体修身"],
+  style_keywords: ["柔和", "轻盈", "通勤", "安静精致"],
+  dislike_keywords: ["过度街头", "太强攻击感"],
+  commute_profile: "轻正式，但不要显得太板正。",
+  comfort_priorities: ["面料柔软", "方便久坐", "行动轻松"],
+  wardrobe_rules: [
+    "通勤造型尽量控制在三种主色以内。",
+    "约会或出门时保留一个柔和亮点。",
+    "配饰只保留一个主重点，让整体更轻松。"
+  ],
+  personal_note: "希望整体气质温柔、透气、有呼吸感，不想为了精致而显得太用力。"
+};
+
+const STYLE_PROFILE_COLOR_HEX: Record<string, string> = {
+  "奶油白": "#F5EBDD",
+  "雾粉": "#E8BBB6",
+  "浅灰蓝": "#B9C8D6",
+  "荧光绿": "#A8FF3E",
+  "高饱和紫": "#7A42D7",
+  "驼色": "#C8A27A",
+  "深蓝": "#4C628A",
+  "米白": "#F2E6D8",
+  "茶棕": "#9C7658"
+};
+
+const STYLE_PROFILE_SILHOUETTE_DESC: Record<string, string> = {
+  "H型": "线条平稳、不过分强调曲线，适合日常通勤和长期穿着。",
+  "V型": "更利落、提气，看起来精神而清爽。",
+  "X型": "会强调腰线，适合需要一点精致感的场景。",
+  "A型": "下摆更轻盈，走动时有柔和的呼吸感。",
+  "宽松直筒": "松弛但不拖沓，对久坐和叠穿都更友好。",
+  "合体修身": "能突出曲线，但连续穿着时更容易显得拘束。"
+};
+
+const STYLE_PROFILE_KEYWORD_TONES = [
+  "primary",
+  "primary",
+  "secondary",
+  "secondary",
+  "tertiary",
+  "tertiary"
+] as const;
 
 function joinList(values: string[]) {
   return values.join("，");
@@ -104,7 +116,7 @@ function joinList(values: string[]) {
 
 function parseListInput(value: string) {
   return value
-    .split(/[\n,，]/)
+    .split(/[\n,，、]/)
     .map((entry) => entry.trim())
     .filter(Boolean);
 }
@@ -197,27 +209,27 @@ function mergeDraft(
   patch: Partial<ExperienceStyleProfileDraft>
 ): ExperienceStyleProfileDraft {
   return {
-    favorite_colors: patch.favorite_colors !== undefined ? patch.favorite_colors : draft.favorite_colors,
-    avoid_colors: patch.avoid_colors !== undefined ? patch.avoid_colors : draft.avoid_colors,
-    favorite_silhouettes: patch.favorite_silhouettes !== undefined ? patch.favorite_silhouettes : draft.favorite_silhouettes,
-    avoid_silhouettes: patch.avoid_silhouettes !== undefined ? patch.avoid_silhouettes : draft.avoid_silhouettes,
-    style_keywords: patch.style_keywords !== undefined ? patch.style_keywords : draft.style_keywords,
-    dislike_keywords: patch.dislike_keywords !== undefined ? patch.dislike_keywords : draft.dislike_keywords,
-    commute_profile: patch.commute_profile !== undefined ? patch.commute_profile : draft.commute_profile,
-    comfort_priorities: patch.comfort_priorities !== undefined ? patch.comfort_priorities : draft.comfort_priorities,
-    wardrobe_rules: patch.wardrobe_rules !== undefined ? patch.wardrobe_rules : draft.wardrobe_rules,
-    personal_note: patch.personal_note !== undefined ? patch.personal_note : draft.personal_note
+    favorite_colors: patch.favorite_colors ?? draft.favorite_colors,
+    avoid_colors: patch.avoid_colors ?? draft.avoid_colors,
+    favorite_silhouettes: patch.favorite_silhouettes ?? draft.favorite_silhouettes,
+    avoid_silhouettes: patch.avoid_silhouettes ?? draft.avoid_silhouettes,
+    style_keywords: patch.style_keywords ?? draft.style_keywords,
+    dislike_keywords: patch.dislike_keywords ?? draft.dislike_keywords,
+    commute_profile: patch.commute_profile ?? draft.commute_profile,
+    comfort_priorities: patch.comfort_priorities ?? draft.comfort_priorities,
+    wardrobe_rules: patch.wardrobe_rules ?? draft.wardrobe_rules,
+    personal_note: patch.personal_note ?? draft.personal_note
   };
 }
 
 function formatDemoUpdatedAt(updatedAt: string | null) {
   if (!updatedAt) {
-    return "演示模式 · 尚未本地保存";
+    return "演示模式 · 还没有保存过本地修改";
   }
 
   const date = new Date(updatedAt);
   if (Number.isNaN(date.getTime())) {
-    return "演示模式 · 已本地保存";
+    return "演示模式 · 已在当前设备保存";
   }
 
   return `演示模式 · ${date.toLocaleString("zh-CN", {
@@ -225,7 +237,7 @@ function formatDemoUpdatedAt(updatedAt: string | null) {
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit"
-  })}`;
+  })} 已更新`;
 }
 
 function readDemoStyleProfileStorage(): DemoStyleProfileStorage {
@@ -268,7 +280,11 @@ function writeDemoStyleProfileStorage(draft: ExperienceStyleProfileDraft) {
   };
 
   if (typeof window !== "undefined") {
-    window.localStorage.setItem(STYLE_PROFILE_DEMO_STORAGE_KEY, JSON.stringify(payload));
+    try {
+      window.localStorage.setItem(STYLE_PROFILE_DEMO_STORAGE_KEY, JSON.stringify(payload));
+    } catch {
+      // Ignore storage failures and keep the in-memory preview state.
+    }
   }
 
   return payload;
@@ -283,12 +299,12 @@ function mapColorEntry(name: string) {
 
 function buildDemoDna(profile: ExperienceStyleProfileDraft): ExperienceStyleDnaEntry[] {
   const metrics = [
-    { label: "甜美可爱", weight: 3 + Math.min(profile.favorite_colors.length, 4), color: "#F0A6C1" },
+    { label: "柔和甜感", weight: 3 + Math.min(profile.favorite_colors.length, 4), color: "#F0A6C1" },
     { label: "优雅知性", weight: 2 + Math.min(profile.wardrobe_rules.length, 4), color: "#C7A07B" },
-    { label: "街头潮酷", weight: 1 + Math.min(profile.dislike_keywords.length, 2), color: "#A794C9" },
-    { label: "轻熟商务", weight: 2 + Math.min(profile.style_keywords.length, 4), color: "#8EA6BD" },
-    { label: "性感魅惑", weight: 1 + Math.min(profile.favorite_silhouettes.length, 3), color: "#D68D8D" },
-    { label: "独家慵懒", weight: 2 + Math.min(profile.comfort_priorities.length, 4), color: "#9CB792" }
+    { label: "轻街头感", weight: 1 + Math.min(profile.dislike_keywords.length, 2), color: "#A794C9" },
+    { label: "通勤利落", weight: 2 + Math.min(profile.style_keywords.length, 4), color: "#8EA6BD" },
+    { label: "曲线表达", weight: 1 + Math.min(profile.favorite_silhouettes.length, 3), color: "#D68D8D" },
+    { label: "慵懒舒适", weight: 2 + Math.min(profile.comfort_priorities.length, 4), color: "#9CB792" }
   ];
   const total = metrics.reduce((sum, entry) => sum + entry.weight, 0);
 
@@ -315,8 +331,8 @@ function buildDemoSilhouettes(profile: ExperienceStyleProfileDraft) {
     ...profile.avoid_silhouettes,
     "H型",
     "A型",
-    "宽松廓形",
-    "修身",
+    "宽松直筒",
+    "合体修身",
     "V型",
     "X型"
   ]));
@@ -327,12 +343,16 @@ function buildDemoSilhouettes(profile: ExperienceStyleProfileDraft) {
 
     return {
       name,
-      desc: STYLE_PROFILE_SILHOUETTE_DESC[name] ?? "作为演示态的轮廓标签，可继续手动调整偏好。",
+      desc: STYLE_PROFILE_SILHOUETTE_DESC[name] ?? "这是演示用廓形说明，后续可以继续细调你的偏好边界。",
       preferred,
       badge: preferred ? "偏爱" : avoided ? "少穿" : "观察中",
       item_count: preferred ? 3 : avoided ? 1 : 2,
       wear_count: preferred ? 8 : avoided ? 1 : 4,
-      examples: preferred ? ["奶油白衬衫", "香草奶白半裙"] : avoided ? ["修身针织裙"] : ["草绿针织衫", "深蓝直筒牛仔裤"]
+      examples: preferred
+        ? ["奶油白衬衫", "香草色半裙"]
+        : avoided
+          ? ["贴身针织裙"]
+          : ["灰蓝针织衫", "深蓝直筒牛仔裤"]
     };
   });
 }
@@ -353,8 +373,8 @@ function buildDemoKeywords(profile: ExperienceStyleProfileDraft) {
 function buildDemoOverview(storage: DemoStyleProfileStorage = readDemoStyleProfileStorage()): ExperienceStyleProfileOverview {
   const profile = storage.draft;
   const heroSubtitle = profile.commute_profile?.trim()
-    ? `演示模式 · ${profile.commute_profile?.trim()}`
-    : "演示模式 · 后端未连通时，依然可以先编辑和预览你的风格档案";
+    ? `演示模式 · ${profile.commute_profile.trim()}`
+    : "演示模式 · 后端暂时不可用时，你仍然可以先预览并本地编辑这份风格画像。";
 
   return {
     hero_subtitle: heroSubtitle,
@@ -364,9 +384,158 @@ function buildDemoOverview(storage: DemoStyleProfileStorage = readDemoStyleProfi
     silhouettes: buildDemoSilhouettes(profile),
     keywords: buildDemoKeywords(profile),
     rules: profile.wardrobe_rules,
-    personal_note: profile.personal_note?.trim() || "演示模式下可先写下你的风格边界，等后端接通后再同步到真实账号。",
+    personal_note: profile.personal_note?.trim() || "演示模式下可以先写下你的风格边界，登录并接通后端后再同步到真实账号。",
     updated_at_label: formatDemoUpdatedAt(storage.updatedAt),
     profile
+  };
+}
+
+function createEditorState(overview: ExperienceStyleProfileOverview, key: EditorKey): EditorState {
+  switch (key) {
+    case "favoriteColors":
+      return {
+        key,
+        title: "编辑喜欢的颜色",
+        submitLabel: "保存喜欢颜色",
+        successMessage: "喜欢的颜色已更新",
+        fields: [
+          {
+            name: "favorite_colors",
+            label: "喜欢的颜色",
+            type: "text",
+            value: joinList(overview.profile.favorite_colors),
+            placeholder: "奶油白，雾粉，浅灰蓝"
+          }
+        ]
+      };
+    case "avoidColors":
+      return {
+        key,
+        title: "编辑避开的颜色",
+        submitLabel: "保存避开颜色",
+        successMessage: "避开颜色已更新",
+        fields: [
+          {
+            name: "avoid_colors",
+            label: "避开的颜色",
+            type: "text",
+            value: joinList(overview.profile.avoid_colors),
+            placeholder: "荧光绿，高饱和紫"
+          }
+        ]
+      };
+    case "silhouettes":
+      return {
+        key,
+        title: "编辑廓形偏好",
+        submitLabel: "保存廓形偏好",
+        successMessage: "廓形偏好已更新",
+        fields: [
+          {
+            name: "favorite_silhouettes",
+            label: "偏爱的廓形",
+            type: "text",
+            value: joinList(overview.profile.favorite_silhouettes),
+            placeholder: "H型，A型，宽松直筒"
+          },
+          {
+            name: "avoid_silhouettes",
+            label: "尽量少穿的廓形",
+            type: "text",
+            value: joinList(overview.profile.avoid_silhouettes),
+            placeholder: "合体修身，过硬挺"
+          }
+        ]
+      };
+    case "keywords":
+      return {
+        key,
+        title: "编辑风格关键词",
+        submitLabel: "保存关键词",
+        successMessage: "风格关键词已更新",
+        fields: [
+          {
+            name: "style_keywords",
+            label: "核心风格关键词",
+            type: "text",
+            value: joinList(overview.profile.style_keywords),
+            placeholder: "柔和，轻盈，通勤"
+          },
+          {
+            name: "comfort_priorities",
+            label: "舒适优先项",
+            type: "text",
+            value: joinList(overview.profile.comfort_priorities),
+            placeholder: "面料柔软，方便久坐，行动轻松"
+          }
+        ]
+      };
+    case "rules":
+      return {
+        key,
+        title: "编辑衣橱规则",
+        description: "一行一条，后续推荐和筛选会优先参考这些规则。",
+        submitLabel: "保存衣橱规则",
+        successMessage: "衣橱规则已保存",
+        fields: [
+          {
+            name: "wardrobe_rules",
+            label: "衣橱规则",
+            type: "textarea",
+            value: overview.profile.wardrobe_rules.join("\n"),
+            placeholder: "每行一条规则"
+          }
+        ]
+      };
+    case "note":
+      return {
+        key,
+        title: "编辑私人备注",
+        description: "这里适合写只有你自己最清楚的边界、提醒和偏好语气。",
+        submitLabel: "保存备注",
+        successMessage: "私人备注已更新",
+        fields: [
+          {
+            name: "personal_note",
+            label: "私人备注",
+            type: "textarea",
+            value: overview.profile.personal_note ?? overview.personal_note,
+            placeholder: "写下你不想被忽略的风格边界、舒适要求或情绪关键词。"
+          }
+        ]
+      };
+  }
+}
+
+function buildPayloadFromEditor(editor: EditorState) {
+  const values = Object.fromEntries(editor.fields.map((field) => [field.name, field.value]));
+
+  if (editor.key === "favoriteColors") {
+    return { favorite_colors: parseListInput(values.favorite_colors ?? "") };
+  }
+  if (editor.key === "avoidColors") {
+    return { avoid_colors: parseListInput(values.avoid_colors ?? "") };
+  }
+  if (editor.key === "silhouettes") {
+    return {
+      favorite_silhouettes: parseListInput(values.favorite_silhouettes ?? ""),
+      avoid_silhouettes: parseListInput(values.avoid_silhouettes ?? "")
+    };
+  }
+  if (editor.key === "keywords") {
+    return {
+      style_keywords: parseListInput(values.style_keywords ?? ""),
+      comfort_priorities: parseListInput(values.comfort_priorities ?? "")
+    };
+  }
+  if (editor.key === "rules") {
+    return {
+      wardrobe_rules: parseListInput(values.wardrobe_rules ?? "")
+    };
+  }
+
+  return {
+    personal_note: (values.personal_note ?? "").trim() || null
   };
 }
 
@@ -439,13 +608,12 @@ export function StyleProfileExperience() {
           setOverview(null);
           setDemoMode(false);
           setAuthRequired(true);
-          setError("请先登录，登录后查看真实数据。");
+          setError("登录后就能查看和编辑你的真实风格画像。");
         } else {
-          const fallback = buildDemoOverview();
-          setOverview(fallback);
+          setOverview(buildDemoOverview());
           setDemoMode(true);
           setAuthRequired(false);
-          setError("当前为演示模式，登录后查看真实数据");
+          setError("真实数据暂时没连通，先为你切到可编辑的演示模式。");
         }
       } finally {
         if (active) {
@@ -476,170 +644,30 @@ export function StyleProfileExperience() {
         setOverview(null);
         setDemoMode(false);
         setAuthRequired(true);
-        setError("请先登录，登录后查看真实数据。");
+        setError("登录后就能查看和编辑你的真实风格画像。");
         setToast({
-          message: "请先登录",
+          message: "请先登录，再继续查看真实画像。",
           tone: "error"
         });
       } else {
-        const fallback = buildDemoOverview();
-        setOverview(fallback);
+        setOverview(buildDemoOverview());
         setDemoMode(true);
         setAuthRequired(false);
-        setError("当前为演示模式，登录后查看真实数据");
+        setError("当前已回退到演示模式，你仍然可以继续编辑和预览。");
         setToast({
-          message: showMessage ?? (nextError instanceof Error ? `${nextError.message}，已继续显示演示画像。` : "刷新失败，已继续显示演示画像。"),
+          message: showMessage ?? (nextError instanceof Error ? `${nextError.message}，已切换到演示模式。` : "刷新失败，已切换到演示模式。"),
           tone: "soft"
         });
       }
     }
   }
 
-  function openFavoriteColorsEditor() {
+  function openEditor(key: EditorKey) {
     if (!overview) {
       return;
     }
 
-    setEditor({
-      key: "favoriteColors",
-      title: "编辑喜欢颜色",
-      submitLabel: "保存颜色",
-      successMessage: "喜欢颜色已更新",
-      fields: [
-        {
-          name: "favorite_colors",
-          label: "喜欢颜色",
-          type: "text",
-          value: joinList(overview.profile.favorite_colors),
-          placeholder: "驼色，深蓝，米白"
-        }
-      ]
-    });
-  }
-
-  function openAvoidColorsEditor() {
-    if (!overview) {
-      return;
-    }
-
-    setEditor({
-      key: "avoidColors",
-      title: "编辑避开颜色",
-      submitLabel: "保存避开项",
-      successMessage: "避开颜色已更新",
-      fields: [
-        {
-          name: "avoid_colors",
-          label: "避开颜色",
-          type: "text",
-          value: joinList(overview.profile.avoid_colors),
-          placeholder: "亮粉，亮黄，荧光橙"
-        }
-      ]
-    });
-  }
-
-  function openSilhouettesEditor() {
-    if (!overview) {
-      return;
-    }
-
-    setEditor({
-      key: "silhouettes",
-      title: "编辑偏好轮廓",
-      submitLabel: "保存轮廓",
-      successMessage: "轮廓偏好已更新",
-      fields: [
-        {
-          name: "favorite_silhouettes",
-          label: "喜欢轮廓",
-          type: "text",
-          value: joinList(overview.profile.favorite_silhouettes),
-          placeholder: "H型，V型，宽松廓形"
-        },
-        {
-          name: "avoid_silhouettes",
-          label: "避开轮廓",
-          type: "text",
-          value: joinList(overview.profile.avoid_silhouettes),
-          placeholder: "过紧身，过硬挺"
-        }
-      ]
-    });
-  }
-
-  function openKeywordsEditor() {
-    if (!overview) {
-      return;
-    }
-
-    setEditor({
-      key: "keywords",
-      title: "编辑风格关键词",
-      submitLabel: "保存关键词",
-      successMessage: "风格关键词已更新",
-      fields: [
-        {
-          name: "style_keywords",
-          label: "核心关键词",
-          type: "text",
-          value: joinList(overview.profile.style_keywords),
-          placeholder: "简约，质感，大地色"
-        },
-        {
-          name: "comfort_priorities",
-          label: "舒适优先级",
-          type: "text",
-          value: joinList(overview.profile.comfort_priorities),
-          placeholder: "面料柔软，方便久坐，不勒腰"
-        }
-      ]
-    });
-  }
-
-  function openRulesEditor() {
-    if (!overview) {
-      return;
-    }
-
-    setEditor({
-      key: "rules",
-      title: "编辑衣橱规则",
-      description: "一行一条，会直接影响推荐和筛选时的偏好表达。",
-      submitLabel: "保存规则",
-      successMessage: "衣橱规则已保存",
-      fields: [
-        {
-          name: "wardrobe_rules",
-          label: "衣橱规则",
-          type: "textarea",
-          value: overview.profile.wardrobe_rules.join("\n"),
-          placeholder: "每行一条规则"
-        }
-      ]
-    });
-  }
-
-  function openNoteEditor() {
-    if (!overview) {
-      return;
-    }
-
-    setEditor({
-      key: "note",
-      title: "编辑私人备注",
-      submitLabel: "保存备注",
-      successMessage: "私人备注已更新",
-      fields: [
-        {
-          name: "personal_note",
-          label: "私人备注",
-          type: "textarea",
-          value: overview.profile.personal_note ?? overview.personal_note,
-          placeholder: "写下只有你自己知道的风格边界和灵感"
-        }
-      ]
-    });
+    setEditor(createEditorState(overview, key));
   }
 
   function updateEditorField(name: string, value: string) {
@@ -664,33 +692,7 @@ export function StyleProfileExperience() {
       return;
     }
 
-    const values = Object.fromEntries(editor.fields.map((field) => [field.name, field.value]));
-    let payload: Record<string, string[] | string | null> = {};
-
-    if (editor.key === "favoriteColors") {
-      payload = { favorite_colors: parseListInput(values.favorite_colors ?? "") };
-    } else if (editor.key === "avoidColors") {
-      payload = { avoid_colors: parseListInput(values.avoid_colors ?? "") };
-    } else if (editor.key === "silhouettes") {
-      payload = {
-        favorite_silhouettes: parseListInput(values.favorite_silhouettes ?? ""),
-        avoid_silhouettes: parseListInput(values.avoid_silhouettes ?? "")
-      };
-    } else if (editor.key === "keywords") {
-      payload = {
-        style_keywords: parseListInput(values.style_keywords ?? ""),
-        comfort_priorities: parseListInput(values.comfort_priorities ?? "")
-      };
-    } else if (editor.key === "rules") {
-      payload = {
-        wardrobe_rules: parseListInput(values.wardrobe_rules ?? "")
-      };
-    } else if (editor.key === "note") {
-      payload = {
-        personal_note: (values.personal_note ?? "").trim() || null
-      };
-    }
-
+    const payload = buildPayloadFromEditor(editor);
     setSaving(true);
 
     try {
@@ -700,7 +702,7 @@ export function StyleProfileExperience() {
         setOverview(buildDemoOverview(storage));
         setEditor(null);
         setToast({
-          message: `${editor.successMessage}（演示模式已本地保存）`,
+          message: `${editor.successMessage}，已先保存在当前设备。`,
           tone: "soft"
         });
         return;
@@ -711,7 +713,7 @@ export function StyleProfileExperience() {
       await reloadOverview(result.message || editor.successMessage);
     } catch (nextError) {
       setToast({
-        message: nextError instanceof Error ? nextError.message : "保存失败",
+        message: nextError instanceof Error ? nextError.message : "保存失败，请稍后再试。",
         tone: "error"
       });
     } finally {
@@ -725,9 +727,9 @@ export function StyleProfileExperience() {
 
   if (!overview) {
     return (
-      <div className={styles.emptyState}>
-        <h2>{authRequired ? "请先登录" : "风格画像暂时没有载入成功"}</h2>
-        <p>{error || "请稍后再试。"}</p>
+      <div className={styles.emptyState} data-testid="style-profile-empty-state">
+        <h2>{authRequired ? "登录后查看你的风格画像" : "风格画像暂时还没有加载成功"}</h2>
+        <p>{error || "稍后再试一次，或者先切回其他页面继续浏览。"}</p>
         <button
           type="button"
           className={styles.retryButton}
@@ -745,20 +747,22 @@ export function StyleProfileExperience() {
     );
   }
 
-  const radarPoints = buildRadarPoints(overview.dna);
-  const miniRadarPoints = buildMiniRadarPoints(overview.dna);
-  const radarNodes = buildRadarNodes(overview.dna);
-  const dominantDna = overview.dna.reduce<ExperienceStyleDnaEntry>(
+  const safeDna = overview.dna.length > 0 ? overview.dna : buildDemoDna(overview.profile);
+  const radarPoints = buildRadarPoints(safeDna);
+  const miniRadarPoints = buildMiniRadarPoints(safeDna);
+  const radarNodes = buildRadarNodes(safeDna);
+  const dominantDna = safeDna.reduce<ExperienceStyleDnaEntry>(
     (best, entry) => (entry.value > best.value ? entry : best),
-    overview.dna[0] ?? { label: "风格", value: 0, color: "#D7C4AE" }
+    safeDna[0] ?? { label: "风格", value: 0, color: "#D7C4AE" }
   );
   const averageDna = Math.round(
-    overview.dna.reduce((sum, entry) => sum + entry.value, 0) / Math.max(1, overview.dna.length)
+    safeDna.reduce((sum, entry) => sum + entry.value, 0) / Math.max(1, safeDna.length)
   );
 
   return (
     <div
       className={styles.page}
+      data-testid="style-profile-page"
       style={{ ["--flash-color" as string]: flashColor ? `${flashColor}18` : "transparent" }}
     >
       <section className={styles.hero}>
@@ -774,7 +778,7 @@ export function StyleProfileExperience() {
           <circle cx="20" cy="32" r="3" fill="var(--accent, #c08b5c)" />
         </svg>
         <div className={styles.heroContent}>
-          <div className={styles.heroLabel}>Style Profile</div>
+          <div className={styles.heroLabel}>个人风格档案</div>
           <h1 className={styles.heroTitle}>风格画像</h1>
           <div className={styles.heroSub}>{overview.hero_subtitle}</div>
         </div>
@@ -782,15 +786,15 @@ export function StyleProfileExperience() {
 
       <div className={styles.content}>
         {demoMode ? (
-          <section className={styles.modeNotice}>
-            <div className={styles.modeNoticeBadge}>Demo Mode</div>
+          <section className={styles.modeNotice} data-testid="style-profile-mode-notice">
+            <div className={styles.modeNoticeBadge}>演示模式</div>
             <div className={styles.modeNoticeText}>
-              {error || "真实风格画像尚未接通，当前先展示可编辑的演示内容。你现在做的修改会先保存在本地，后端接通后再切到真实输出。"}
+              {error || "真实画像暂时还没连上，这里先展示一份可以继续编辑的本地演示内容。"}
             </div>
           </section>
         ) : null}
 
-        <section className={styles.sectionBlock}>
+        <section className={styles.sectionBlock} data-testid="style-profile-dna">
           <div className={styles.sectionHeader}>
             <div className={styles.sectionIcon} style={{ background: "#F0E5D8" }}>🧬</div>
             <div className={styles.sectionTitle}>风格 DNA</div>
@@ -850,7 +854,7 @@ export function StyleProfileExperience() {
                   ))}
                 </svg>
                 <div className={styles.dnaCenterBadge}>
-                  <span>Dominant Style</span>
+                  <span>主导气质</span>
                   <strong>{dominantDna.label}</strong>
                   <em>{dominantDna.value}%</em>
                 </div>
@@ -858,12 +862,15 @@ export function StyleProfileExperience() {
             </div>
             <div className={styles.dnaRight}>
               <div className={styles.dnaHeadline}>
-                <div className={styles.dnaHeadlineLabel}>风格主轴</div>
+                <div className={styles.dnaHeadlineLabel}>当前主轴</div>
                 <div className={styles.dnaHeadlineValue}>{dominantDna.label}</div>
-                <p className={styles.dnaHeadlineCopy}>综合色块平均强度 {averageDna}% ，当前更偏向有质感、可落地、不过分刻板的穿搭表达。</p>
+                <p className={styles.dnaHeadlineCopy}>
+                  你的整体风格强度平均值约为 {averageDna}%。
+                  现在这份画像更偏向有质感、可落地、不过分用力的日常表达。
+                </p>
               </div>
               <div className={styles.dnaBar}>
-                {overview.dna.map((entry) => (
+                {safeDna.map((entry) => (
                   <div
                     key={entry.label}
                     className={styles.dnaSeg}
@@ -872,7 +879,7 @@ export function StyleProfileExperience() {
                 ))}
               </div>
               <div className={styles.dnaLegend}>
-                {overview.dna.map((entry) => (
+                {safeDna.map((entry) => (
                   <div key={entry.label} className={styles.dnaLegendItem}>
                     <div className={styles.dnaLegendDot} style={{ background: entry.color }} />
                     <div className={styles.dnaLegendCopy}>
@@ -886,11 +893,19 @@ export function StyleProfileExperience() {
           </div>
         </section>
 
-        <section className={styles.sectionBlock}>
+        <section className={styles.sectionBlock} data-testid="style-profile-favorite-colors">
           <div className={styles.sectionHeader}>
             <div className={styles.sectionIcon} style={{ background: "#E8F0E8" }}>🎨</div>
-            <div className={styles.sectionTitle}>喜欢颜色</div>
-            <button type="button" className={styles.editBtn} onClick={openFavoriteColorsEditor}>编辑</button>
+            <div className={styles.sectionTitle}>喜欢的颜色</div>
+            <button
+              type="button"
+              className={styles.editBtn}
+              data-testid="style-profile-edit-favorite-colors"
+              aria-label="编辑喜欢的颜色"
+              onClick={() => openEditor("favoriteColors")}
+            >
+              编辑
+            </button>
           </div>
           <div className={styles.colorGrid}>
             {overview.favorite_colors.map((entry) => (
@@ -898,6 +913,7 @@ export function StyleProfileExperience() {
                 key={entry.name}
                 type="button"
                 className={styles.colorChip}
+                aria-label={`高亮颜色 ${entry.name}`}
                 onClick={() => setFlashColor(entry.hex)}
               >
                 <div className={styles.colorDot} style={{ background: entry.hex }} />
@@ -907,11 +923,19 @@ export function StyleProfileExperience() {
           </div>
         </section>
 
-        <section className={styles.sectionBlock}>
+        <section className={styles.sectionBlock} data-testid="style-profile-avoid-colors">
           <div className={styles.sectionHeader}>
             <div className={styles.sectionIcon} style={{ background: "#F8E8E8" }}>🚫</div>
-            <div className={styles.sectionTitle}>避开颜色</div>
-            <button type="button" className={styles.editBtn} onClick={openAvoidColorsEditor}>编辑</button>
+            <div className={styles.sectionTitle}>尽量避开的颜色</div>
+            <button
+              type="button"
+              className={styles.editBtn}
+              data-testid="style-profile-edit-avoid-colors"
+              aria-label="编辑避开的颜色"
+              onClick={() => openEditor("avoidColors")}
+            >
+              编辑
+            </button>
           </div>
           <div className={styles.colorGrid}>
             {overview.avoid_colors.map((entry) => (
@@ -919,6 +943,7 @@ export function StyleProfileExperience() {
                 key={entry.name}
                 type="button"
                 className={`${styles.colorChip} ${styles.avoidChip}`}
+                aria-label={`查看避开颜色 ${entry.name}`}
                 onClick={() => setFlashColor(entry.hex)}
               >
                 <div className={styles.colorDot} style={{ background: entry.hex }} />
@@ -926,23 +951,31 @@ export function StyleProfileExperience() {
               </button>
             ))}
           </div>
-          <p className={styles.sectionHint}>AI 穿搭推荐将自动避开这些颜色，确保推荐结果符合你的偏好。</p>
+          <p className={styles.sectionHint}>后续推荐会尽量避开这些颜色，让结果更贴近你的真实穿着边界。</p>
         </section>
 
-        <section className={styles.sectionBlock}>
+        <section className={styles.sectionBlock} data-testid="style-profile-silhouettes">
           <div className={styles.sectionHeader}>
-            <div className={styles.sectionIcon} style={{ background: "#E8E0F0" }}>👤</div>
-            <div className={styles.sectionTitle}>偏好轮廓</div>
-            <button type="button" className={styles.editBtn} onClick={openSilhouettesEditor}>编辑</button>
+            <div className={styles.sectionIcon} style={{ background: "#E8E0F0" }}>🧵</div>
+            <div className={styles.sectionTitle}>廓形偏好</div>
+            <button
+              type="button"
+              className={styles.editBtn}
+              data-testid="style-profile-edit-silhouettes"
+              aria-label="编辑廓形偏好"
+              onClick={() => openEditor("silhouettes")}
+            >
+              编辑
+            </button>
           </div>
-          <p className={styles.sectionHint}>根据当前账号已识别的衣物与穿搭记录自动统计，穿得越多、权重越高。</p>
+          <p className={styles.sectionHint}>这里会综合你已经识别过的衣物和最近穿着习惯，让偏好看起来更像真实生活里的选择。</p>
           <div className={styles.silhouetteGrid}>
             {overview.silhouettes.map((entry) => (
               <article
                 key={entry.name}
                 className={`${styles.silhouetteCard} ${entry.preferred ? styles.silhouetteCardPreferred : ""}`}
               >
-                <div className={styles.silIcon}>{SILHOUETTE_ICON_MAP[entry.name] ?? "✨"}</div>
+                <div className={styles.silIcon}>{SILHOUETTE_ICON_MAP[entry.name] ?? "✦"}</div>
                 <div className={styles.silName}>{entry.name}</div>
                 <div className={styles.silDesc}>{entry.desc}</div>
                 <div className={styles.silStats}>
@@ -957,11 +990,19 @@ export function StyleProfileExperience() {
           </div>
         </section>
 
-        <section className={styles.sectionBlock}>
+        <section className={styles.sectionBlock} data-testid="style-profile-keywords">
           <div className={styles.sectionHeader}>
             <div className={styles.sectionIcon} style={{ background: "#F0E8D8" }}>🏷️</div>
             <div className={styles.sectionTitle}>风格关键词</div>
-            <button type="button" className={styles.editBtn} onClick={openKeywordsEditor}>编辑</button>
+            <button
+              type="button"
+              className={styles.editBtn}
+              data-testid="style-profile-edit-keywords"
+              aria-label="编辑风格关键词"
+              onClick={() => openEditor("keywords")}
+            >
+              编辑
+            </button>
           </div>
           <div className={styles.keywordCloud}>
             {overview.keywords.map((entry) => (
@@ -981,11 +1022,19 @@ export function StyleProfileExperience() {
           </div>
         </section>
 
-        <section className={styles.sectionBlock}>
+        <section className={styles.sectionBlock} data-testid="style-profile-rules">
           <div className={styles.sectionHeader}>
-            <div className={styles.sectionIcon} style={{ background: "#E0E8F0" }}>📋</div>
+            <div className={styles.sectionIcon} style={{ background: "#E0E8F0" }}>🧭</div>
             <div className={styles.sectionTitle}>衣橱规则</div>
-            <button type="button" className={styles.editBtn} onClick={openRulesEditor}>编辑</button>
+            <button
+              type="button"
+              className={styles.editBtn}
+              data-testid="style-profile-edit-rules"
+              aria-label="编辑衣橱规则"
+              onClick={() => openEditor("rules")}
+            >
+              编辑
+            </button>
           </div>
           <div className={styles.rulesList}>
             {overview.rules.map((entry, index) => (
@@ -997,38 +1046,70 @@ export function StyleProfileExperience() {
           </div>
         </section>
 
-        <section className={styles.sectionBlock}>
+        <section className={styles.sectionBlock} data-testid="style-profile-note">
           <div className={styles.sectionHeader}>
-            <div className={styles.sectionIcon} style={{ background: "#F8F0E0" }}>🔒</div>
+            <div className={styles.sectionIcon} style={{ background: "#F8F0E0" }}>📝</div>
             <div className={styles.sectionTitle}>私人备注</div>
-            <button type="button" className={styles.editBtn} onClick={openNoteEditor}>编辑</button>
+            <button
+              type="button"
+              className={styles.editBtn}
+              data-testid="style-profile-edit-note"
+              aria-label="编辑私人备注"
+              onClick={() => openEditor("note")}
+            >
+              编辑
+            </button>
           </div>
           <div className={styles.noteArea}>
             <p className={styles.noteText}>{overview.personal_note}</p>
-            <div className={styles.noteTime}>最后编辑：{overview.updated_at_label}</div>
+            <div className={styles.noteTime}>最后更新：{overview.updated_at_label}</div>
           </div>
         </section>
       </div>
 
-      <button type="button" className={styles.fab} onClick={openNoteEditor} aria-label="编辑风格画像">
-        ✏️
+      <button
+        type="button"
+        className={styles.fab}
+        data-testid="style-profile-floating-edit"
+        onClick={() => openEditor("note")}
+        aria-label="快速编辑私人备注"
+      >
+        ✎
       </button>
 
       {toast ? (
-        <div className={`${styles.toast} ${toast.tone === "soft" ? styles.toastSoft : styles.toastError}`}>
+        <div
+          className={`${styles.toast} ${toast.tone === "soft" ? styles.toastSoft : styles.toastError}`}
+          data-testid="style-profile-toast"
+          role={toast.tone === "error" ? "alert" : "status"}
+          aria-live="polite"
+        >
           {toast.message}
         </div>
       ) : null}
 
       {editor ? (
         <div className={styles.modalMask} role="presentation" onClick={() => !saving && setEditor(null)}>
-          <div className={styles.modalCard} role="dialog" aria-modal="true" aria-labelledby="style-profile-editor-title" onClick={(event) => event.stopPropagation()}>
+          <div
+            className={styles.modalCard}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="style-profile-editor-title"
+            data-testid="style-profile-editor"
+            onClick={(event) => event.stopPropagation()}
+          >
             <div className={styles.modalHeader}>
               <div>
                 <h2 id="style-profile-editor-title" className={styles.modalTitle}>{editor.title}</h2>
                 {editor.description ? <p className={styles.modalDescription}>{editor.description}</p> : null}
               </div>
-              <button type="button" className={styles.modalClose} onClick={() => setEditor(null)} disabled={saving} aria-label="关闭">
+              <button
+                type="button"
+                className={styles.modalClose}
+                onClick={() => setEditor(null)}
+                disabled={saving}
+                aria-label="关闭编辑窗口"
+              >
                 ×
               </button>
             </div>
@@ -1060,7 +1141,13 @@ export function StyleProfileExperience() {
               <button type="button" className={styles.modalGhost} onClick={() => setEditor(null)} disabled={saving}>
                 取消
               </button>
-              <button type="button" className={styles.modalPrimary} onClick={() => void handleEditorSubmit()} disabled={saving}>
+              <button
+                type="button"
+                className={styles.modalPrimary}
+                data-testid="style-profile-save"
+                onClick={() => void handleEditorSubmit()}
+                disabled={saving}
+              >
                 {saving ? "保存中..." : editor.submitLabel}
               </button>
             </div>

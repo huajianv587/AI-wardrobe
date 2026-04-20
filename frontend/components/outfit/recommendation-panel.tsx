@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { startTransition, useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -51,8 +51,8 @@ function buildFallbackRecommendations(prompt: string, availableItems: WardrobeIt
         keyItemId: optionOne[0]?.id ?? null,
         substituteItemIds: optionTwo.slice(0, 2).map((item) => item.id),
         reasonBadges: scenarioKeywords.slice(0, 3),
-        charmCopy: "✨ 先给你一套本地草稿，等后端可用时会替换成带画像记忆的正式建议。",
-        moodEmoji: officeMode ? "☁️" : dateMode ? "💞" : "🌷"
+        charmCopy: "Preview mode gives you a local draft now, then swaps in the live styling path once you sign in.",
+        moodEmoji: officeMode ? "Work" : dateMode ? "Date" : "Weekend"
       },
       {
         title: "Change Another Look",
@@ -63,8 +63,8 @@ function buildFallbackRecommendations(prompt: string, availableItems: WardrobeIt
         keyItemId: optionTwo[0]?.id ?? null,
         substituteItemIds: optionOne.slice(0, 2).map((item) => item.id),
         reasonBadges: ["fallback", "swap-friendly"],
-        charmCopy: "✨ 这套更像备用答案，适合想换口气但又不想完全推翻原来场景的时候。",
-        moodEmoji: "✨"
+        charmCopy: "This backup look keeps the same scene fit while giving you a softer second option.",
+        moodEmoji: "Swap"
       }
     ],
     agentTrace: [
@@ -73,7 +73,7 @@ function buildFallbackRecommendations(prompt: string, availableItems: WardrobeIt
       { node: "Stylist Agent", summary: "Composed the silhouette hierarchy and styling explanation." },
       { node: "Verifier Agent", summary: "Checked that the look remains wearable and coherent." }
     ],
-    profileSummary: "本地草稿模式暂时没有读到你的完整画像，所以只按提示词和衣橱基础结构组合。",
+    profileSummary: "Preview mode has not loaded a personal style profile yet, so this draft is based on the prompt and the local demo wardrobe.",
     closetGaps: [],
     reminderFlags: []
   };
@@ -106,10 +106,16 @@ export function RecommendationPanel() {
       setStatusText(
         isAuthenticated
           ? "Loading your wardrobe so the recommendation cards can reference real user items."
-          : "Loading the public experience wardrobe for recommendation rendering."
+          : "Loading the local preview wardrobe for recommendation rendering."
       );
 
       try {
+        if (!isAuthenticated) {
+          startTransition(() => replaceItems(seedWardrobeItems));
+          setStatusText("Preview mode is using local wardrobe data for recommendations.");
+          return;
+        }
+
         const wardrobeItems = await fetchWardrobeItems();
 
         if (!active) {
@@ -119,9 +125,7 @@ export function RecommendationPanel() {
         startTransition(() => replaceItems(wardrobeItems));
         setStatusText(
           wardrobeItems.length > 0
-            ? isAuthenticated
-              ? `Loaded ${wardrobeItems.length} wardrobe items for recommendation rendering.`
-              : `已载入 ${wardrobeItems.length} 件公开体验单品，推荐页会和私人模式共用同一条接口链路。`
+            ? `Loaded ${wardrobeItems.length} wardrobe items for recommendation rendering.`
             : "Your wardrobe is empty. Add a few pieces first so the styling agent can build private looks."
         );
       } catch (error) {
@@ -130,7 +134,7 @@ export function RecommendationPanel() {
         }
 
         startTransition(() => replaceItems(seedWardrobeItems));
-        setStatusText(error instanceof Error ? `${error.message} 已切到本地降级衣橱。` : "Could not load the wardrobe for this page. Switched to local fallback.");
+        setStatusText(error instanceof Error ? `${error.message} Switched to the local wardrobe fallback.` : "Could not load the wardrobe for this page. Switched to local fallback.");
       } finally {
         if (active) {
           setHydratingWardrobe(false);
@@ -160,9 +164,16 @@ export function RecommendationPanel() {
     setStatusText("");
 
     try {
+      if (previewMode) {
+        const fallback = buildFallbackRecommendations(nextPrompt, availableItems);
+        startTransition(() => setResult(fallback));
+        setStatusText("Preview mode generated a local recommendation draft.");
+        return;
+      }
+
       const payload = await fetchRecommendations(nextPrompt);
       startTransition(() => setResult(payload));
-      setStatusText(previewMode ? "公开体验推荐已经返回。登录后同一按钮会直接切到你的私人衣橱推荐。" : "推荐结果已经按你的私人衣橱返回。");
+      setStatusText("Recommendation results are ready.");
     } catch (error) {
       const fallback = buildFallbackRecommendations(nextPrompt, availableItems);
       startTransition(() => setResult(fallback));
@@ -185,7 +196,7 @@ export function RecommendationPanel() {
       <section className="section-card story-gradient rounded-[32px] p-5">
         {previewMode ? (
           <div className="mb-5">
-            <VisitorPreviewNotice description="当前是公开体验模式。推荐页仍然优先走真实接口，只是暂时读取公开体验衣橱；登录后会自动切到你的私人衣橱与反馈闭环。" />
+            <VisitorPreviewNotice description="Preview mode now stays fully local. This page only uses demo wardrobe data and local recommendation drafts until you sign in." />
           </div>
         ) : null}
 
@@ -253,7 +264,7 @@ export function RecommendationPanel() {
           <StateCard
             variant="empty"
             title="Your wardrobe is still empty"
-            description="先去衣橱页放几件真实单品，再回来让推荐卡真正围绕你的私有衣橱生成。这样理由、置信度和反馈学习才会开始变得像你。"
+            description="Add a few real pieces in the wardrobe first, then come back so recommendations can start reflecting your private closet."
           />
         ) : null}
 

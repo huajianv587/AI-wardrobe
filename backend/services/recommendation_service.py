@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+import unicodedata
 from urllib.parse import urlparse
 
 import httpx
@@ -18,6 +19,8 @@ RECOMMENDER_SYSTEM_PROMPT = (
     "You are an AI wardrobe stylist. Return strict JSON only. "
     "Use only the wardrobe item ids that appear in wardrobe_items. "
     "Prefer 2 outfit options when enough items exist. "
+    "Keep each string concise and JSON-safe. "
+    "If an optional field is unknown, use null or an empty list. "
     "Return this schema exactly: "
     '{"source":"remote-model","outfits":[{"title":"...","rationale":"...","item_ids":[1,2],"confidence":0.84,'
     '"confidence_label":"很懂你","key_item_id":1,"substitute_item_ids":[3],"reason_badges":["soft office"],'
@@ -76,6 +79,35 @@ def _local_recommendations(request: RecommendationRequest, items: list[ClothingI
             AgentTraceStep(node="Stylist Agent", summary="Composed the outfit and generated explanation text locally."),
             AgentTraceStep(node="Verifier Agent", summary="Checked coherence and scene suitability."),
         ],
+    )
+
+
+def _empty_closet_recommendations(request: RecommendationRequest) -> RecommendationResponse:
+    prompt_text = request.prompt.strip() or "your next outfit"
+    return RecommendationResponse(
+        source="local-empty-closet",
+        outfits=[
+            RecommendationOption(
+                title="Start your first wardrobe formula",
+                rationale=(
+                    f"We do not have enough saved pieces to build {prompt_text} yet. "
+                    "Upload a top, a bottom, and one pair of shoes first, then the assistant can generate real outfit combinations."
+                ),
+                item_ids=[],
+                confidence=0.35,
+                confidence_label="closet setup",
+                reason_badges=["upload basics", "top", "bottom", "shoes"],
+                charm_copy="Once your first few staples are in, this area will switch from setup guidance to real styling recommendations.",
+                mood_emoji="sparkles",
+            )
+        ],
+        agent_trace=[
+            AgentTraceStep(node="Closet Readiness Check", summary="The recommendation engine detected that the wardrobe is still empty."),
+            AgentTraceStep(node="Setup Guide", summary="Returned a starter action plan instead of calling the remote stylist on incomplete data."),
+        ],
+        profile_summary="The wardrobe is still empty, so the assistant is showing setup guidance instead of a composed outfit.",
+        closet_gaps=["Missing top", "Missing bottom", "Missing shoes"],
+        reminder_flags=["Upload a few essentials to unlock personalized recommendations."],
     )
 
 
@@ -142,6 +174,13 @@ def _content_from_chat_completions(payload: dict) -> str:
     if isinstance(content, list):
         return "\n".join(str(part.get("text") or "") for part in content if isinstance(part, dict))
     return str(content)
+
+
+def _finish_reason_from_chat_completions(payload: dict) -> str:
+    choices = payload.get("choices", []) if isinstance(payload, dict) else []
+    if not choices or not isinstance(choices[0], dict):
+        return ""
+    return str(choices[0].get("finish_reason") or "")
 
 
 def _looks_like_openai_compatible_url(base_url: str) -> bool:
@@ -232,8 +271,14 @@ def _openai_style_messages(request: RecommendationRequest, items: list[ClothingI
     ]
 
 
+def _normalize_lookup_key(value: str) -> str:
+    normalized = unicodedata.normalize("NFKC", value or "").lower()
+    return re.sub(r"[^0-9a-z\u4e00-\u9fff]+", "", normalized)
+
+
 def _coerce_item_ids(raw_option: dict, items: list[ClothingItem]) -> list[int]:
     items_by_name = {item.name.lower(): item.id for item in items}
+    items_by_normalized_name = {_normalize_lookup_key(item.name): item.id for item in items}
     candidates = raw_option.get("item_ids") or raw_option.get("garment_ids") or []
     parsed: list[int] = []
 
@@ -246,6 +291,11 @@ def _coerce_item_ids(raw_option: dict, items: list[ClothingItem]) -> list[int]:
             mapped = items_by_name.get(candidate.lower())
             if mapped:
                 parsed.append(mapped)
+                continue
+            normalized_candidate = _normalize_lookup_key(candidate)
+            mapped = items_by_normalized_name.get(normalized_candidate)
+            if mapped:
+                parsed.append(mapped)
 
     if parsed:
         return list(dict.fromkeys(parsed))
@@ -256,6 +306,26 @@ def _coerce_item_ids(raw_option: dict, items: list[ClothingItem]) -> list[int]:
             mapped = items_by_name.get(candidate.lower())
             if mapped:
                 parsed.append(mapped)
+                continue
+
+            normalized_candidate = _normalize_lookup_key(candidate)
+            mapped = items_by_normalized_name.get(normalized_candidate)
+            if mapped:
+                parsed.append(mapped)
+                continue
+
+            for item in items:
+                normalized_item_name = _normalize_lookup_key(item.name)
+                if (
+                    normalized_candidate
+                    and normalized_item_name
+                    and (
+                        normalized_candidate in normalized_item_name
+                        or normalized_item_name in normalized_candidate
+                    )
+                ):
+                    parsed.append(item.id)
+                    break
     return list(dict.fromkeys(parsed))
 
 
@@ -352,22 +422,45 @@ def _openai_compatible_recommendations(
     if api_key := _llm_recommender_api_key(base_url, api_key):
         headers["Authorization"] = f"Bearer {api_key}"
 
-    response = httpx.post(
-        _chat_completions_url(base_url),
-        headers=headers,
-        json={
-            "model": _llm_recommender_model_name(base_url, model_name),
-            "temperature": 0.2,
-            "response_format": {"type": "json_object"},
-            "messages": _openai_style_messages(request, items),
-        },
-        timeout=max(settings.ai_demo_adapter_timeout_seconds, settings.multimodal_request_timeout_seconds),
-    )
-    response.raise_for_status()
-    payload = _json_from_text(_content_from_chat_completions(response.json()))
-    if payload is None:
-        raise ValueError("OpenAI-compatible recommender response did not contain valid JSON.")
-    return _parse_remote_response(payload, items)
+    request_payload = {
+        "model": _llm_recommender_model_name(base_url, model_name),
+        "temperature": 0.2,
+        "max_tokens": 900,
+        "response_format": {"type": "json_object"},
+        "messages": _openai_style_messages(request, items),
+    }
+
+    last_error: Exception | None = None
+    for attempt in range(2):
+        response = httpx.post(
+            _chat_completions_url(base_url),
+            headers=headers,
+            json=request_payload,
+            timeout=httpx.Timeout(
+                max(45.0, settings.multimodal_request_timeout_seconds),
+                connect=max(10.0, settings.ai_demo_adapter_timeout_seconds),
+            ),
+        )
+        response.raise_for_status()
+        completion_payload = response.json()
+        content = _content_from_chat_completions(completion_payload)
+        payload = _json_from_text(content)
+        if payload is not None:
+            return _parse_remote_response(payload, items)
+
+        finish_reason = _finish_reason_from_chat_completions(completion_payload)
+        last_error = ValueError(
+            "OpenAI-compatible recommender response did not contain valid JSON. "
+            f"finish_reason={finish_reason or 'unknown'} content_preview={content[:180]!r}"
+        )
+        if finish_reason != "length" or attempt == 1:
+            raise last_error
+
+        request_payload["max_tokens"] = max(int(request_payload["max_tokens"]) + 400, 1200)
+
+    if last_error is not None:
+        raise last_error
+    raise ValueError("OpenAI-compatible recommender response did not contain valid JSON.")
 
 
 def _remote_recommendations_via_url(
@@ -409,6 +502,9 @@ def _remote_recommendation_targets() -> list[tuple[str, str, str, str]]:
 
 
 def generate_recommendations(request: RecommendationRequest, items: list[ClothingItem]) -> RecommendationResponse:
+    if not items:
+        return _empty_closet_recommendations(request)
+
     if local_model.should_use_local_model("llm_recommender"):
         return _local_recommendations(request, items)
 

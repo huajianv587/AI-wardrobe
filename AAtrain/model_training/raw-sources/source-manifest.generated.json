@@ -1,0 +1,63 @@
+{
+  "generated_at_utc": "2026-04-11T08:09:30.694637+00:00",
+  "project_root": "E:\\项目夹\\AI-wardrobe-clean-0418",
+  "sources": {
+    "llm_recommender": [
+      {
+        "name": "FashionIQ",
+        "official_url": "https://fashion-iq.github.io/",
+        "repo_url": "https://github.com/XiaoxiaoGuo/fashion-iq",
+        "purpose": "text-guided fashion phrasing and retrieval-style description patterns",
+        "notes": "Use for prompt phrasing and text-image alignment ideas, then convert to product-style JSONL."
+      },
+      {
+        "name": "Polyvore Outfits",
+        "official_url": "https://github.com/xthan/polyvore-dataset",
+        "repo_url": "https://github.com/xthan/polyvore-dataset",
+        "purpose": "outfit composition and compatibility structure",
+        "notes": "Good for composition priors, not enough by itself for your product tone."
+      },
+      {
+        "name": "DeepFashion2",
+        "official_url": "https://github.com/switchablenorms/DeepFashion2",
+        "repo_url": "https://github.com/switchablenorms/DeepFashion2",
+        "purpose": "garment categories, detection, landmarks, and image-side metadata structure",
+        "notes": "Use the official download instructions from the project, not just the repository files."
+      }
+    ],
+    "multimodal_reader": [
+      {
+        "name": "Qwen2.5-VL-7B-Instruct",
+        "official_url": "https://huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct",
+        "repo_url": "https://huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct",
+        "purpose": "multimodal attribute extraction base model",
+        "notes": "Use for color, fabric, silhouette, and style QA."
+      }
+    ],
+    "cleanup": [
+      {
+        "name": "RMBG-2.0",
+        "official_url": "https://huggingface.co/briaai/RMBG-2.0",
+        "repo_url": "https://huggingface.co/briaai/RMBG-2.0",
+        "purpose": "background removal baseline",
+        "notes": "Check license before commercial use."
+      }
+    ],
+    "virtual_tryon": [
+      {
+        "name": "IDM-VTON",
+        "official_url": "https://huggingface.co/yisol/IDM-VTON",
+        "repo_url": "https://huggingface.co/yisol/IDM-VTON",
+        "purpose": "virtual try-on research baseline",
+        "notes": "Check the non-commercial license terms before product deployment."
+      },
+      {
+        "name": "OOTDiffusion",
+        "official_url": "https://github.com/levihsu/OOTDiffusion",
+        "repo_url": "https://github.com/levihsu/OOTDiffusion",
+        "purpose": "virtual try-on research pipeline",
+        "notes": "Treat as research-first unless your legal review clears it."
+      }
+    ]
+  }
+}

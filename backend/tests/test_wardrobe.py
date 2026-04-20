@@ -3,8 +3,9 @@ import re
 
 import httpx
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, get_optional_user
 from app.main import app
+from app.models.assistant import ClothingMemoryCard
 from app.models.user import User
 from app.models.wardrobe import ClothingItem
 from core.config import settings
@@ -13,6 +14,7 @@ from services import assistant_service, r2_storage_service
 
 def test_wardrobe_requires_auth_header(client):
     override = app.dependency_overrides.pop(get_current_user, None)
+    optional_override = app.dependency_overrides.pop(get_optional_user, None)
 
     try:
         response = client.get("/api/v1/wardrobe/items")
@@ -24,6 +26,36 @@ def test_wardrobe_requires_auth_header(client):
     finally:
         if override is not None:
             app.dependency_overrides[get_current_user] = override
+        if optional_override is not None:
+            app.dependency_overrides[get_optional_user] = optional_override
+
+
+def test_wardrobe_write_requires_auth_header(client):
+    override = app.dependency_overrides.pop(get_current_user, None)
+    optional_override = app.dependency_overrides.pop(get_optional_user, None)
+
+    try:
+        response = client.post(
+            "/api/v1/wardrobe/items",
+            json={
+                "name": "Guest Write Attempt",
+                "category": "tops",
+                "slot": "top",
+                "color": "Ivory",
+                "brand": "Guest",
+                "tags": [],
+                "occasions": [],
+                "style_notes": "Should be rejected.",
+            },
+        )
+
+        assert response.status_code == 401
+        assert response.json()["detail"]
+    finally:
+        if override is not None:
+            app.dependency_overrides[get_current_user] = override
+        if optional_override is not None:
+            app.dependency_overrides[get_optional_user] = optional_override
 
 
 def test_wardrobe_crud_and_asset_flow(client):
@@ -99,7 +131,7 @@ def test_wardrobe_crud_and_asset_flow(client):
     assert "processed" in processed["tags"]
     assert "white-background" in processed["tags"]
     assert any(tag in processed["tags"] for tag in {"cleanup-placeholder", "cleanup-fallback", "cleanup-local"})
-    assert any(marker in processed["style_notes"] for marker in {"AI cleanup", "白底预览图", "白底图"})
+    assert any(marker in processed["style_notes"] for marker in {"AI cleanup", "white-background", "preview image"})
 
     processed_asset_response = client.get(processed["processed_image_url"], headers=headers)
     assert processed_asset_response.status_code == 200
@@ -111,6 +143,53 @@ def test_wardrobe_crud_and_asset_flow(client):
 
     missing_response = client.get(f"/api/v1/wardrobe/items/{created['id']}", headers=headers)
     assert missing_response.status_code == 404
+
+    with client.testing_session_local() as db:
+        assert db.query(ClothingMemoryCard).filter(ClothingMemoryCard.item_id == created["id"]).count() == 0
+
+
+def test_wardrobe_create_item_repairs_orphaned_memory_card_slot(client):
+    with client.testing_session_local() as db:
+        orphan = ClothingMemoryCard(
+            user_id=999,
+            item_id=10,
+            highlights=["orphaned"],
+            avoid_contexts=["stale"],
+            care_status="laundry-due",
+            care_note="Stale memory card that should be repaired.",
+            season_tags=["winter"],
+        )
+        db.add(orphan)
+        db.commit()
+
+    response = client.post(
+        "/api/v1/wardrobe/items",
+        json={
+            "name": "Recovered Memory Slot Coat",
+            "category": "outerwear",
+            "slot": "outerwear",
+            "color": "Camel",
+            "brand": "Repair Test",
+            "image_url": None,
+            "processed_image_url": None,
+            "tags": ["repair"],
+            "occasions": ["city"],
+            "style_notes": "Should reuse the orphaned memory card row instead of failing.",
+        },
+    )
+
+    payload = response.json()
+
+    assert response.status_code == 200
+    assert payload["id"] == 10
+    assert payload["memory_card"] is not None
+    assert payload["memory_card"]["user_id"] == payload["user_id"]
+
+    with client.testing_session_local() as db:
+        cards = db.query(ClothingMemoryCard).filter(ClothingMemoryCard.item_id == payload["id"]).all()
+        assert len(cards) == 1
+        assert cards[0].user_id == payload["user_id"]
+        assert cards[0].care_status == "fresh"
 
 
 def test_wardrobe_isolation_hides_other_users_items(client):

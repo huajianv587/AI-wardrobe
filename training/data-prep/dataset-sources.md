@@ -1,82 +1,173 @@
 # Dataset Sources
 
-This file records practical source targets for Stage 1 and future stages.
+This file is the single provenance reference for the training assets used by this project.
 
-## Stage 1: LLM Recommender
+The real datasets, raw-source payloads, and exports live under `AAtrain/model_training/...`.
+The root `model_training/` directory keeps lightweight notes only.
 
-### Recommended first sources
+## Canonical layout
 
-1. FashionIQ
-   - type: fashion retrieval / description benchmark
-   - why: useful for text + item understanding
-   - source:
-     - https://fashion-iq.github.io/
-     - https://github.com/XiaoxiaoGuo/fashion-iq
+- Canonical training asset root: `AAtrain/model_training/`
+- Canonical cloud handoff source: `AAtrain/`
+- Canonical 20GB upload pack: `AAtrain-upload-20gb/`
 
-2. Polyvore Outfits
-   - type: outfit compatibility / set composition
-   - why: useful for outfit-level matching and recommendation structure
-   - source:
-     - https://github.com/xthan/polyvore-dataset
+## Password policy
 
-3. DeepFashion2
-   - type: garment detection / category / segmentation / landmarks
-   - why: useful for clothing understanding and image-side metadata prep
-   - source:
-     - https://github.com/switchablenorms/DeepFashion2
-   - note: the GitHub repository is mainly the project page and tooling notes. Use the official dataset download instructions from its README / linked project resources, not just the repo ZIP itself.
+If a source requires archive extraction credentials, record only the acquisition path and the environment variable name.
 
-4. Your own private wardrobe labeling
-   - type: product-aligned instruction pairs
-   - why: highest value for your own app voice, style, and recommendation format
+- `DeepFashion`: `DEEPFASHION_UNZIP_PASSWORD`
+- `DeepFashion2`: `DEEPFASHION2_UNZIP_PASSWORD`
+- Do not write plaintext passwords into repo docs or generated handoff notes.
 
-## Stage 1: Image Processor
+## LLM recommender sources
 
-### Recommended first sources
+### FashionIQ
 
-1. RMBG / BiRefNet pretrained models
-   - source:
-     - https://huggingface.co/briaai/RMBG-2.0
-   - note: strong enough to start inference without fine-tuning
+- Model lines: `llm-recommender`, retrieval-style supervision, prompt grounding
+- Official page: <https://fashion-iq.github.io/>
+- Repository: <https://github.com/XiaoxiaoGuo/fashion-iq>
+- Notes: benchmark-style data, useful for text-plus-item understanding
+- Password required: no
 
-2. Real-ESRGAN pretrained
-   - source:
-     - https://github.com/xinntao/Real-ESRGAN
-   - note: use as optional upscaler after cutout is stable
+### Polyvore Outfits
 
-3. Private garment photography set
-   - type: your actual user-upload style images
-   - why: best benchmark for deciding whether you need extra fine-tuning
+- Model lines: `llm-recommender`, outfit compatibility, set composition
+- Repository: <https://github.com/xthan/polyvore-dataset>
+- Notes: useful for outfit-level recommendation structure
+- Password required: no
 
-## Future Stages
+### Private wardrobe labeling
 
-### Multimodal Reader
+- Model lines: `llm-recommender`
+- Source: your own product-aligned annotation work
+- Notes: highest-value source for product voice, JSON schema alignment, and recommendation tone
+- Password required: n/a
 
-- candidate base:
-  - https://huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct
+## Multimodal reader and general garment understanding sources
 
-### Classifier
+### DeepFashion
 
-- candidate base:
-  - https://github.com/openai/CLIP
+- Model lines: `multimodal-reader`, `image-processor` bootstrap, garment understanding
+- Official page: <https://mmlab.ie.cuhk.edu.hk/projects/DeepFashion.html>
+- Notes: official release may involve agreement-gated downloads and encrypted archives depending on split
+- Password required: sometimes
+- Password acquisition: follow the official download instructions and export `DEEPFASHION_UNZIP_PASSWORD` before extraction if needed
+- Owning script: `training/data-prep/download_internal_research_datasets.py`
 
-### Virtual Try-On
+### DeepFashion-MultiModal
 
-- candidate page:
-  - https://github.com/levihsu/OOTDiffusion
+- Model lines: `multimodal-reader`, `image-processor`
+- Repository: <https://github.com/yumingj/DeepFashion-MultiModal>
+- Notes: research-style internal-use asset with images, labels, parsing, densepose, keypoints, and text
+- Password required: no in current scripted flow
+- Owning script: `training/data-prep/download_internal_research_datasets.py`
 
-## Compliance Note
+### DeepFashion2
 
-If you use scraped fashion inspiration data:
+- Model lines: `multimodal-reader`, `image-processor`
+- Repository: <https://github.com/switchablenorms/DeepFashion2>
+- Official download path: Google Drive links referenced from the official repo README
+- Notes: the repo page is not the dataset itself; use the official dataset links from the README or linked project page
+- Password required: yes for encrypted archives in the current workflow
+- Password acquisition: official Google Form / official download flow, then export `DEEPFASHION2_UNZIP_PASSWORD`
+- Owning scripts: `training/data-prep/download_internal_research_datasets.py`, `training/data-prep/prepare_AAtrain_bundle.py`
 
-- keep only samples you are legally allowed to use
-- store source provenance
-- avoid pushing raw copyrighted image dumps into git or public repos
+### SHIFT15M
 
-## Important Download Note
+- Model lines: `multimodal-reader`, outfit-level research assets
+- Repository: <https://github.com/st-tech/zozo-shift15m>
+- Notes: official release focuses on outfit metadata, task labels, and VGG16 feature shards rather than a raw image dump
+- Password required: no
+- Owning script: `training/data-prep/download_internal_research_datasets.py`
 
-Do not assume that every GitHub repository page contains the actual dataset files.
+### Qwen2.5-VL-7B-Instruct
 
-- Some links are project repositories only
-- Some datasets require registration or separate download links
-- In Stage 1, you can still move forward by first creating your own high-quality JSONL training pairs from a smaller internal wardrobe set
+- Model lines: `multimodal-reader`
+- Model page: <https://huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct>
+- Notes: base model for the current multimodal finetune flow; dataset export happens locally and dataset registration happens on the cloud box
+- Password required: no
+- Owning scripts: `training/data-prep/export_multimodal_reader_for_qwen.py`, `training/lora-finetune/register_qwen_vl_dataset.py`
+
+## Virtual try-on sources
+
+### VITON-HD
+
+- Model lines: `virtual-tryon`
+- Repository: <https://github.com/shadow2496/VITON-HD>
+- Dataset mirror used in bootstrap flow: `zhengchong/VITON-HD` on Hugging Face
+- Notes: public bootstrap for try-on training, imported into the project pair schema
+- License/use note: research-only / non-commercial bootstrap
+- Password required: no
+- Owning scripts: `training/data-prep/download_vision_bootstrap_datasets.py`, `training/data-prep/import_viton_hd_to_virtual_tryon.py`, `training/data-prep/build_idm_vton_tagged_json.py`
+
+### IDM-VTON
+
+- Model lines: `virtual-tryon`
+- Repository: official IDM-VTON upstream used by the serial 5090 training flow
+- Notes: training path only; runtime serving in this repo still targets the OOTDiffusion-compatible worker layout
+- Password required: no
+- Owning entrypoint: `AAtrain/training/lora-finetune/run-5090-full-stack.generated.sh`
+
+### OOTDiffusion
+
+- Model lines: `virtual-tryon` deployment/runtime
+- Repository: <https://github.com/levihsu/OOTDiffusion>
+- Notes: runtime/deployment reference for the current service worker, not the primary training upstream
+- Password required: no
+
+## Image processor sources
+
+### Fashionpedia
+
+- Model lines: `image-processor`
+- Official page: <https://fashionpedia.github.io/home/Fashionpedia_download.html>
+- Notes: strong public bootstrap for apparel segmentation and localized attributes
+- Password required: no
+- Owning script: `training/data-prep/download_vision_bootstrap_datasets.py`
+
+### DeepFashion2 and DeepFashion-MultiModal
+
+- Model lines: `image-processor`
+- Notes: used as public bootstrap complements for garment structure, masks, and broader clothing coverage
+- Password required: see their dedicated entries above
+- Owning script: `training/data-prep/build_image_processor_bootstrap_index.py`
+
+### RMBG-2.0 / BiRefNet
+
+- Model lines: `image-processor`
+- Model page: <https://huggingface.co/briaai/RMBG-2.0>
+- Notes: primary pretrained background-removal baseline for the current `pretrained-inference-first` setup
+- Password required: no
+
+### Real-ESRGAN
+
+- Model lines: `image-processor`
+- Repository: <https://github.com/xinntao/Real-ESRGAN>
+- Notes: optional upscaler after cutout quality is stable
+- Password required: no
+
+### Private product photography
+
+- Model lines: `image-processor`
+- Source: your own product and wardrobe photos
+- Notes: best benchmark for deciding whether public bootstrap is enough or a private fine-tune is worth the cost
+- Password required: n/a
+
+## Scripts that own data movement
+
+- Public metadata and starter references: `training/data-prep/download_public_sources.py`
+- Large research assets: `training/data-prep/download_internal_research_datasets.py`
+- Vision bootstrap assets: `training/data-prep/download_vision_bootstrap_datasets.py`
+- VITON-HD import into project schema: `training/data-prep/import_viton_hd_to_virtual_tryon.py`
+- IDM-VTON bootstrap tags: `training/data-prep/build_idm_vton_tagged_json.py`
+- Image-processor bootstrap summary: `training/data-prep/build_image_processor_bootstrap_index.py`
+- Multimodal export for Qwen: `training/data-prep/export_multimodal_reader_for_qwen.py`
+- AAtrain assembly: `training/data-prep/prepare_AAtrain_bundle.py`
+- Cloud upload pack split: `training/data-prep/package_AAtrain_for_cloud.py`
+
+## Compliance note
+
+- Do not assume a project repository page contains the actual dataset payload.
+- Keep source provenance for any public or scraped fashion references.
+- Avoid storing copyrighted raw image dumps in git.
+- When a source is marked research-only or non-commercial, keep that restriction in deployment and weight-sharing decisions.

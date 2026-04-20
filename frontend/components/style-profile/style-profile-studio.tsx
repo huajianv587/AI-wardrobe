@@ -1,5 +1,8 @@
 "use client";
 
+// Legacy prototype: this studio is currently not routed anywhere.
+// Keep it frozen as a reference while the real experience page evolves.
+
 import { LoaderCircle, Radar, Save, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 

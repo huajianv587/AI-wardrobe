@@ -1,0 +1,4 @@
+f52b5958b68baf028082cb2f312fdd367e90a95767a23ac017572fcfb154e96e  stage1-multimodal-reader.tar
+caa52725ed61abefe4ddc6431e480a6c98bcbc027e874e0b38d547b437022065  stage2-virtual-tryon.tar
+44701e05db9ef048cbf374b4a1b0e36613f02f2d5bc53c562e2cab2ff2266b58  stage3-image-public.tar
+fecaab4bcf48cfa5cac887b74ffa7e17f3b3bf0cc40412bfaa8a25942d715fde  stage4-shift15m.tar

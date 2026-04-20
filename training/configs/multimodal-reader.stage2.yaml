@@ -1,0 +1,35 @@
+stage: stage-2-attribute-upgrade
+worker: multimodal-reader
+
+model:
+  name: Qwen/Qwen2.5-VL-7B-Instruct
+  revision: main
+  trust_remote_code: true
+
+training:
+  method: qlora
+  framework: llamafactory-or-transformers-peft
+  load_in_4bit: true
+  bf16: true
+  batch_size: 2
+  gradient_accumulation_steps: 16
+  learning_rate: 1e-4
+  epochs: 2
+  image_resolution: 448
+  max_seq_length: 1536
+
+paths:
+  dataset_dir: model_training/datasets/multimodal-reader
+  train_jsonl: model_training/datasets/multimodal-reader/train.jsonl
+  eval_jsonl: model_training/datasets/multimodal-reader/eval.jsonl
+  output_dir: model_training/checkpoints/multimodal-reader
+
+service:
+  env_url: MULTIMODAL_READER_API_URL
+  local_url_for_host_backend: http://127.0.0.1:9004
+  local_url_for_compose_backend: http://multimodal-reader:9004
+
+notes:
+  - Keep the output JSON schema stable across train and eval.
+  - Favor product-style enrichment labels over benchmark-specific prose.
+  - Expand with your own cleaned garment photos after the public seed is stable.

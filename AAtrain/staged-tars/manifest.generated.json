@@ -1,0 +1,201 @@
+{
+  "generated_at": "2026-04-16T06:27:50+0800",
+  "source_dir": "E:\\项目夹\\AI-wardrobe-clean-0418\\AAtrain",
+  "output_dir": "E:\\项目夹\\AI-wardrobe-clean-0418\\AAtrain\\staged-tars",
+  "format": "in-place-staged-uncompressed-tar",
+  "notes": [
+    "Do not zip these stages.",
+    "LLM data and project code stay expanded.",
+    "Extract stage tar files just before their training lane needs them.",
+    "Do not delete these tar files until the cloud upload is complete and verified."
+  ],
+  "stages": [
+    {
+      "name": "stage1-multimodal-reader",
+      "description": "Multimodal-reader JSONL/images and Qwen export files.",
+      "paths": [
+        "model_training/datasets/multimodal-reader",
+        "model_training/exports/multimodal-reader-qwen"
+      ],
+      "injections": [],
+      "files": 2708,
+      "directories": 18,
+      "bytes": 84418560,
+      "tar": "stage1-multimodal-reader.tar",
+      "sha256": "f52b5958b68baf028082cb2f312fdd367e90a95767a23ac017572fcfb154e96e",
+      "tar_entries": 2727,
+      "tar_list_check": "ok",
+      "tar_list_elapsed_seconds": 0.06,
+      "pruned_paths": [
+        {
+          "path": "model_training/datasets/multimodal-reader",
+          "status": "deleted",
+          "kind": "directory"
+        },
+        {
+          "path": "model_training/exports/multimodal-reader-qwen",
+          "status": "deleted",
+          "kind": "directory"
+        }
+      ]
+    },
+    {
+      "name": "stage2-virtual-tryon",
+      "description": "VITON-HD raw extracted data plus organized virtual try-on manifests.",
+      "paths": [
+        "model_training/datasets/virtual-tryon",
+        "model_training/raw-sources/tryon/viton-hd/extracted"
+      ],
+      "injections": [],
+      "files": 244202,
+      "directories": 49,
+      "bytes": 6056970240,
+      "tar": "stage2-virtual-tryon.tar",
+      "sha256": "caa52725ed61abefe4ddc6431e480a6c98bcbc027e874e0b38d547b437022065",
+      "tar_entries": 244252,
+      "tar_list_check": "ok",
+      "tar_list_elapsed_seconds": 4.96,
+      "pruned_paths": [
+        {
+          "path": "model_training/datasets/virtual-tryon",
+          "status": "deleted",
+          "kind": "directory"
+        },
+        {
+          "path": "model_training/raw-sources/tryon/viton-hd/extracted",
+          "status": "deleted",
+          "kind": "directory"
+        }
+      ]
+    },
+    {
+      "name": "stage3-image-public",
+      "description": "Fashionpedia, DeepFashion2, DeepFashion-MultiModal, and image-processor bootstrap data.",
+      "paths": [
+        "model_training/datasets/image-processor",
+        "model_training/datasets/deepfashion2",
+        "model_training/datasets/deepfashion-multimodal",
+        "model_training/raw-sources/fashionpedia-official",
+        "model_training/raw-sources/deepfashion2",
+        "model_training/raw-sources/deepfashion-multimodal",
+        "model_training/raw-sources/deepfashion2-download-report.generated.json",
+        "model_training/raw-sources/deepfashion-multimodal-download-report.generated.json",
+        "model_training/raw-sources/vision-bootstrap-download-report.generated.json"
+      ],
+      "injections": [],
+      "files": 660660,
+      "directories": 62,
+      "bytes": 70182654976,
+      "tar": "stage3-image-public.tar",
+      "sha256": "44701e05db9ef048cbf374b4a1b0e36613f02f2d5bc53c562e2cab2ff2266b58",
+      "tar_entries": null,
+      "tar_engine": "reused-existing",
+      "reused_existing_tar": true,
+      "tar_list_check": "ok",
+      "tar_list_elapsed_seconds": 93.03,
+      "pruned_paths": [
+        {
+          "path": "model_training/datasets/deepfashion-multimodal",
+          "status": "deleted",
+          "kind": "directory"
+        },
+        {
+          "path": "model_training/datasets/deepfashion2",
+          "status": "deleted",
+          "kind": "directory"
+        },
+        {
+          "path": "model_training/datasets/image-processor",
+          "status": "deleted",
+          "kind": "directory"
+        },
+        {
+          "path": "model_training/raw-sources/deepfashion-multimodal",
+          "status": "deleted",
+          "kind": "directory"
+        },
+        {
+          "path": "model_training/raw-sources/deepfashion-multimodal-download-report.generated.json",
+          "status": "deleted",
+          "kind": "file"
+        },
+        {
+          "path": "model_training/raw-sources/deepfashion2",
+          "status": "deleted",
+          "kind": "directory"
+        },
+        {
+          "path": "model_training/raw-sources/deepfashion2-download-report.generated.json",
+          "status": "deleted",
+          "kind": "file"
+        },
+        {
+          "path": "model_training/raw-sources/fashionpedia-official",
+          "status": "deleted",
+          "kind": "directory"
+        },
+        {
+          "path": "model_training/raw-sources/vision-bootstrap-download-report.generated.json",
+          "status": "deleted",
+          "kind": "file"
+        }
+      ]
+    },
+    {
+      "name": "stage4-shift15m",
+      "description": "SHIFT15M raw assets and organized records.",
+      "paths": [
+        "model_training/datasets/shift15m",
+        "model_training/raw-sources/shift15m",
+        "model_training/raw-sources/shift15m-download-report.generated.json",
+        "model_training/raw-sources/shift15m-repo"
+      ],
+      "injections": [],
+      "files": 2336284,
+      "directories": 185,
+      "bytes": 101097690112,
+      "tar": "stage4-shift15m.tar",
+      "sha256": "fecaab4bcf48cfa5cac887b74ffa7e17f3b3bf0cc40412bfaa8a25942d715fde",
+      "tar_entries": null,
+      "tar_engine": "system",
+      "tar_list_check": "ok",
+      "tar_list_elapsed_seconds": 487.44,
+      "pruned_paths": [
+        {
+          "path": "model_training/datasets/shift15m",
+          "status": "deleted",
+          "kind": "directory"
+        },
+        {
+          "path": "model_training/raw-sources/shift15m",
+          "status": "deleted",
+          "kind": "directory"
+        },
+        {
+          "path": "model_training/raw-sources/shift15m-download-report.generated.json",
+          "status": "deleted",
+          "kind": "file"
+        },
+        {
+          "path": "model_training/raw-sources/shift15m-repo",
+          "status": "deleted",
+          "kind": "directory"
+        }
+      ]
+    }
+  ],
+  "synced_files": [
+    {
+      "source": "E:\\项目夹\\AI-wardrobe-clean-0418\\training\\data-prep\\package_AAtrain_staged_for_autodl.py",
+      "dest": "training/data-prep/package_AAtrain_staged_for_autodl.py"
+    },
+    {
+      "source": "E:\\项目夹\\AI-wardrobe-clean-0418\\training\\lora-finetune\\run-530g-autodl-pipeline.sh",
+      "dest": "training/lora-finetune/run-530g-autodl-pipeline.sh"
+    },
+    {
+      "source": "E:\\项目夹\\AI-wardrobe-clean-0418\\docs\\autodl-530g-pipeline.md",
+      "dest": "docs/autodl-530g-pipeline.md"
+    }
+  ]
+}

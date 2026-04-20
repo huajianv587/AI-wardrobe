@@ -1,0 +1,18 @@
+{
+  "git_paths": {},
+  "exports": {
+    "polyvore": {
+      "rows": 30000,
+      "path": "E:\\项目夹\\AI-wardrobe-clean-0418\\model_training\\raw-sources\\polyvore\\polyvore.metadata.30000.jsonl"
+    },
+    "fashioniq": {
+      "rows": 6000,
+      "path": "E:\\项目夹\\AI-wardrobe-clean-0418\\model_training\\raw-sources\\fashioniq\\fashioniq.metadata.6000.jsonl"
+    },
+    "fashionpedia": {
+      "rows": 12000,
+      "path": "E:\\项目夹\\AI-wardrobe-clean-0418\\model_training\\raw-sources\\fashionpedia\\fashionpedia.metadata.12000.jsonl"
+    }
+  },
+  "note": "Datasets were loaded through Hugging Face datasets and are now also available through the local HF cache on this machine."
+}

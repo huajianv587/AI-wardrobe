@@ -87,13 +87,11 @@ def _open_image(image_url: str | None) -> Image.Image | None:
 
 def _transparentize_light_background(image: Image.Image) -> Image.Image:
     rgba = image.convert("RGBA")
-    remapped = []
-    for red, green, blue, alpha in rgba.getdata():
-        if red >= 246 and green >= 246 and blue >= 246:
-            remapped.append((red, green, blue, 0))
-        else:
-            remapped.append((red, green, blue, alpha))
-    rgba.putdata(remapped)
+    pixels = rgba.load()
+    for y in range(rgba.height):
+        for x in range(rgba.width):
+            red, green, blue, alpha = pixels[x, y]
+            pixels[x, y] = (red, green, blue, 0) if red >= 246 and green >= 246 and blue >= 246 else (red, green, blue, alpha)
     return rgba
 
 

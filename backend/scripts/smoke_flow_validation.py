@@ -3,8 +3,14 @@ from __future__ import annotations
 from datetime import datetime
 from io import BytesIO
 import json
+from pathlib import Path
+import sys
 from typing import Any
 from urllib.parse import parse_qs, urlsplit
+
+BACKEND_ROOT = Path(__file__).resolve().parents[1]
+if str(BACKEND_ROOT) not in sys.path:
+    sys.path.insert(0, str(BACKEND_ROOT))
 
 from fastapi.testclient import TestClient
 import httpx
@@ -13,6 +19,14 @@ from PIL import Image
 from app.main import app
 from core.config import settings
 from services import auth_service
+
+
+def _configure_console_encoding() -> None:
+    for stream_name in ("stdout", "stderr"):
+        stream = getattr(sys, stream_name, None)
+        reconfigure = getattr(stream, "reconfigure", None)
+        if callable(reconfigure):
+            reconfigure(encoding="utf-8")
 
 
 def _print_step(name: str, ok: bool, detail: str) -> None:
@@ -120,6 +134,7 @@ def _admin_generate_recovery_access_token(email: str) -> tuple[str | None, str]:
 
 
 def main() -> None:
+    _configure_console_encoding()
     now = datetime.utcnow().strftime("%Y%m%d%H%M%S")
     email = f"smoke_{now}@mailinator.com"
     password = f"SmokePass!{now[-6:]}"
@@ -282,12 +297,12 @@ def main() -> None:
         if not password_reset_ok:
             required_failures += 1
         else:
-            recovery_access_token, recovery_detail = _admin_generate_recovery_access_token(email)
-            _print_step("password_reset_admin_recovery", recovery_access_token is not None, recovery_detail)
-            if recovery_access_token:
+            reset_status = password_reset_payload.get("status") if isinstance(password_reset_payload, dict) else None
+
+            if reset_status == "ready":
                 confirm_response = client.post(
                     "/api/v1/auth/password-reset/confirm",
-                    json={"access_token": recovery_access_token, "new_password": new_password},
+                    json={"email": email, "new_password": new_password},
                 )
                 confirm_ok = confirm_response.status_code == 200
                 _print_step("password_reset_confirm", confirm_ok, _json_detail(confirm_response.json() if confirm_ok else confirm_response.text))
@@ -303,11 +318,33 @@ def main() -> None:
                     else:
                         access_token = relogin_response.json().get("access_token")
                         headers = {"Authorization": f"Bearer {access_token}"}
-                else:
-                    required_failures += 1
             else:
-                _print_step("password_reset_confirm", False, "could not obtain recovery access token programmatically")
-                required_failures += 1
+                recovery_access_token, recovery_detail = _admin_generate_recovery_access_token(email)
+                _print_step("password_reset_admin_recovery", recovery_access_token is not None, recovery_detail)
+                if recovery_access_token:
+                    confirm_response = client.post(
+                        "/api/v1/auth/password-reset/confirm",
+                        json={"access_token": recovery_access_token, "new_password": new_password},
+                    )
+                    confirm_ok = confirm_response.status_code == 200
+                    _print_step("password_reset_confirm", confirm_ok, _json_detail(confirm_response.json() if confirm_ok else confirm_response.text))
+                    if confirm_ok:
+                        relogin_response = client.post(
+                            "/api/v1/auth/login",
+                            json={"email": email, "password": new_password},
+                        )
+                        relogin_ok = relogin_response.status_code == 200
+                        _print_step("login_after_reset", relogin_ok, _json_detail(relogin_response.json() if relogin_ok else relogin_response.text))
+                        if not relogin_ok:
+                            required_failures += 1
+                        else:
+                            access_token = relogin_response.json().get("access_token")
+                            headers = {"Authorization": f"Bearer {access_token}"}
+                    else:
+                        required_failures += 1
+                else:
+                    _print_step("password_reset_confirm", False, "could not obtain recovery access token programmatically")
+                    required_failures += 1
 
         if created_item_id is not None and access_token:
             delete_response = client.delete(f"/api/v1/wardrobe/items/{created_item_id}", headers=headers)

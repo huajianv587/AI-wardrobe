@@ -1,0 +1,44 @@
+stage: stage-2-virtual-tryon-r-and-d
+worker: virtual-tryon
+
+model:
+  primary: OOTDiffusion
+  fallback: IDM-VTON
+
+strategy:
+  lane: research-to-production
+  paired_data_required_now: true
+  legal_review_required_now: true
+
+dataset:
+  dataset_dir: model_training/datasets/virtual-tryon
+  train_pairs_jsonl: model_training/datasets/virtual-tryon/annotations/train_pairs.jsonl
+  eval_pairs_jsonl: model_training/datasets/virtual-tryon/annotations/eval_pairs.jsonl
+  person_dir: model_training/datasets/virtual-tryon/person_images
+  garment_dir: model_training/datasets/virtual-tryon/garment_images
+  target_dir: model_training/datasets/virtual-tryon/paired_targets
+
+training:
+  image_resolution: 768x1024
+  batch_size: 1
+  gradient_accumulation_steps: 8
+  learning_rate: 1e-5
+  epochs: 20
+  eval_every_steps: 500
+
+quality_gates:
+  identity_preservation_reviewer_pass: ">= 80%"
+  garment_fidelity_reviewer_pass: ">= 85%"
+  edge_cleanup_reviewer_pass: ">= 85%"
+  pose_compatibility_reviewer_pass: ">= 80%"
+
+service:
+  env_url: VIRTUAL_TRYON_API_URL
+  local_url_for_host_backend: http://127.0.0.1:9005
+  local_url_for_compose_backend: http://virtual-tryon:9005
+
+notes:
+  - The default imported bootstrap is VITON-HD and is research-only / non-commercial.
+  - Replace or augment the bootstrap set before any production-safe commercial training run.
+  - Keep a human-review holdout split for final side-by-side evaluation.
+  - Separate licensing review from technical readiness.

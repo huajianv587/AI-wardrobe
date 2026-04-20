@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useGSAP } from "@gsap/react";
 import { motion, useReducedMotion } from "framer-motion";
@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import type { RefObject } from "react";
 import { useRef } from "react";
 
+import { useHomeWeather } from "@/hooks/use-home-weather";
 import { GlowButton } from "@/components/shared/GlowButton";
 import { FloatingPetals } from "./FloatingPetals";
 import { NavBar } from "./NavBar";
@@ -16,31 +17,30 @@ import { VideoMask } from "./VideoMask";
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 const softTags = [
-  { label: "AI试衣", tone: "primary", href: "/try-on" },
-  { label: "心动搭配", tone: "ghost", href: "/recommend" },
-  { label: "云端衣橱", tone: "ghost", href: "/wardrobe" }
+  { label: "AI 试衣", tone: "primary" },
+  { label: "心动搭配", tone: "ghost" },
+  { label: "云端衣橱", tone: "ghost" },
 ] as const;
 
 const moodCards = [
   {
     title: "今日灵感",
-    body: "通勤与约会的温柔切片",
-    accent: "rose"
+    body: "通勤与约会之间，也可以有一套刚刚好的温柔切换。",
+    accent: "rose",
   },
   {
     title: "小小心愿单",
-    body: "把想穿的那一套先悄悄存好",
-    accent: "gold"
-  }
+    body: "把想穿的那一套先悄悄存好，等下班后直接切换过去。",
+    accent: "gold",
+  },
 ] as const;
 
-const miniNotes = ["奶油白衬衫", "樱粉半裙", "通勤气质包"] as const;
-const weatherNotes = ["22°C 晴柔", "微风轻拂", "适合薄针织"] as const;
+const miniNotes = ["奶油白衬衫", "雾粉半裙", "通勤气质裤"] as const;
 const diaryDays: ReadonlyArray<{ day: string; date: string; active?: boolean }> = [
   { day: "Mon", date: "03" },
   { day: "Tue", date: "04" },
   { day: "Wed", date: "05", active: true },
-  { day: "Thu", date: "06" }
+  { day: "Thu", date: "06" },
 ];
 
 interface HeroSectionProps {
@@ -52,9 +52,10 @@ interface HeroSectionProps {
 export function HeroSection({
   onNavigateHome,
   onStartTryOn,
-  scrollContainerRef
+  scrollContainerRef,
 }: HeroSectionProps) {
   const router = useRouter();
+  const homeWeather = useHomeWeather();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const mediaRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
@@ -64,19 +65,19 @@ export function HeroSection({
     ? {}
     : {
         animate: { y: [0, -8, 0], scale: [1, 1.01, 1] },
-        transition: { duration: 6.8, repeat: Infinity, ease: "easeInOut" as const }
+        transition: { duration: 6.8, repeat: Infinity, ease: "easeInOut" as const },
       };
   const diaryFloat = reducedMotion
     ? {}
     : {
         animate: { y: [0, -10, 0], scale: [1, 1.012, 1] },
-        transition: { duration: 7.4, repeat: Infinity, ease: "easeInOut" as const, delay: 0.5 }
+        transition: { duration: 7.4, repeat: Infinity, ease: "easeInOut" as const, delay: 0.5 },
       };
   const radarFloat = reducedMotion
     ? {}
     : {
         animate: { y: [0, -7, 0], scale: [1, 1.01, 1] },
-        transition: { duration: 6.2, repeat: Infinity, ease: "easeInOut" as const, delay: 0.9 }
+        transition: { duration: 6.2, repeat: Infinity, ease: "easeInOut" as const, delay: 0.9 },
       };
 
   useGSAP(
@@ -104,8 +105,8 @@ export function HeroSection({
           invalidateOnRefresh: true,
           onEnterBack: resetHeroCopy,
           onLeaveBack: resetHeroCopy,
-          onRefresh: resetHeroCopy
-        }
+          onRefresh: resetHeroCopy,
+        },
       });
 
       timeline.fromTo(mediaRef.current, { yPercent: 0, scale: 1, opacity: 1 }, { yPercent: -6, scale: 0.985, opacity: 0.82, ease: "none" }, 0);
@@ -142,7 +143,7 @@ export function HeroSection({
                 </div>
                 <span className="hero-kicker">
                   <span className="hero-kicker__dot" aria-hidden="true" />
-                  Soft digital wardrobe
+                  柔和数字衣橱
                 </span>
               </div>
 
@@ -159,17 +160,13 @@ export function HeroSection({
 
               <div className="mt-7 flex flex-wrap gap-3.5">
                 {softTags.map((tag) => (
-                  <motion.button
+                  <motion.div
                     key={tag.label}
-                    type="button"
-                    onClick={() => router.push(tag.href)}
                     whileHover={{ y: -3, scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
                     className={`hero-soft-tag hero-soft-tag--${tag.tone}`}
-                    data-cursor="hover"
                   >
                     {tag.label}
-                  </motion.button>
+                  </motion.div>
                 ))}
               </div>
 
@@ -196,8 +193,8 @@ export function HeroSection({
                 data-cursor="hover"
               >
                 <div className="hero-mini-board__header">
-                  <span className="hero-mini-board__eyebrow">TODAY WISHLIST</span>
-                  <span className="hero-mini-board__spark">Soft Pink</span>
+                  <span className="hero-mini-board__eyebrow">今日心愿单</span>
+                  <span className="hero-mini-board__spark">柔雾粉</span>
                 </div>
                 <div className="hero-mini-board__list">
                   {miniNotes.map((note) => (
@@ -224,7 +221,7 @@ export function HeroSection({
                   transition={{ duration: 0.7, delay: 0.9, ease: [0.22, 1, 0.36, 1] }}
                   className="hero-signature mt-5"
                 >
-                  每一件衣服，都值得被看见
+                  每一件衣服，都值得被看见。
                 </motion.p>
               </div>
             </div>
@@ -242,18 +239,20 @@ export function HeroSection({
               whileHover={{ y: -4, rotate: -1 }}
               transition={{ type: "spring", stiffness: 180, damping: 22 }}
               className="hero-editorial-card hero-editorial-card--weather hero-editorial-card--alive"
+              data-loading={homeWeather.loading}
               data-cursor="hover"
               {...weatherFloat}
             >
-              <span className="hero-editorial-card__eyebrow">today weather</span>
+              <span className="hero-editorial-card__eyebrow">今日天气</span>
               <h3>今天天气</h3>
               <div className="hero-editorial-card__chips">
-                {weatherNotes.map((note) => (
+                {homeWeather.chips.map((note) => (
                   <span key={note} className="hero-editorial-chip">
                     {note}
                   </span>
                 ))}
               </div>
+              <p className="hero-weather-meta">{homeWeather.meta}</p>
             </motion.div>
 
             <div className="hero-editorial-line" aria-hidden="true">
@@ -271,7 +270,7 @@ export function HeroSection({
               data-cursor="hover"
               {...diaryFloat}
             >
-              <span className="hero-editorial-card__eyebrow">outfit diary</span>
+              <span className="hero-editorial-card__eyebrow">穿搭日记</span>
               <h3>穿搭日历</h3>
               <div className="hero-diary-grid">
                 {diaryDays.map((item) => (
@@ -297,7 +296,7 @@ export function HeroSection({
               data-cursor="hover"
               {...radarFloat}
             >
-              <span className="hero-editorial-card__eyebrow">style radar</span>
+              <span className="hero-editorial-card__eyebrow">风格雷达</span>
               <h3>风格雷达</h3>
               <div className="hero-style-radar-wrap">
                 <div className="hero-style-radar" aria-hidden="true">
@@ -338,3 +337,4 @@ export function HeroSection({
     </div>
   );
 }
+

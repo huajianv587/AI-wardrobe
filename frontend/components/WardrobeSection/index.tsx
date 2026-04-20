@@ -4,36 +4,63 @@ import { useGSAP } from "@gsap/react";
 import { useReducedMotion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useRef } from "react";
 import type { RefObject } from "react";
+import { useRef } from "react";
+
 import { AvatarPanel } from "./AvatarPanel";
 import { ClothingPanel } from "./ClothingPanel";
-import type { ClothingCategory, ClothingItem, QuickAction } from "@/lib/mockData";
+import type { HomeQuickAction, HomeWardrobeCategory, HomeWardrobeItem } from "@/lib/home-wardrobe";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
+interface QuickActionDescriptor {
+  id: HomeQuickAction;
+  label: string;
+  prompt: string;
+  keywords: readonly string[];
+  preferredCategories: readonly HomeWardrobeCategory[];
+}
+
 interface WardrobeSectionProps {
-  activeAction: QuickAction | null;
-  filteredItems: ClothingItem[];
-  quickActions: readonly QuickAction[];
+  activeAction: HomeQuickAction | null;
+  dataMode: "account" | "preview" | "fallback";
+  filteredItems: HomeWardrobeItem[];
+  quickActions: readonly QuickActionDescriptor[];
   scrollContainerRef: RefObject<HTMLElement | null>;
-  selectedCategory: ClothingCategory;
-  selectedItem: ClothingItem | null;
-  onApplyQuickAction: (action: QuickAction) => void;
-  onSelectCategory: (category: ClothingCategory) => void;
-  onSelectItem: (item: ClothingItem) => void;
+  selectedCategory: HomeWardrobeCategory;
+  selectedItem: HomeWardrobeItem | null;
+  statusText: string;
+  onApplyQuickAction: (action: HomeQuickAction) => void;
+  onSelectCategory: (category: HomeWardrobeCategory) => void;
+  onSelectItem: (item: HomeWardrobeItem) => void;
+  onSetLook: () => void;
+}
+
+function describeDataMode(mode: WardrobeSectionProps["dataMode"]) {
+  if (mode === "account") {
+    return "私有实时数据";
+  }
+
+  if (mode === "preview") {
+    return "公共预览模式";
+  }
+
+  return "本地回退模式";
 }
 
 export function WardrobeSection({
   activeAction,
+  dataMode,
   filteredItems,
   quickActions,
   scrollContainerRef,
   selectedCategory,
   selectedItem,
+  statusText,
   onApplyQuickAction,
   onSelectCategory,
-  onSelectItem
+  onSelectItem,
+  onSetLook,
 }: WardrobeSectionProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const titleRef = useRef<HTMLDivElement | null>(null);
@@ -54,8 +81,8 @@ export function WardrobeSection({
           start: "top 72%",
           end: "top 18%",
           scrub: 1,
-          invalidateOnRefresh: true
-        }
+          invalidateOnRefresh: true,
+        },
       });
 
       timeline.fromTo(titleRef.current, { y: 28, opacity: 0 }, { y: 0, opacity: 1, duration: 1 }, 0);
@@ -71,12 +98,12 @@ export function WardrobeSection({
       className="relative flex min-h-[100svh] flex-col overflow-hidden md:h-screen"
       style={{
         background:
-          "radial-gradient(circle at 18% 18%, rgba(var(--accent-gold-rgb), 0.14), transparent 24%), radial-gradient(circle at 86% 14%, rgba(var(--accent-rose-rgb), 0.16), transparent 22%), linear-gradient(180deg, rgba(var(--bg-primary-rgb), 1) 0%, rgba(var(--bg-secondary-rgb), 0.86) 100%)"
+          "radial-gradient(circle at 18% 18%, rgba(var(--accent-gold-rgb), 0.14), transparent 24%), radial-gradient(circle at 86% 14%, rgba(var(--accent-rose-rgb), 0.16), transparent 22%), linear-gradient(180deg, rgba(var(--bg-primary-rgb), 1) 0%, rgba(var(--bg-secondary-rgb), 0.86) 100%)",
       }}
     >
       <div
         ref={titleRef}
-        className="relative z-20 px-4 pt-20 md:pointer-events-none md:absolute md:inset-x-0 md:top-7 md:px-8 md:pt-0"
+        className="relative z-20 px-4 pt-20 md:absolute md:inset-x-0 md:top-7 md:px-8 md:pt-0"
       >
         <div className="flex items-end gap-4">
           <div className="flex flex-col gap-1">
@@ -86,13 +113,21 @@ export function WardrobeSection({
             <p className="pl-1 text-sm tracking-[0.16em] text-[rgba(var(--text-secondary-rgb),0.82)] md:text-base md:tracking-[0.18em]">
               我的衣橱
             </p>
+            <div className="mt-2 flex flex-wrap items-center gap-2 pl-1">
+              <span className="rounded-full border border-[rgba(var(--accent-rose-rgb),0.18)] bg-white/72 px-3 py-1 text-[0.68rem] tracking-[0.12em] text-[var(--text-secondary)] backdrop-blur">
+                {describeDataMode(dataMode)}
+              </span>
+              <span className="max-w-[32rem] text-[0.72rem] leading-5 text-[rgba(var(--text-secondary-rgb),0.76)]">
+                {statusText}
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
       <div className="relative z-10 flex flex-1 flex-col gap-5 pb-6 pt-4 md:h-full md:flex-row md:gap-0 md:pb-0 md:pt-0">
         <div className="wardrobe-panel-left relative min-h-[30rem] md:h-full md:min-h-0 md:basis-[38%] md:flex-none">
-          <AvatarPanel selectedItem={selectedItem} />
+          <AvatarPanel selectedItem={selectedItem} onSetLook={onSetLook} />
         </div>
 
         <div className="relative hidden w-px md:block">

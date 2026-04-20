@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 
 interface NavBarProps {
   onNavigateHome: () => void;
+  compact?: boolean;
 }
 
 type NavKey = "home" | "wardrobe" | "smart-wardrobe" | "outfit-diary" | "closet-analysis" | "style-profile";
@@ -15,10 +16,10 @@ type AuthKey = "register" | "login";
 const navItems: Array<{ key: NavKey; label: string; href?: string }> = [
   { key: "home", label: "首页" },
   { key: "wardrobe", label: "衣橱管理", href: "/wardrobe" },
-  { key: "smart-wardrobe", label: "智能衣物", href: "/smart-wardrobe" },
-  { key: "outfit-diary", label: "穿搭日志", href: "/outfit-diary" },
+  { key: "smart-wardrobe", label: "智能衣橱", href: "/smart-wardrobe" },
+  { key: "outfit-diary", label: "穿搭日记", href: "/outfit-diary" },
   { key: "closet-analysis", label: "衣橱分析", href: "/closet-analysis" },
-  { key: "style-profile", label: "风格雷达", href: "/style-profile" }
+  { key: "style-profile", label: "风格画像", href: "/style-profile" }
 ];
 
 function getActiveKey(pathname: string): NavKey | null {
@@ -49,7 +50,7 @@ function getActiveKey(pathname: string): NavKey | null {
   return null;
 }
 
-export function NavBar({ onNavigateHome }: NavBarProps) {
+export function NavBar({ onNavigateHome, compact = false }: NavBarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
@@ -101,6 +102,7 @@ export function NavBar({ onNavigateHome }: NavBarProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
       data-scrolled={isScrolled}
+      data-compact={compact ? "true" : undefined}
       className="navbar-shell"
     >
       <div className="navbar-shell__inner">
@@ -172,7 +174,7 @@ export function NavBar({ onNavigateHome }: NavBarProps) {
 
         <nav
           className="nav-ribbon nav-ribbon--auth hidden md:flex"
-          aria-label="账户入口"
+          aria-label="账号入口"
           onMouseLeave={() => setHoveredAuth(null)}
         >
           {[
@@ -261,25 +263,15 @@ export function NavBar({ onNavigateHome }: NavBarProps) {
                   {item.label}
                 </button>
               ))}
+            </div>
 
-              <Link
-                href="/register"
-                data-cursor="hover"
-                onClick={() => setIsOpen(false)}
-                className={`mt-2 rounded-[18px] border px-4 py-3 text-left text-[0.74rem] tracking-[0.16em] transition-all ${
-                  activeAuthKey === "register"
-                    ? "border-[rgba(var(--accent-rose-deep-rgb),0.14)] bg-[linear-gradient(135deg,rgba(var(--accent-rose-rgb),0.18),rgba(var(--accent-gold-rgb),0.1))] text-[var(--accent-rose-deep)] shadow-[0_10px_22px_rgba(180,120,140,0.1)]"
-                    : "border-[var(--line)] bg-white/70 text-[var(--text-secondary)] hover:bg-white/90"
-                }`}
-              >
+            <div className="mt-4 grid grid-cols-2 gap-2 border-t border-[rgba(var(--accent-rose-rgb),0.14)] pt-4">
+              <Link href="/register" className="rounded-[16px] bg-white/72 px-4 py-3 text-center text-[0.74rem] tracking-[0.16em] text-[var(--text-primary)]">
                 注册
               </Link>
-
               <Link
                 href="/login"
-                data-cursor="hover"
-                onClick={() => setIsOpen(false)}
-                className={`nav-login justify-center ${activeAuthKey === "login" ? "nav-login--active" : ""}`}
+                className="rounded-[16px] bg-[linear-gradient(135deg,rgba(var(--accent-rose-deep-rgb),1),rgba(var(--accent-gold-rgb),0.92))] px-4 py-3 text-center text-[0.74rem] tracking-[0.16em] text-white"
               >
                 登录
               </Link>

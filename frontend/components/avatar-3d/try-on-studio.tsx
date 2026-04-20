@@ -1,17 +1,30 @@
-"use client";
+﻿"use client";
 
 import { startTransition, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, type PanInfo, useReducedMotion } from "framer-motion";
 import { GripVertical, RefreshCw, Sparkles } from "lucide-react";
+import Image from "next/image";
+import nextDynamic from "next/dynamic";
 
 import { VisitorPreviewNotice } from "@/components/auth/visitor-preview-notice";
-import { AvatarStage } from "@/components/avatar-3d/avatar-stage";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { PanelSkeleton } from "@/components/ui/panel-skeleton";
 import { StateCard } from "@/components/ui/state-card";
 import { StoryCluster } from "@/components/ui/story-cluster";
 import { fetchWardrobeItems, renderVirtualTryOn, TryOnRenderResult } from "@/lib/api";
-import { seedWardrobeItems, useWardrobeStore } from "@/store/wardrobe-store";
+import { seedWardrobeItems, WardrobeItem, useWardrobeStore } from "@/store/wardrobe-store";
+
+const AvatarStage = nextDynamic(
+  () => import("@/components/avatar-3d/avatar-stage").then((module) => module.AvatarStage),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="section-card story-gradient relative h-[460px] overflow-hidden rounded-[28px] p-4 sm:h-[520px] sm:rounded-[34px]">
+        <PanelSkeleton rows={2} />
+      </div>
+    ),
+  }
+);
 
 const TRY_ON_FOCUS_KEY = "wenwen:try-on-focus";
 const TRY_ON_AVATAR_KEY = "wenwen:try-on-avatar-photo";
@@ -21,27 +34,27 @@ type SeasonFilter = "all" | "spring" | "summer" | "autumn" | "winter";
 type SortMode = "focus" | "newest" | "name";
 
 const railFilters: Array<{ value: RailFilter; label: string }> = [
-  { value: "new", label: "新增" },
-  { value: "all", label: "全部" },
-  { value: "top", label: "上衣" },
-  { value: "bottom", label: "下装" },
-  { value: "outerwear", label: "外套" },
-  { value: "shoes", label: "鞋子" },
-  { value: "accessory", label: "配饰" },
+  { value: "new", label: "New" },
+  { value: "all", label: "All" },
+  { value: "top", label: "Tops" },
+  { value: "bottom", label: "Bottoms" },
+  { value: "outerwear", label: "Outerwear" },
+  { value: "shoes", label: "Shoes" },
+  { value: "accessory", label: "Accessories" },
 ];
 
 const seasonFilters: Array<{ value: SeasonFilter; label: string }> = [
-  { value: "all", label: "全部季节" },
-  { value: "spring", label: "春" },
-  { value: "summer", label: "夏" },
-  { value: "autumn", label: "秋" },
-  { value: "winter", label: "冬" },
+  { value: "all", label: "All seasons" },
+  { value: "spring", label: "Spring" },
+  { value: "summer", label: "Summer" },
+  { value: "autumn", label: "Autumn" },
+  { value: "winter", label: "Winter" },
 ];
 
 const sortModes: Array<{ value: SortMode; label: string }> = [
-  { value: "focus", label: "最新优先" },
-  { value: "newest", label: "按时间" },
-  { value: "name", label: "按名称" },
+  { value: "focus", label: "Focus first" },
+  { value: "newest", label: "Newest first" },
+  { value: "name", label: "By name" },
 ];
 
 function parseStoredFocusIds() {
@@ -70,10 +83,10 @@ function parseStoredFocusIds() {
 function normalizeSeasonTags(tags: string[]) {
   const joined = tags.join("|").toLowerCase();
   const normalized: string[] = [];
-  if (/春|spring/.test(joined)) normalized.push("spring");
-  if (/夏|summer/.test(joined)) normalized.push("summer");
-  if (/秋|autumn|fall/.test(joined)) normalized.push("autumn");
-  if (/冬|winter/.test(joined)) normalized.push("winter");
+  if (/spring|春/.test(joined)) normalized.push("spring");
+  if (/summer|夏/.test(joined)) normalized.push("summer");
+  if (/autumn|fall|秋/.test(joined)) normalized.push("autumn");
+  if (/winter|冬/.test(joined)) normalized.push("winter");
   return normalized;
 }
 
@@ -95,6 +108,31 @@ interface DragTelemetry {
   distance: number;
   engaged: boolean;
   vector: { x: number; y: number };
+}
+
+function buildLocalTryOnPreview(
+  selectedItemIds: number[],
+  items: WardrobeItem[],
+  avatarPhotoUrl: string
+): TryOnRenderResult {
+  const selectedItems = items.filter((item) => selectedItemIds.includes(item.id));
+  return {
+    status: "preview",
+    providerMode: "local-preview",
+    provider: "local-preview",
+    previewUrl: avatarPhotoUrl,
+    itemIds: selectedItemIds,
+    items: selectedItems.map((item) => ({
+      itemId: item.id,
+      name: item.name,
+      slot: item.slot,
+      imageUrl: item.processedImageUrl || item.imageUrl || null
+    })),
+    message: "Preview mode composed a local try-on mock. Sign in to render a server preview.",
+    prompt: null,
+    scene: "preview-mode",
+    createdAt: new Date().toISOString()
+  };
 }
 
 export function TryOnStudio() {
@@ -162,7 +200,7 @@ export function TryOnStudio() {
     if (storedFocusIds.length) {
       setFocusItemIds(storedFocusIds);
       setRailFilter("new");
-      setStatusText(`已接入刚解构完成的 ${storedFocusIds.length} 件单品，试衣轨道会优先展示它们。`);
+      setStatusText(`Pinned ${storedFocusIds.length} newly extracted items to the front of the try-on rail.`);
     }
 
     try {
@@ -187,10 +225,16 @@ export function TryOnStudio() {
       setStatusText(
         isAuthenticated
           ? "Loading your wardrobe so the try-on stage can use your private items."
-          : "Loading the public experience wardrobe for the try-on stage."
+          : "Loading the local preview wardrobe for the try-on stage."
       );
 
       try {
+        if (!isAuthenticated) {
+          startTransition(() => replaceItems(seedWardrobeItems));
+          setStatusText("Preview mode is using local wardrobe data for the try-on stage.");
+          return;
+        }
+
         const wardrobeItems = await fetchWardrobeItems();
 
         if (!active) {
@@ -200,9 +244,7 @@ export function TryOnStudio() {
         startTransition(() => replaceItems(wardrobeItems));
         setStatusText(
           wardrobeItems.length > 0
-            ? isAuthenticated
-              ? `Loaded ${wardrobeItems.length} private wardrobe items for try-on.`
-              : `已载入 ${wardrobeItems.length} 件公开体验单品，试衣工作台和私人模式现在共用同一条读取链路。`
+            ? `Loaded ${wardrobeItems.length} private wardrobe items for try-on.`
             : "Your wardrobe is empty. Add clothing first, then return to build looks in the try-on studio."
         );
       } catch (error) {
@@ -211,7 +253,7 @@ export function TryOnStudio() {
         }
 
         startTransition(() => replaceItems(seedWardrobeItems));
-        setStatusText(error instanceof Error ? `${error.message} 已切到本地降级试衣轨道。` : "Could not load wardrobe items for try-on. Switched to local fallback.");
+        setStatusText(error instanceof Error ? `${error.message} Switched to the local try-on fallback.` : "Could not load wardrobe items for try-on. Switched to local fallback.");
       } finally {
         if (active) {
           setHydratingWardrobe(false);
@@ -241,7 +283,7 @@ export function TryOnStudio() {
     startTransition(() => setTryOnItems(availableFocusIds));
     setRailFilter("new");
     setSortMode("focus");
-    setStatusText(`已把最新解构的 ${availableFocusIds.length} 件单品放到试衣舞台最前面。`);
+    setStatusText(`Moved ${availableFocusIds.length} freshly extracted items to the front of the try-on stage.`);
   }, [displayItems, focusItemIds, setTryOnItems]);
 
   if (!authReady) {
@@ -306,7 +348,7 @@ export function TryOnStudio() {
       } catch {
         // ignore storage failures
       }
-      setStatusText("已载入你的全身照，点击或拖拽单品会直接贴到照片舞台上。");
+      setStatusText("Loaded your full-body photo. Tap or drag pieces to place them onto the photo stage.");
     };
     reader.readAsDataURL(file);
   }
@@ -321,22 +363,28 @@ export function TryOnStudio() {
     if (avatarUploadRef.current) {
       avatarUploadRef.current.value = "";
     }
-    setStatusText("已切回 2.5D avatar 舞台。");
+    setStatusText("Switched back to the 2.5D avatar stage.");
   }
 
   async function handleRenderPreview() {
     if (!selectedTryOnIds.length) {
-      setStatusText("先选中至少 1 件单品，再生成试衣图。");
+      setStatusText("Select at least one item before generating a try-on preview.");
       return;
     }
     if (!avatarPhotoUrl) {
       setServerPreview(null);
-      setStatusText("先上传全身照，再走 Replicate 云端试衣。当前舞台仍可继续做本地叠穿预览。");
+      setStatusText("Upload a full-body photo first. Until then, the stage will stay in local layered-preview mode.");
+      return;
+    }
+
+    if (previewMode) {
+      setServerPreview(buildLocalTryOnPreview(selectedTryOnIds, displayItems, avatarPhotoUrl));
+      setStatusText("Preview mode composed a local try-on mock.");
       return;
     }
 
     setRenderingPreview(true);
-    setStatusText("正在把选中的衣物贴到你的全身照上...");
+    setStatusText("Composing the selected pieces onto your full-body photo...");
 
     try {
       const result = await renderVirtualTryOn({
@@ -348,7 +396,7 @@ export function TryOnStudio() {
       setServerPreview(result);
       setStatusText(result.message);
     } catch (error) {
-      setStatusText(error instanceof Error ? error.message : "试衣图生成失败，请稍后再试。");
+      setStatusText(error instanceof Error ? error.message : "Try-on preview generation failed. Please try again in a moment.");
     } finally {
       setRenderingPreview(false);
     }
@@ -475,7 +523,7 @@ export function TryOnStudio() {
     <div className="tryon-studio-grid relative grid gap-4 sm:gap-6 xl:grid-cols-[1.2fr_0.8fr]">
       {previewMode ? (
         <div className="xl:col-span-2">
-          <VisitorPreviewNotice description="当前是公开体验模式。你现在拖拽的是公开体验衣橱单品，但页面仍然优先走真实读取接口；登录后会自动切到你自己的衣橱单品。" />
+          <VisitorPreviewNotice description="Preview mode now stays fully local. The try-on stage only uses demo wardrobe data and local mock previews until you sign in." />
         </div>
       ) : null}
 
@@ -570,15 +618,15 @@ export function TryOnStudio() {
             <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="pill mb-2">Server Try-On</div>
-                <h4 className="text-lg font-semibold text-[var(--ink-strong)]">生成试衣图</h4>
+                <h4 className="text-lg font-semibold text-[var(--ink-strong)]">Generated Try-On Preview</h4>
                 <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
                   {serverPreview.providerMode === "remote"
-                    ? "远端模型结果"
+                    ? "Remote model result"
                     : serverPreview.providerMode === "remote-fallback-worker"
-                      ? "云端失败后已切到 OOT worker"
+                      ? "Cloud render fell back to the OOT worker"
                       : serverPreview.providerMode === "remote-fallback-local" || serverPreview.providerMode === "remote-fallback-worker-fallback-local"
-                        ? "远端失败后已切到本地生成"
-                        : "本地试衣合成结果"}
+                        ? "Cloud render fell back to local composition"
+                        : "Local preview composition"}
                 </p>
               </div>
               <div className="rounded-[20px] border border-[var(--line)] bg-white/80 px-4 py-3 text-xs leading-5 text-[var(--muted)]">
@@ -586,7 +634,16 @@ export function TryOnStudio() {
               </div>
             </div>
             <div className="overflow-hidden rounded-[24px] border border-[var(--line)] bg-white/75">
-              <img src={serverPreview.previewUrl} alt="Generated try-on preview" className="h-auto w-full object-cover" />
+              <div className="relative aspect-[4/5] w-full">
+                <Image
+                  src={serverPreview.previewUrl}
+                  alt="Generated try-on preview"
+                  fill
+                  unoptimized
+                  sizes="(max-width: 1024px) 100vw, 40vw"
+                  className="object-cover"
+                />
+              </div>
             </div>
           </div>
         ) : null}
@@ -595,14 +652,14 @@ export function TryOnStudio() {
       <div className="tryon-panel section-card subtle-card rounded-[32px] p-4 sm:p-5">
         <div className="tryon-panel-head mb-4 flex flex-col gap-3 sm:mb-5 sm:gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="tryon-panel-copy">
-            <h3 className="text-lg font-semibold text-[var(--ink-strong)] sm:text-xl">新增单品试衣工作台</h3>
-            <p className="mt-1 text-sm leading-6 text-[var(--muted)]">新解构出来的衣服会优先排在前面，点一下就能直接贴到舞台或全身照上。</p>
+            <h3 className="text-lg font-semibold text-[var(--ink-strong)] sm:text-xl">New Item Try-On Workbench</h3>
+            <p className="mt-1 text-sm leading-6 text-[var(--muted)]">Freshly extracted pieces stay pinned near the top so you can tap or drag them straight onto the avatar or photo stage.</p>
             {statusText ? <p className="tryon-status-text mt-2 text-xs leading-5 text-[var(--muted)]">{statusText}</p> : null}
           </div>
           <StoryCluster
-            emoji="🪄"
+            emoji="AI"
             title={draggingItem ? "magnetic mode" : "new drops first"}
-            chips={draggingItem ? ["snap ready", "avatar awake", "release softly"] : ["新增优先", "照片舞台", "直接试穿"]}
+            chips={draggingItem ? ["snap ready", "avatar awake", "release softly"] : ["new first", "photo stage", "drag to try on"]}
             tone={draggingItem ? "sky" : "peach"}
             compact
           />
@@ -614,7 +671,7 @@ export function TryOnStudio() {
               className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/85 px-4 py-2 text-sm text-[var(--ink)] transition hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
             >
               <Sparkles className="size-4" />
-              {avatarPhotoUrl ? "更换全身照" : "上传全身照"}
+              {avatarPhotoUrl ? "Replace photo" : "Upload photo"}
             </button>
             {avatarPhotoUrl ? (
               <button
@@ -622,18 +679,18 @@ export function TryOnStudio() {
                 onClick={clearAvatarPhoto}
                 className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/85 px-4 py-2 text-sm text-[var(--ink)] transition hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
               >
-                清除照片
+                Clear photo
               </button>
             ) : null}
             <button
               type="button"
               onClick={() => void handleRenderPreview()}
               disabled={renderingPreview || !canRequestCloudTryOn}
-              title={!avatarPhotoUrl ? "请先上传全身照后再生成云端试衣图" : undefined}
+              title={!avatarPhotoUrl ? "Upload a full-body photo before generating a cloud try-on preview." : undefined}
               className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/85 px-4 py-2 text-sm text-[var(--ink)] transition hover:border-[var(--accent)] hover:bg-[var(--accent-soft)] disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Sparkles className="size-4" />
-              {renderingPreview ? "生成中..." : avatarPhotoUrl ? "生成试衣图" : "先上传全身照"}
+              {renderingPreview ? "Generating..." : avatarPhotoUrl ? "Generate try-on" : "Upload photo first"}
             </button>
             <button
               type="button"
@@ -652,7 +709,7 @@ export function TryOnStudio() {
             />
             {!avatarPhotoUrl ? (
               <span className="rounded-full border border-[var(--line)] bg-[var(--accent-soft)] px-3 py-1.5 text-xs text-[var(--ink-strong)]">
-                云端试衣需要先上传全身照
+                Cloud try-on needs a full-body photo first.
               </span>
             ) : null}
           </div>
@@ -662,7 +719,7 @@ export function TryOnStudio() {
           <StateCard
             variant={hydratingWardrobe ? "loading" : "empty"}
             title={hydratingWardrobe ? "Loading your try-on rail" : "Your try-on rail is still empty"}
-            description={hydratingWardrobe ? "正在把你的私人衣橱装进试衣工作台。" : "先去衣橱页添加几件衣服，再回来拖到虚拟人身上，试衣区会立刻变得有意思起来。"}
+            description={hydratingWardrobe ? "Loading your private wardrobe into the try-on workbench." : "Add a few items to the wardrobe first, then come back to drag them onto the avatar."}
           />
         ) : null}
 
@@ -717,7 +774,7 @@ export function TryOnStudio() {
           </div>
 
           <div className="tryon-filter-row tryon-sort-row flex flex-wrap items-center gap-2">
-            <span className="text-xs uppercase tracking-[0.22em] text-[var(--muted)]">排序</span>
+            <span className="text-xs uppercase tracking-[0.22em] text-[var(--muted)]">Sort</span>
             {sortModes.map((option) => (
               <button
                 key={option.value}
@@ -734,7 +791,7 @@ export function TryOnStudio() {
             ))}
             {focusItemIds.length ? (
               <span className="rounded-full bg-[var(--accent-soft)] px-3 py-1.5 text-xs text-[var(--ink-strong)]">
-                当前有 {focusItemIds.length} 件新解构单品已置顶
+                {focusItemIds.length} newly extracted items are pinned right now.
               </span>
             ) : null}
           </div>
@@ -804,7 +861,14 @@ export function TryOnStudio() {
                 <div className="tryon-item-main flex items-center gap-3 sm:gap-4">
                   <div className="tryon-item-thumb relative h-[72px] w-[58px] shrink-0 overflow-hidden rounded-[16px] border border-white/50 bg-white/70 sm:h-20 sm:w-16 sm:rounded-[18px]">
                     {item.processedImageUrl || item.imageUrl ? (
-                      <img src={item.processedImageUrl || item.imageUrl || ""} alt={item.name} className="h-full w-full object-contain p-1.5" />
+                      <Image
+                        src={item.processedImageUrl || item.imageUrl || ""}
+                        alt={item.name}
+                        fill
+                        unoptimized
+                        sizes="64px"
+                        className="object-contain p-1.5"
+                      />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-[10px] text-[var(--muted)]" style={{ background: `linear-gradient(145deg, ${item.colorHex}20, rgba(255,255,255,0.94))` }}>
                         {item.color}
@@ -837,8 +901,8 @@ export function TryOnStudio() {
           {!filteredItems.length && displayItems.length ? (
             <StateCard
               variant="empty"
-              title="当前筛选下没有单品"
-              description="换一个分类、季节或排序试试，或者先回到智能衣物页继续解构新的单品。"
+              title="No items match this filter right now"
+              description="Try another category, season, or sort order, or add more pieces from the wardrobe flow first."
             />
           ) : null}
         </div>

@@ -1,0 +1,89 @@
+{
+  "generated_at": "2026-04-13T22:54:30+0800",
+  "aatrain_dir": "AAtrain",
+  "bundle_mode": "full-research-assets",
+  "project_datasets": {
+    "image-processor": {
+      "status": "public-bootstrap-ready",
+      "strategy": "pretrained-inference-first-with-public-finetune-bootstrap",
+      "fashionpedia_train_images": 45623,
+      "fashionpedia_val_test_images": 3200,
+      "deepfashion2_train": 191961,
+      "deepfashion2_validation": 32153,
+      "deepfashion2_test": 62629,
+      "deepfashion_multimodal_rows": 44096
+    },
+    "virtual-tryon": {
+      "status": "research-bootstrap-ready",
+      "train": 11647,
+      "eval": 2032,
+      "source": "viton-hd",
+      "license_bucket": "research-only-noncommercial",
+      "import_mode": "hardlink-plus-generated-masks"
+    }
+  },
+  "organized": {
+    "deepfashion-multimodal": {
+      "dataset": "deepfashion-multimodal",
+      "available_archives": {
+        "image.zip": true,
+        "parsing.zip": true,
+        "keypoints.zip": true,
+        "densepose.zip": true,
+        "labels.zip": true,
+        "textual_descriptions.json": true
+      },
+      "status": "ready",
+      "row_count": 44096
+    },
+    "deepfashion2": {
+      "dataset": "deepfashion2",
+      "available_archives": {
+        "train.zip": true,
+        "validation.zip": true,
+        "test.zip": true,
+        "json_for_validation.zip": true
+      },
+      "manual_extract_dirs": [
+        "model_training\\raw-sources\\deepfashion2\\archives\\train",
+        "model_training\\raw-sources\\deepfashion2\\archives\\validation",
+        "model_training\\raw-sources\\deepfashion2\\archives\\test",
+        "model_training\\raw-sources\\deepfashion2\\archives\\json_for_validation"
+      ],
+      "status": "ready",
+      "stats": {
+        "train": 191961,
+        "validation": 32153,
+        "test": 62629
+      },
+      "selected_sources": {
+        "train": "model_training\\raw-sources\\deepfashion2\\archives\\train\\train",
+        "validation": "model_training\\raw-sources\\deepfashion2\\archives\\validation\\validation",
+        "test": "model_training\\raw-sources\\deepfashion2\\archives\\test\\test"
+      }
+    },
+    "shift15m": {
+      "dataset": "shift15m",
+      "iqon_outfits_rows": 2555147,
+      "iqon_outfits_with_tags_rows": 2555147,
+      "item_catalog_rows": 2335598,
+      "feature_file_count": 2335598,
+      "status": "ready"
+    }
+  },
+  "mirrored": [
+    "ai-services",
+    "docs",
+    "training",
+    "model_training\\README.md",
+    "model_training\\raw-sources",
+    "model_training\\datasets\\deepfashion-multimodal",
+    "model_training\\datasets\\deepfashion2",
+    "model_training\\datasets\\image-processor",
+    "model_training\\datasets\\llm-recommender",
+    "model_training\\datasets\\multimodal-reader",
+    "model_training\\datasets\\shift15m",
+    "model_training\\datasets\\virtual-tryon",
+    "model_training\\exports\\multimodal-reader-qwen"
+  ]
+}

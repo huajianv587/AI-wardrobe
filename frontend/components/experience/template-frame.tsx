@@ -116,13 +116,14 @@ export function ExperienceTemplateFrame({ html, title }: ExperienceTemplateFrame
   }, [html, isMobile]);
 
   return (
-    <div className={styles.shell}>
+    <div className={styles.shell} data-testid="experience-shell">
       <ExperienceTopNav />
       <div className={styles.frameWrap}>
         <iframe
           ref={frameRef}
           title={title}
           srcDoc={html}
+          data-testid="experience-frame"
           className={`${styles.frame} ${isMobile ? styles.frameMobile : ""}`}
         />
       </div>

@@ -1,0 +1,700 @@
+{
+  "root": "model_training\\raw-sources\\deepfashion",
+  "official_url": "https://mmlab.ie.cuhk.edu.hk/projects/DeepFashion.html",
+  "benchmarks": [
+    {
+      "name": "Category and Attribute Prediction Benchmark",
+      "folder_id": "0B7EVK8r0v71pWGplNFhjc01NbzQ",
+      "resource_key": "0-BU3lAk-Nc7HscJu-CyC1yA",
+      "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\category-and-attribute-prediction-benchmark",
+      "children": [
+        {
+          "type": "folder",
+          "name": "Anno_coarse",
+          "folder_id": "0B7EVK8r0v71pWWxJeGVqMjRkUVE",
+          "resource_key": "0-sICGfjSkFn6dLpFAwLx8pw",
+          "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\category-and-attribute-prediction-benchmark\\anno-coarse",
+          "children": [
+            {
+              "type": "file",
+              "name": "list_attr_cloth.txt",
+              "file_id": "0B7EVK8r0v71pYnBKQVBOaHR1WWs",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\category-and-attribute-prediction-benchmark\\anno-coarse\\list_attr_cloth.txt",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:list_attr_cloth.txt",
+                "error": "Failed to retrieve file url:\n\n\tToo many users have viewed or downloaded this file recently. Please\n\ttry accessing the file again later. If the file you are trying to\n\taccess is particularly large or is shared with many people, it may\n\ttake up to 24 hours to be able to view or download the file. If you\n\tstill can't access a file after 24 hours, contact your domain\n\tadministrator.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pYnBKQVBOaHR1WWs\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            },
+            {
+              "type": "file",
+              "name": "list_attr_img.txt",
+              "file_id": "0B7EVK8r0v71pWXE4QWotX2hxQ1U",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\category-and-attribute-prediction-benchmark\\anno-coarse\\list_attr_img.txt",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:list_attr_img.txt",
+                "error": "Failed to retrieve file url:\n\n\tToo many users have viewed or downloaded this file recently. Please\n\ttry accessing the file again later. If the file you are trying to\n\taccess is particularly large or is shared with many people, it may\n\ttake up to 24 hours to be able to view or download the file. If you\n\tstill can't access a file after 24 hours, contact your domain\n\tadministrator.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pWXE4QWotX2hxQ1U\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            },
+            {
+              "type": "file",
+              "name": "list_bbox.txt",
+              "file_id": "0B7EVK8r0v71pT0RDNENnV2NiWTQ",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\category-and-attribute-prediction-benchmark\\anno-coarse\\list_bbox.txt",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:list_bbox.txt",
+                "error": "Failed to retrieve file url:\n\n\tToo many users have viewed or downloaded this file recently. Please\n\ttry accessing the file again later. If the file you are trying to\n\taccess is particularly large or is shared with many people, it may\n\ttake up to 24 hours to be able to view or download the file. If you\n\tstill can't access a file after 24 hours, contact your domain\n\tadministrator.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pT0RDNENnV2NiWTQ\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            },
+            {
+              "type": "file",
+              "name": "list_category_cloth.txt",
+              "file_id": "0B7EVK8r0v71pWnFiNlNGTVloLUk",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\category-and-attribute-prediction-benchmark\\anno-coarse\\list_category_cloth.txt",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:list_category_cloth.txt",
+                "error": "Failed to retrieve file url:\n\n\tToo many users have viewed or downloaded this file recently. Please\n\ttry accessing the file again later. If the file you are trying to\n\taccess is particularly large or is shared with many people, it may\n\ttake up to 24 hours to be able to view or download the file. If you\n\tstill can't access a file after 24 hours, contact your domain\n\tadministrator.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pWnFiNlNGTVloLUk\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            },
+            {
+              "type": "file",
+              "name": "list_category_img.txt",
+              "file_id": "0B7EVK8r0v71pTGNoWkhZeVpzbFk",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\category-and-attribute-prediction-benchmark\\anno-coarse\\list_category_img.txt",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:list_category_img.txt",
+                "error": "Failed to retrieve file url:\n\n\tToo many users have viewed or downloaded this file recently. Please\n\ttry accessing the file again later. If the file you are trying to\n\taccess is particularly large or is shared with many people, it may\n\ttake up to 24 hours to be able to view or download the file. If you\n\tstill can't access a file after 24 hours, contact your domain\n\tadministrator.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pTGNoWkhZeVpzbFk\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            },
+            {
+              "type": "file",
+              "name": "list_landmarks.txt",
+              "file_id": "0B7EVK8r0v71pbU5semhCZ1Jwdkk",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\category-and-attribute-prediction-benchmark\\anno-coarse\\list_landmarks.txt",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:list_landmarks.txt",
+                "error": "Failed to retrieve file url:\n\n\tToo many users have viewed or downloaded this file recently. Please\n\ttry accessing the file again later. If the file you are trying to\n\taccess is particularly large or is shared with many people, it may\n\ttake up to 24 hours to be able to view or download the file. If you\n\tstill can't access a file after 24 hours, contact your domain\n\tadministrator.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pbU5semhCZ1Jwdkk\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            }
+          ]
+        },
+        {
+          "type": "file",
+          "name": "Anno_fine",
+          "file_id": "19J-FY5NY7s91SiHpQQBo2ad3xjIB42iN",
+          "download": {
+            "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\category-and-attribute-prediction-benchmark\\Anno_fine",
+            "bytes": 0,
+            "skipped": false,
+            "label": "DeepFashion:Anno_fine",
+            "error": "Failed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=19J-FY5NY7s91SiHpQQBo2ad3xjIB42iN\n\nbut Gdown can't. Please check connections and permissions."
+          }
+        },
+        {
+          "type": "folder",
+          "name": "Eval",
+          "folder_id": "0B7EVK8r0v71pdDVIVGJpVFJOY0k",
+          "resource_key": "0-QCydD4yiIs6zkBIEx-B7rQ",
+          "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\category-and-attribute-prediction-benchmark\\eval",
+          "children": [
+            {
+              "type": "file",
+              "name": "list_eval_partition.txt",
+              "file_id": "0B7EVK8r0v71pdS1FMlNreEwtc1E",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\category-and-attribute-prediction-benchmark\\eval\\list_eval_partition.txt",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:list_eval_partition.txt",
+                "error": "Failed to retrieve file url:\n\n\tToo many users have viewed or downloaded this file recently. Please\n\ttry accessing the file again later. If the file you are trying to\n\taccess is particularly large or is shared with many people, it may\n\ttake up to 24 hours to be able to view or download the file. If you\n\tstill can't access a file after 24 hours, contact your domain\n\tadministrator.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pdS1FMlNreEwtc1E\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            }
+          ]
+        },
+        {
+          "type": "folder",
+          "name": "Img",
+          "folder_id": "0B7EVK8r0v71pekpRNUlMS3Z5cUk",
+          "resource_key": "0-GHiFnJuDTvzzGuTj6lE6og",
+          "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\category-and-attribute-prediction-benchmark\\img",
+          "children": [
+            {
+              "type": "file",
+              "name": "img_highres.zip",
+              "file_id": "1YqbWP1PvuhA1uD3MErjYiXPA1a8MJBP2",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\category-and-attribute-prediction-benchmark\\img\\img_highres.zip",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:img_highres.zip",
+                "error": "Failed to retrieve file url:\n\n\tToo many users have viewed or downloaded this file recently. Please\n\ttry accessing the file again later. If the file you are trying to\n\taccess is particularly large or is shared with many people, it may\n\ttake up to 24 hours to be able to view or download the file. If you\n\tstill can't access a file after 24 hours, contact your domain\n\tadministrator.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1YqbWP1PvuhA1uD3MErjYiXPA1a8MJBP2\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            },
+            {
+              "type": "file",
+              "name": "img.zip",
+              "file_id": "0B7EVK8r0v71pa2EyNEJ0dE9zbU0",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\category-and-attribute-prediction-benchmark\\img\\img.zip",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:img.zip",
+                "error": "Failed to retrieve file url:\n\n\tToo many users have viewed or downloaded this file recently. Please\n\ttry accessing the file again later. If the file you are trying to\n\taccess is particularly large or is shared with many people, it may\n\ttake up to 24 hours to be able to view or download the file. If you\n\tstill can't access a file after 24 hours, contact your domain\n\tadministrator.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pa2EyNEJ0dE9zbU0\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            }
+          ]
+        },
+        {
+          "type": "file",
+          "name": "README.txt",
+          "file_id": "0B7EVK8r0v71pdERsaTdrbS1VbzA",
+          "download": {
+            "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\category-and-attribute-prediction-benchmark\\README.txt",
+            "bytes": 0,
+            "skipped": false,
+            "label": "DeepFashion:README.txt",
+            "error": "Failed to retrieve file url:\n\n\tToo many users have viewed or downloaded this file recently. Please\n\ttry accessing the file again later. If the file you are trying to\n\taccess is particularly large or is shared with many people, it may\n\ttake up to 24 hours to be able to view or download the file. If you\n\tstill can't access a file after 24 hours, contact your domain\n\tadministrator.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pdERsaTdrbS1VbzA\n\nbut Gdown can't. Please check connections and permissions."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Consumer-to-shop Clothes Retrieval Benchmark",
+      "folder_id": "0B7EVK8r0v71pRXllRUdQcC1zTHc",
+      "resource_key": "0-YgTkHTdQH_KN0VcXr9k_jQ",
+      "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\consumer-to-shop-clothes-retrieval-benchmark",
+      "children": [
+        {
+          "type": "folder",
+          "name": "Anno",
+          "folder_id": "0B7EVK8r0v71pMVBqM1Z1b29Tcnc",
+          "resource_key": "0-_QDuo2elw-pdBkSD2nslWg",
+          "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\consumer-to-shop-clothes-retrieval-benchmark\\anno",
+          "children": [
+            {
+              "type": "file",
+              "name": "list_attr_cloth.txt",
+              "file_id": "0B7EVK8r0v71pTWdwNTlLd2k4Y0U",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\consumer-to-shop-clothes-retrieval-benchmark\\anno\\list_attr_cloth.txt",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:list_attr_cloth.txt",
+                "error": "Failed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pTWdwNTlLd2k4Y0U\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            },
+            {
+              "type": "file",
+              "name": "list_attr_items.txt",
+              "file_id": "0B7EVK8r0v71pVG13N0pONy1LOEU",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\consumer-to-shop-clothes-retrieval-benchmark\\anno\\list_attr_items.txt",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:list_attr_items.txt",
+                "error": "Failed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pVG13N0pONy1LOEU\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            },
+            {
+              "type": "file",
+              "name": "list_attr_type.txt",
+              "file_id": "0B7EVK8r0v71pX0ZfVXRWbk1jTDA",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\consumer-to-shop-clothes-retrieval-benchmark\\anno\\list_attr_type.txt",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:list_attr_type.txt",
+                "error": "Failed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pX0ZfVXRWbk1jTDA\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            },
+            {
+              "type": "file",
+              "name": "list_bbox_consumer2shop.txt",
+              "file_id": "0B7EVK8r0v71pTWZDaVdhWmJUd2M",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\consumer-to-shop-clothes-retrieval-benchmark\\anno\\list_bbox_consumer2shop.txt",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:list_bbox_consumer2shop.txt",
+                "error": "Failed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pTWZDaVdhWmJUd2M\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            },
+            {
+              "type": "file",
+              "name": "list_item_consumer2shop.txt",
+              "file_id": "0B7EVK8r0v71pZVhoRnY4YzBkSmc",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\consumer-to-shop-clothes-retrieval-benchmark\\anno\\list_item_consumer2shop.txt",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:list_item_consumer2shop.txt",
+                "error": "Failed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pZVhoRnY4YzBkSmc\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            },
+            {
+              "type": "file",
+              "name": "list_landmarks_consumer2shop.txt",
+              "file_id": "0B7EVK8r0v71pSkJvOEUtQk15ZjA",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\consumer-to-shop-clothes-retrieval-benchmark\\anno\\list_landmarks_consumer2shop.txt",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:list_landmarks_consumer2shop.txt",
+                "error": "Failed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pSkJvOEUtQk15ZjA\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            }
+          ]
+        },
+        {
+          "type": "folder",
+          "name": "Eval",
+          "folder_id": "0B7EVK8r0v71pckZOSm42TFVKNW8",
+          "resource_key": "0-R-h4iL6888yyITdVWcL-gA",
+          "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\consumer-to-shop-clothes-retrieval-benchmark\\eval",
+          "children": [
+            {
+              "type": "file",
+              "name": "list_eval_partition.txt",
+              "file_id": "0B7EVK8r0v71pZXpQWm5DazlfRjQ",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\consumer-to-shop-clothes-retrieval-benchmark\\eval\\list_eval_partition.txt",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:list_eval_partition.txt",
+                "error": "Failed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pZXpQWm5DazlfRjQ\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            }
+          ]
+        },
+        {
+          "type": "folder",
+          "name": "Img",
+          "folder_id": "0B7EVK8r0v71paEdIQ2M2UllIaG8",
+          "resource_key": "0-YoRC2HFctJlGLqbFgxD8jg",
+          "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\consumer-to-shop-clothes-retrieval-benchmark\\img",
+          "children": [
+            {
+              "type": "file",
+              "name": "img_highres.zip",
+              "file_id": "1cVG_qW2VgN2aoWP5SK_nBo8FronJRsmn",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\consumer-to-shop-clothes-retrieval-benchmark\\img\\img_highres.zip",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:img_highres.zip",
+                "error": "Failed to retrieve file url:\n\n\tToo many users have viewed or downloaded this file recently. Please\n\ttry accessing the file again later. If the file you are trying to\n\taccess is particularly large or is shared with many people, it may\n\ttake up to 24 hours to be able to view or download the file. If you\n\tstill can't access a file after 24 hours, contact your domain\n\tadministrator.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1cVG_qW2VgN2aoWP5SK_nBo8FronJRsmn\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            },
+            {
+              "type": "file",
+              "name": "img.zip",
+              "file_id": "0B7EVK8r0v71paDZPZUJ4OXBjTGM",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\consumer-to-shop-clothes-retrieval-benchmark\\img\\img.zip",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:img.zip",
+                "error": "Failed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71paDZPZUJ4OXBjTGM\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            }
+          ]
+        },
+        {
+          "type": "file",
+          "name": "README.txt",
+          "file_id": "0B7EVK8r0v71pdEFRZFRkZWZOMEE",
+          "download": {
+            "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\consumer-to-shop-clothes-retrieval-benchmark\\README.txt",
+            "bytes": 0,
+            "skipped": false,
+            "label": "DeepFashion:README.txt",
+            "error": "Failed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pdEFRZFRkZWZOMEE\n\nbut Gdown can't. Please check connections and permissions."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Fashion Landmark Detection Benchmark",
+      "folder_id": "0B7EVK8r0v71pLXQ4bmxZaEFKTm8",
+      "resource_key": "0-Ldyv0gTGbbEnAf_wOGqEpg",
+      "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\fashion-landmark-detection-benchmark",
+      "children": [
+        {
+          "type": "folder",
+          "name": "Anno",
+          "folder_id": "0B7EVK8r0v71pQVdlS0dNV3poVE0",
+          "resource_key": "0-35KSRulntXSLsYVKsMBCLw",
+          "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\fashion-landmark-detection-benchmark\\anno",
+          "children": [
+            {
+              "type": "file",
+              "name": "list_bbox.txt",
+              "file_id": "0B7EVK8r0v71pR3NhODVieU0tT1E",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\fashion-landmark-detection-benchmark\\anno\\list_bbox.txt",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:list_bbox.txt",
+                "error": "Failed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pR3NhODVieU0tT1E\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            },
+            {
+              "type": "file",
+              "name": "list_joints.txt",
+              "file_id": "1Yi6BIRhbScbIxWbQTyae8WIeV0eOjdeQ",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\fashion-landmark-detection-benchmark\\anno\\list_joints.txt",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:list_joints.txt",
+                "error": "Failed to retrieve file url:\n\n\tToo many users have viewed or downloaded this file recently. Please\n\ttry accessing the file again later. If the file you are trying to\n\taccess is particularly large or is shared with many people, it may\n\ttake up to 24 hours to be able to view or download the file. If you\n\tstill can't access a file after 24 hours, contact your domain\n\tadministrator.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1Yi6BIRhbScbIxWbQTyae8WIeV0eOjdeQ\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            },
+            {
+              "type": "file",
+              "name": "list_landmarks.txt",
+              "file_id": "0B7EVK8r0v71pZ3pGVFZ0YjZVTjg",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\fashion-landmark-detection-benchmark\\anno\\list_landmarks.txt",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:list_landmarks.txt",
+                "error": "Failed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pZ3pGVFZ0YjZVTjg\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            }
+          ]
+        },
+        {
+          "type": "folder",
+          "name": "Eval",
+          "folder_id": "0B7EVK8r0v71pZHdteUVtUEVtbWs",
+          "resource_key": "0-u6mNEfmZDwS6rGy8Dj_oTA",
+          "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\fashion-landmark-detection-benchmark\\eval",
+          "children": [
+            {
+              "type": "file",
+              "name": "list_eval_partition.txt",
+              "file_id": "0B7EVK8r0v71pakJzTEM0a2Q4Qm8",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\fashion-landmark-detection-benchmark\\eval\\list_eval_partition.txt",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:list_eval_partition.txt",
+                "error": "Failed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pakJzTEM0a2Q4Qm8\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            }
+          ]
+        },
+        {
+          "type": "folder",
+          "name": "Img",
+          "folder_id": "0B7EVK8r0v71pRmFJbkFEXzhtZTQ",
+          "resource_key": "0-jnTZX-spfAyIpak3uDuuFw",
+          "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\fashion-landmark-detection-benchmark\\img",
+          "children": [
+            {
+              "type": "file",
+              "name": "img.zip",
+              "file_id": "0B7EVK8r0v71pSU9nOXVDMk9WbWM",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\fashion-landmark-detection-benchmark\\img\\img.zip",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:img.zip",
+                "error": "Failed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pSU9nOXVDMk9WbWM\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            }
+          ]
+        },
+        {
+          "type": "file",
+          "name": "README.txt",
+          "file_id": "0B7EVK8r0v71pbXdBUWNwd1h2ck0",
+          "download": {
+            "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\fashion-landmark-detection-benchmark\\README.txt",
+            "bytes": 0,
+            "skipped": false,
+            "label": "DeepFashion:README.txt",
+            "error": "Failed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pbXdBUWNwd1h2ck0\n\nbut Gdown can't. Please check connections and permissions."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Fashion Synthesis Benchmark",
+      "folder_id": "0B7EVK8r0v71pTHhMenkxbE9fTVk",
+      "resource_key": "0-vTjoKh5LuocS_K3yxycXIg",
+      "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\fashion-synthesis-benchmark",
+      "children": [
+        {
+          "type": "folder",
+          "name": "Anno",
+          "folder_id": "0B7EVK8r0v71pWk9QekJtUVhFMkk",
+          "resource_key": "0-kcqcYWMPJvrM2yxPeFJXrQ",
+          "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\fashion-synthesis-benchmark\\anno",
+          "children": [
+            {
+              "type": "file",
+              "name": "language_original.mat",
+              "file_id": "0B7EVK8r0v71pcXJ3QWxhY0hqM0E",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\fashion-synthesis-benchmark\\anno\\language_original.mat",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:language_original.mat",
+                "error": "Failed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pcXJ3QWxhY0hqM0E\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            }
+          ]
+        },
+        {
+          "type": "folder",
+          "name": "Eval",
+          "folder_id": "0B7EVK8r0v71pV3d0OTk4SnFFRTA",
+          "resource_key": "0-NRzdwZXNfHZl0MK9YFCZQw",
+          "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\fashion-synthesis-benchmark\\eval",
+          "children": [
+            {
+              "type": "file",
+              "name": "ind.mat",
+              "file_id": "0B7EVK8r0v71pS0RTVElORWtYczA",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\fashion-synthesis-benchmark\\eval\\ind.mat",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:ind.mat",
+                "error": "Failed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pS0RTVElORWtYczA\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            }
+          ]
+        },
+        {
+          "type": "folder",
+          "name": "Img",
+          "folder_id": "0B7EVK8r0v71pbkVUVVNIcDVzLWM",
+          "resource_key": "0-tKHgsB3bwPRVJ_A6Cwdeig",
+          "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\fashion-synthesis-benchmark\\img",
+          "children": [
+            {
+              "type": "file",
+              "name": "G2.zip",
+              "file_id": "0B7EVK8r0v71pX1F4MXJYcUZqRFk",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\fashion-synthesis-benchmark\\img\\G2.zip",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:G2.zip",
+                "error": "Failed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pX1F4MXJYcUZqRFk\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            },
+            {
+              "type": "file",
+              "name": "subset_index.tar.gz",
+              "file_id": "1kc1eYqAkSjnWSU1xHhqLHeUCxi5v57iL",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\fashion-synthesis-benchmark\\img\\subset_index.tar.gz",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:subset_index.tar.gz",
+                "error": "Failed to retrieve file url:\n\n\tToo many users have viewed or downloaded this file recently. Please\n\ttry accessing the file again later. If the file you are trying to\n\taccess is particularly large or is shared with many people, it may\n\ttake up to 24 hours to be able to view or download the file. If you\n\tstill can't access a file after 24 hours, contact your domain\n\tadministrator.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1kc1eYqAkSjnWSU1xHhqLHeUCxi5v57iL\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            }
+          ]
+        },
+        {
+          "type": "file",
+          "name": "README.txt",
+          "file_id": "0B7EVK8r0v71pM2RtcTl2Ul9LRFE",
+          "download": {
+            "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\fashion-synthesis-benchmark\\README.txt",
+            "bytes": 0,
+            "skipped": false,
+            "label": "DeepFashion:README.txt",
+            "error": "Failed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pM2RtcTl2Ul9LRFE\n\nbut Gdown can't. Please check connections and permissions."
+          }
+        }
+      ]
+    },
+    {
+      "name": "In-shop Clothes Retrieval Benchmark",
+      "folder_id": "0B7EVK8r0v71pVDZFQXRsMDZCX1E",
+      "resource_key": "0-4R4v6zl4CWhHTsUGOsTstw",
+      "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\in-shop-clothes-retrieval-benchmark",
+      "children": [
+        {
+          "type": "folder",
+          "name": "Anno",
+          "folder_id": "0B7EVK8r0v71pVDIydVdLTTRaU1k",
+          "resource_key": "0-bRZgqCKnNPFl-tEth9Rqcw",
+          "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\in-shop-clothes-retrieval-benchmark\\anno",
+          "children": [
+            {
+              "type": "file",
+              "name": "attributes",
+              "file_id": "1-5DwAzK5V16-oZfUdMkLicEga1qXS82B",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\in-shop-clothes-retrieval-benchmark\\anno\\attributes",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:attributes",
+                "error": "Failed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1-5DwAzK5V16-oZfUdMkLicEga1qXS82B\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            },
+            {
+              "type": "file",
+              "name": "densepose",
+              "file_id": "1LhvucR9n31w6QnIwydnF2bVYoPO9hL1F",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\in-shop-clothes-retrieval-benchmark\\anno\\densepose",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:densepose",
+                "error": "Failed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1LhvucR9n31w6QnIwydnF2bVYoPO9hL1F\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            },
+            {
+              "type": "file",
+              "name": "segmentation",
+              "file_id": "1X6FjyMyJmFLKs3M8RyY8zioKEfE2nvmm",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\in-shop-clothes-retrieval-benchmark\\anno\\segmentation",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:segmentation",
+                "error": "Failed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1X6FjyMyJmFLKs3M8RyY8zioKEfE2nvmm\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            },
+            {
+              "type": "file",
+              "name": "list_bbox_inshop.txt",
+              "file_id": "0B7EVK8r0v71pMGpUY0x2aEtvcFE",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\in-shop-clothes-retrieval-benchmark\\anno\\list_bbox_inshop.txt",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:list_bbox_inshop.txt",
+                "error": "Failed to retrieve file url:\n\n\tToo many users have viewed or downloaded this file recently. Please\n\ttry accessing the file again later. If the file you are trying to\n\taccess is particularly large or is shared with many people, it may\n\ttake up to 24 hours to be able to view or download the file. If you\n\tstill can't access a file after 24 hours, contact your domain\n\tadministrator.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pMGpUY0x2aEtvcFE\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            },
+            {
+              "type": "file",
+              "name": "list_description_inshop.json",
+              "file_id": "0B7EVK8r0v71pNF95aUhybzBkSVE",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\in-shop-clothes-retrieval-benchmark\\anno\\list_description_inshop.json",
+                "bytes": 5440024,
+                "skipped": false,
+                "label": "DeepFashion:list_description_inshop.json"
+              }
+            },
+            {
+              "type": "file",
+              "name": "list_item_inshop.txt",
+              "file_id": "0B7EVK8r0v71pMjNfR2lZYk5PQVk",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\in-shop-clothes-retrieval-benchmark\\anno\\list_item_inshop.txt",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:list_item_inshop.txt",
+                "error": "Failed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pMjNfR2lZYk5PQVk\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            },
+            {
+              "type": "file",
+              "name": "list_landmarks_inshop.txt",
+              "file_id": "0B7EVK8r0v71pU2hWMkVjXy0xTW8",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\in-shop-clothes-retrieval-benchmark\\anno\\list_landmarks_inshop.txt",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:list_landmarks_inshop.txt",
+                "error": "Failed to retrieve file url:\n\n\tToo many users have viewed or downloaded this file recently. Please\n\ttry accessing the file again later. If the file you are trying to\n\taccess is particularly large or is shared with many people, it may\n\ttake up to 24 hours to be able to view or download the file. If you\n\tstill can't access a file after 24 hours, contact your domain\n\tadministrator.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pU2hWMkVjXy0xTW8\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            }
+          ]
+        },
+        {
+          "type": "folder",
+          "name": "Eval",
+          "folder_id": "0B7EVK8r0v71pWVBJelFmMW5EWnM",
+          "resource_key": "0-8_o8jTP_CqqwSS_TFLf_mw",
+          "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\in-shop-clothes-retrieval-benchmark\\eval",
+          "children": [
+            {
+              "type": "file",
+              "name": "list_eval_partition.txt",
+              "file_id": "0B7EVK8r0v71pYVBqLXpRVjhHeWM",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\in-shop-clothes-retrieval-benchmark\\eval\\list_eval_partition.txt",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:list_eval_partition.txt",
+                "error": "Failed to retrieve file url:\n\n\tToo many users have viewed or downloaded this file recently. Please\n\ttry accessing the file again later. If the file you are trying to\n\taccess is particularly large or is shared with many people, it may\n\ttake up to 24 hours to be able to view or download the file. If you\n\tstill can't access a file after 24 hours, contact your domain\n\tadministrator.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pYVBqLXpRVjhHeWM\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            }
+          ]
+        },
+        {
+          "type": "folder",
+          "name": "Img",
+          "folder_id": "0B7EVK8r0v71pYkd5TzBiclMzR00",
+          "resource_key": "0-fsjVShvqXP2517KnwaZ0zw",
+          "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\in-shop-clothes-retrieval-benchmark\\img",
+          "children": [
+            {
+              "type": "file",
+              "name": "img_highres.zip",
+              "file_id": "1bByKH1ciLXY70Bp8le_AVnjk-Hd4pe_i",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\in-shop-clothes-retrieval-benchmark\\img\\img_highres.zip",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:img_highres.zip",
+                "error": "Failed to retrieve file url:\n\n\tToo many users have viewed or downloaded this file recently. Please\n\ttry accessing the file again later. If the file you are trying to\n\taccess is particularly large or is shared with many people, it may\n\ttake up to 24 hours to be able to view or download the file. If you\n\tstill can't access a file after 24 hours, contact your domain\n\tadministrator.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=1bByKH1ciLXY70Bp8le_AVnjk-Hd4pe_i\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            },
+            {
+              "type": "file",
+              "name": "img.zip",
+              "file_id": "0B7EVK8r0v71pS2YxRE1QTFZzekU",
+              "download": {
+                "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\in-shop-clothes-retrieval-benchmark\\img\\img.zip",
+                "bytes": 0,
+                "skipped": false,
+                "label": "DeepFashion:img.zip",
+                "error": "Failed to retrieve file url:\n\n\tToo many users have viewed or downloaded this file recently. Please\n\ttry accessing the file again later. If the file you are trying to\n\taccess is particularly large or is shared with many people, it may\n\ttake up to 24 hours to be able to view or download the file. If you\n\tstill can't access a file after 24 hours, contact your domain\n\tadministrator.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pS2YxRE1QTFZzekU\n\nbut Gdown can't. Please check connections and permissions."
+              }
+            }
+          ]
+        },
+        {
+          "type": "file",
+          "name": "README.txt",
+          "file_id": "0B7EVK8r0v71pSXp5b2R0UUg3U0E",
+          "download": {
+            "path": "model_training\\raw-sources\\deepfashion\\benchmarks\\in-shop-clothes-retrieval-benchmark\\README.txt",
+            "bytes": 0,
+            "skipped": false,
+            "label": "DeepFashion:README.txt",
+            "error": "Failed to retrieve file url:\n\n\tCannot retrieve the public link of the file. You may need to change\n\tthe permission to 'Anyone with the link', or have had many accesses.\n\tCheck FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.\n\nYou may still be able to access the file from the browser:\n\n\thttps://drive.google.com/uc?id=0B7EVK8r0v71pSXp5b2R0UUg3U0E\n\nbut Gdown can't. Please check connections and permissions."
+          }
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Official source is the CUHK DeepFashion project page.",
+    "Some DeepFashion archives may still require agreement acceptance or passwords depending on the split."
+  ]
+}

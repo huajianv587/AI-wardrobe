@@ -1,0 +1,120 @@
+name: ${COMPOSE_PROJECT_NAME:-ai-wardrobe-prod}
+
+x-default-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: ${DOCKER_LOG_MAX_SIZE:-10m}
+    max-file: ${DOCKER_LOG_MAX_FILE:-5}
+
+services:
+  gateway:
+    image: nginx:stable-alpine
+    init: true
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    ports:
+      - "${GATEWAY_HTTP_PORT:-80}:80"
+    volumes:
+      - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/nginx-health >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging: *default-logging
+    restart: unless-stopped
+
+  frontend:
+    image: ai-wardrobe-frontend:${AI_WARDROBE_RELEASE_TAG:-latest}
+    build:
+      context: ../../frontend
+      dockerfile: Dockerfile
+    env_file:
+      - ${PRODUCTION_ENV_FILE:-../../.env.production}
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://backend:8000}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost}
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/login').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging: *default-logging
+    restart: unless-stopped
+
+  backend:
+    image: ai-wardrobe-backend:${AI_WARDROBE_RELEASE_TAG:-latest}
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    env_file:
+      - ${PRODUCTION_ENV_FILE:-../../.env.production}
+    environment:
+      APP_ENV: production
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+    volumes:
+      - ../../data:/app/data
+      - ../../model_training:/app/model_training
+    expose:
+      - "8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0) if urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/ready', timeout=5).status == 200 else sys.exit(1)\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging: *default-logging
+    restart: unless-stopped
+
+  backend-worker:
+    image: ai-wardrobe-backend:${AI_WARDROBE_RELEASE_TAG:-latest}
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    env_file:
+      - ${PRODUCTION_ENV_FILE:-../../.env.production}
+    environment:
+      APP_ENV: production
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      TASK_QUEUE_ENABLED: ${TASK_QUEUE_ENABLED:-true}
+    command: ["python", "worker.py"]
+    volumes:
+      - ../../data:/app/data
+      - ../../model_training:/app/model_training
+    depends_on:
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    logging: *default-logging
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    expose:
+      - "6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging: *default-logging
+    restart: unless-stopped
+
+volumes:
+  redis-data:

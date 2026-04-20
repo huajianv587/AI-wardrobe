@@ -4,6 +4,7 @@ import base64
 import json
 import logging
 import re
+import warnings
 from functools import lru_cache
 from io import BytesIO
 from pathlib import Path
@@ -30,6 +31,11 @@ except Exception:  # pragma: no cover - optional dependency
 
 try:  # pragma: no cover - optional dependency
     import torch
+    warnings.filterwarnings(
+        "ignore",
+        message=r"`torch\.utils\._pytree\._register_pytree_node` is deprecated\..*",
+        category=FutureWarning,
+    )
     from transformers import CLIPModel, CLIPProcessor
 except Exception:  # pragma: no cover - optional dependency
     torch = None
@@ -253,7 +259,7 @@ def _guess_image_mode(image: Image.Image) -> str:
 
 def _dominant_color_name(image: Image.Image) -> str:
     swatch = image.resize((32, 32)).convert("RGB")
-    pixels = list(swatch.getdata())
+    pixels = [swatch.getpixel((x, y)) for y in range(swatch.height) for x in range(swatch.width)]
     if not pixels:
         return "米白色"
     avg = tuple(sum(channel) / len(pixels) for channel in zip(*pixels))
@@ -493,14 +499,11 @@ def _crop_box(image: Image.Image, bbox: dict[str, int], padding_ratio: float = 0
 
 def _transparent_from_bright_background(crop: Image.Image) -> Image.Image:
     rgba = crop.convert("RGBA")
-    pixels = list(rgba.getdata())
-    remapped = []
-    for red, green, blue, alpha in pixels:
-        if red > 242 and green > 242 and blue > 242:
-            remapped.append((red, green, blue, 0))
-        else:
-            remapped.append((red, green, blue, alpha))
-    rgba.putdata(remapped)
+    pixels = rgba.load()
+    for y in range(rgba.height):
+        for x in range(rgba.width):
+            red, green, blue, alpha = pixels[x, y]
+            pixels[x, y] = (red, green, blue, 0) if red > 242 and green > 242 and blue > 242 else (red, green, blue, alpha)
     return rgba
 
 

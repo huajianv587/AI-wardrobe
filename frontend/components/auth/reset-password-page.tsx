@@ -3,30 +3,10 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Cormorant_Garamond, Lato, Noto_Serif_SC } from "next/font/google";
 
 import { NavBar } from "@/components/HeroSection/NavBar";
 import { confirmPasswordReset } from "@/lib/api";
 import styles from "./auth-template-page.module.css";
-
-const serifCn = Noto_Serif_SC({
-  weight: ["200", "300", "400"],
-  subsets: ["latin"],
-  variable: "--font-auth-serif-cn"
-});
-
-const serifEn = Cormorant_Garamond({
-  weight: ["300"],
-  style: ["normal", "italic"],
-  subsets: ["latin"],
-  variable: "--font-auth-serif-en"
-});
-
-const authSans = Lato({
-  weight: ["300", "400"],
-  subsets: ["latin"],
-  variable: "--font-auth-sans"
-});
 
 const ambientParticles = [
   { left: "10%", top: "18%", size: 10, delay: "0s", duration: "9.2s" },
@@ -41,15 +21,15 @@ const ambientParticles = [
 const helperCards = [
   {
     eyebrow: "ACCOUNT SAFETY",
-    title: "重新拿回账号",
-    copy: "新密码保存后，旧密码和旧登录状态会一起失效。",
+    title: "拿回账号控制权",
+    copy: "新密码保存后，旧密码和旧登录状态都会一起失效。",
     href: "/login",
     tone: "rose" as const
   },
   {
     eyebrow: "PRIVATE WARDROBE",
-    title: "继续回到衣橱",
-    copy: "每个邮箱仍然独立对应自己的衣橱数据和历史记录。",
+    title: "回到你的衣橱",
+    copy: "每个邮箱都会独立对应自己的衣橱数据和历史记录。",
     href: "/wardrobe",
     tone: "gold" as const
   }
@@ -90,7 +70,9 @@ export function ResetPasswordPage() {
   const searchParams = useSearchParams();
   const dateStamp = useMemo(() => createDateStamp(), []);
   const resetToken = searchParams.get("token")?.trim() ?? "";
+  const initialEmail = searchParams.get("email")?.trim() ?? "";
 
+  const [email, setEmail] = useState(initialEmail);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [recoveryAccessToken, setRecoveryAccessToken] = useState("");
@@ -99,7 +81,7 @@ export function ResetPasswordPage() {
   const [messageTone, setMessageTone] = useState<"success" | "error">("success");
 
   const passwordScore = strengthScore(newPassword);
-  const hasResetCredential = Boolean(resetToken || recoveryAccessToken);
+  const hasResetCredential = Boolean(email.trim() || resetToken || recoveryAccessToken);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -120,7 +102,7 @@ export function ResetPasswordPage() {
     if (hashAccessToken && (hashType === "recovery" || hashType === "invite" || hashType === "")) {
       setRecoveryAccessToken(hashAccessToken);
       setMessageTone("success");
-      setMessage("重置凭证已验证，请输入你的新密码。");
+      setMessage("重设凭证已经验证成功，请输入你的新密码。");
       window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.search}`);
       return;
     }
@@ -132,10 +114,31 @@ export function ResetPasswordPage() {
     }
 
     setMessageTone("error");
-    setMessage("这个重置链接可能已经失效，请回到登录页重新申请。");
+    setMessage("这个重设链接可能已经失效，请回到登录页重新申请。");
   }, [resetToken]);
 
+  useEffect(() => {
+    if (initialEmail) {
+      setMessageTone("success");
+      setMessage("已经识别到邮箱，可以直接设置新密码，无需再次等待邮件。");
+      return;
+    }
+
+    if (!resetToken && !recoveryAccessToken) {
+      setMessageTone("success");
+      setMessage("请输入邮箱和新密码后直接保存。");
+    }
+  }, [initialEmail, recoveryAccessToken, resetToken]);
+
   async function handleSubmit() {
+    const normalizedEmail = email.trim();
+
+    if (!normalizedEmail || !normalizedEmail.includes("@")) {
+      setMessageTone("error");
+      setMessage("请输入要重设密码的邮箱地址。");
+      return;
+    }
+
     if (newPassword.trim().length < 6) {
       setMessageTone("error");
       setMessage("新密码至少需要 6 位。");
@@ -150,7 +153,7 @@ export function ResetPasswordPage() {
 
     if (!hasResetCredential) {
       setMessageTone("error");
-      setMessage("这个重置链接已经失效，请回到登录页重新申请。");
+      setMessage("这个重设链接已经失效，请回到登录页重新申请。");
       return;
     }
 
@@ -158,25 +161,26 @@ export function ResetPasswordPage() {
 
     try {
       const response = await confirmPasswordReset({
+        email: normalizedEmail,
         token: resetToken || undefined,
         access_token: recoveryAccessToken || undefined,
         new_password: newPassword
       });
       setMessageTone("success");
-      setMessage(response.message ?? "密码已经重置完成，请重新登录。");
+      setMessage(response.message ?? "密码已经重设完成，请重新登录。");
       window.setTimeout(() => {
         router.replace("/login");
       }, 900);
     } catch (error) {
       setMessageTone("error");
-      setMessage(error instanceof Error ? error.message : "密码重置失败，请稍后重试。");
+      setMessage(error instanceof Error ? error.message : "密码重设失败，请稍后再试。");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className={cn(styles.root, authSans.variable, serifCn.variable, serifEn.variable)} data-variant="reset">
+    <div className={styles.root} data-variant="reset" data-testid="auth-page-reset">
       <div className={styles.fxLayer} aria-hidden>
         <span className={cn(styles.fxGlow, styles.fxGlowRose)} />
         <span className={cn(styles.fxGlow, styles.fxGlowGold)} />
@@ -208,7 +212,7 @@ export function ResetPasswordPage() {
 
       <div className={styles.page}>
         <div className={styles.brandSide}>
-          <div className={styles.decoChar}>重</div>
+          <div className={styles.decoChar}>钥</div>
 
           <div className={styles.floatingStack}>
             {helperCards.map((card, index) => (
@@ -224,7 +228,7 @@ export function ResetPasswordPage() {
                 <span className={styles.floatEyebrow}>{card.eyebrow}</span>
                 <strong>{card.title}</strong>
                 <p>{card.copy}</p>
-                <span className={styles.floatLink}>打开页面</span>
+                <span className={styles.floatLink}>打开页面 →</span>
               </Link>
             ))}
           </div>
@@ -232,7 +236,7 @@ export function ResetPasswordPage() {
           <div className={styles.brandLead}>
             <div className={styles.seasonRow}>
               <div className={styles.seasonDot} />
-              <span className={styles.seasonText}>Password recovery</span>
+              <span className={styles.seasonText}>密码恢复</span>
             </div>
 
             <div className={styles.dateStamp}>{dateStamp}</div>
@@ -244,7 +248,7 @@ export function ResetPasswordPage() {
             </h1>
 
             <p className={styles.greetingSub}>
-              保存新密码后，你可以继续进入自己的专属衣橱。
+              保存新密码后，你就可以继续进入自己的专属衣橱。
               <br />
               旧密码和旧登录状态也会一起失效。
             </p>
@@ -252,7 +256,7 @@ export function ResetPasswordPage() {
             <div className={styles.metricRow}>
               <Link href="/login" className={styles.metricPill}>
                 <span className={styles.metricValue}>登录</span>
-                <span className={styles.metricLabel}>返回账号入口</span>
+                <span className={styles.metricLabel}>回到账号入口</span>
               </Link>
               <Link href="/register" className={styles.metricPill}>
                 <span className={styles.metricValue}>注册</span>
@@ -260,7 +264,7 @@ export function ResetPasswordPage() {
               </Link>
               <Link href="/wardrobe" className={styles.metricPill}>
                 <span className={styles.metricValue}>衣橱</span>
-                <span className={styles.metricLabel}>回到个人数据</span>
+                <span className={styles.metricLabel}>回到个人数据页</span>
               </Link>
             </div>
           </div>
@@ -271,14 +275,27 @@ export function ResetPasswordPage() {
             <div className={styles.formCardGlow} aria-hidden />
 
             <div className={styles.formHeader}>
-              <span className={styles.formTag}>Reset password</span>
+              <span className={styles.formTag}>重设密码</span>
               <div className={styles.formTitle}>设置一个新密码</div>
               <div className={styles.formDesc}>建议至少 6 位，并尽量混合数字、大小写或符号。</div>
             </div>
 
             <div className={styles.field}>
+              <label className={styles.fieldLabel}>邮箱</label>
+              <input
+                data-testid="reset-email"
+                className={styles.fieldInput}
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="you@example.com"
+              />
+            </div>
+
+            <div className={styles.field}>
               <label className={styles.fieldLabel}>新密码</label>
               <input
+                data-testid="reset-new-password"
                 className={styles.fieldInput}
                 type="password"
                 value={newPassword}
@@ -295,6 +312,7 @@ export function ResetPasswordPage() {
             <div className={styles.field}>
               <label className={styles.fieldLabel}>确认新密码</label>
               <input
+                data-testid="reset-confirm-password"
                 className={styles.fieldInput}
                 type="password"
                 value={confirmPassword}
@@ -303,8 +321,14 @@ export function ResetPasswordPage() {
               />
             </div>
 
-            <button className={cn(styles.submitBtn, loading && styles.submitBtnLoading)} type="button" onClick={() => void handleSubmit()} disabled={loading || !hasResetCredential}>
-              {loading ? "保存中…" : "保存新密码"}
+            <button
+              className={cn(styles.submitBtn, loading && styles.submitBtnLoading)}
+              type="button"
+              onClick={() => void handleSubmit()}
+              disabled={loading}
+              data-testid="reset-submit"
+            >
+              {loading ? "保存中..." : "保存新密码"}
             </button>
 
             {message ? (

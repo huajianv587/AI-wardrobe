@@ -8,6 +8,12 @@ services:
       - .env
     depends_on:
       - backend
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   backend:
     build:
@@ -29,6 +35,28 @@ services:
       - minio
       - llm-recommender
       - image-processor
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0) if urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/ready', timeout=5).status == 200 else sys.exit(1)\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  backend-worker:
+    build:
+      context: ./backend
+    env_file:
+      - .env
+    environment:
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      TASK_QUEUE_ENABLED: ${TASK_QUEUE_ENABLED:-true}
+    command: ["python", "worker.py"]
+    volumes:
+      - ./backend/data:/app/data
+      - ./model_training:/app/model_training
+    depends_on:
+      - redis
+      - backend
 
   llm-recommender:
     build:

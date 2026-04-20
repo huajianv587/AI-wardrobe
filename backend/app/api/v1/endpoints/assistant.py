@@ -1,12 +1,14 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_or_demo_user, get_db
+from app.api.deps import get_current_or_demo_user, get_current_user, get_db
 from app.models.user import User
 from app.schemas.assistant import (
     AssistantOverviewResponse,
     AssistantTaskResponse,
     ClosetGapResponse,
+    CurrentWeatherRequest,
+    CurrentWeatherResponse,
     GeoLocationOption,
     MemoryCardEnvelope,
     PackingRequest,
@@ -45,6 +47,13 @@ def search_locations(
     _: User = Depends(get_current_or_demo_user),
 ) -> list[GeoLocationOption]:
     return assistant_service.search_locations(q)
+
+
+@router.post("/current-weather", response_model=CurrentWeatherResponse)
+def current_weather(
+    payload: CurrentWeatherRequest,
+) -> CurrentWeatherResponse:
+    return assistant_service.get_current_weather(payload)
 
 
 @router.post("/tomorrow", response_model=TomorrowAssistantResponse)
@@ -93,7 +102,7 @@ def style_profile(
 def update_style_profile(
     payload: StyleProfilePayload,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ) -> StyleProfileResponse:
     return assistant_service.update_style_profile(db, current_user, payload)
 
@@ -112,7 +121,7 @@ def put_memory_card(
     item_id: int,
     payload: ClothingMemoryCardCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ) -> MemoryCardEnvelope:
     return assistant_service.upsert_memory_card(db, item_id, current_user, payload.model_dump())
 
@@ -121,7 +130,7 @@ def put_memory_card(
 def feedback(
     payload: RecommendationSignalPayload,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ) -> StatusMessageResponse:
     return assistant_service.record_feedback(db, current_user, payload)
 
@@ -138,7 +147,7 @@ def list_saved_outfits(
 def save_outfit(
     payload: SavedOutfitPayload,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ) -> SavedOutfitResponse:
     return assistant_service.save_outfit(db, current_user, payload)
 
@@ -155,7 +164,7 @@ def wear_log(
 def create_wear_log(
     payload: WearLogPayload,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_or_demo_user),
+    current_user: User = Depends(get_current_user),
 ) -> WearLogResponse:
     return assistant_service.create_wear_log(db, current_user, payload)
 

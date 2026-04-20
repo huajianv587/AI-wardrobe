@@ -4,18 +4,6 @@ import argparse
 import json
 from pathlib import Path
 
-from datasets import Dataset, DatasetDict
-from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
-from transformers import (
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    BitsAndBytesConfig,
-    DataCollatorForLanguageModeling,
-    Trainer,
-    TrainingArguments,
-)
-
-
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Stage-1 QLoRA trainer for AI Wardrobe llm-recommender.")
     parser.add_argument("--model-name", default="Qwen/Qwen2.5-7B-Instruct")
@@ -35,10 +23,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--lora-r", type=int, default=16)
     parser.add_argument("--lora-alpha", type=int, default=32)
     parser.add_argument("--lora-dropout", type=float, default=0.05)
-    parser.add_argument("--load-in-4bit", action="store_true", default=True)
-    parser.add_argument("--load-in-8bit", action="store_true")
-    parser.add_argument("--fp16", action="store_true")
-    parser.add_argument("--bf16", action="store_true", default=True)
+    parser.add_argument("--quantization", choices=("4bit", "8bit", "none"), default="4bit")
+    parser.add_argument("--dtype", choices=("bf16", "fp16", "fp32"), default="bf16")
+    parser.add_argument("--load-in-4bit", action="store_true", help="Legacy alias for --quantization 4bit.")
+    parser.add_argument("--load-in-8bit", action="store_true", help="Legacy alias for --quantization 8bit.")
+    parser.add_argument("--full-precision-lora", action="store_true", help="Legacy alias for --quantization none.")
+    parser.add_argument("--fp16", action="store_true", help="Legacy alias for --dtype fp16.")
+    parser.add_argument("--bf16", action="store_true", help="Legacy alias for --dtype bf16.")
     return parser.parse_args()
 
 
@@ -84,6 +75,8 @@ def load_records(path: str) -> list[dict]:
 
 
 def load_jsonl_datasets(train_file: str, eval_file: str) -> DatasetDict:
+    from datasets import Dataset, DatasetDict
+
     train_records = load_records(train_file)
     eval_records = load_records(eval_file)
     return DatasetDict(
@@ -96,9 +89,40 @@ def load_jsonl_datasets(train_file: str, eval_file: str) -> DatasetDict:
 
 def main() -> None:
     args = parse_args()
+    try:
+        from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+        import torch
+        from transformers import (
+            AutoModelForCausalLM,
+            AutoTokenizer,
+            BitsAndBytesConfig,
+            DataCollatorForLanguageModeling,
+            Trainer,
+            TrainingArguments,
+        )
+    except ModuleNotFoundError as exc:
+        raise ModuleNotFoundError(
+            "Missing training dependency. Install peft, transformers, datasets, torch, and bitsandbytes before running this trainer."
+        ) from exc
 
     if args.load_in_4bit and args.load_in_8bit:
         raise ValueError("Choose either --load-in-4bit or --load-in-8bit, not both.")
+    if args.fp16 and args.bf16:
+        raise ValueError("Choose either --fp16 or --bf16, not both.")
+
+    quantization = args.quantization
+    if args.load_in_4bit:
+        quantization = "4bit"
+    if args.load_in_8bit:
+        quantization = "8bit"
+    if args.full_precision_lora:
+        quantization = "none"
+
+    dtype = args.dtype
+    if args.fp16:
+        dtype = "fp16"
+    if args.bf16:
+        dtype = "bf16"
 
     train_path = Path(args.train_file)
     eval_path = Path(args.eval_file)
@@ -114,24 +138,32 @@ def main() -> None:
         tokenizer.pad_token = tokenizer.eos_token
 
     quantization_config = None
-    if args.load_in_4bit:
+    if quantization == "4bit":
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_quant_type="nf4",
             bnb_4bit_use_double_quant=True,
-            bnb_4bit_compute_dtype="bfloat16" if args.bf16 else "float16",
+            bnb_4bit_compute_dtype=torch.bfloat16 if dtype == "bf16" else torch.float16,
         )
-    elif args.load_in_8bit:
+    elif quantization == "8bit":
         quantization_config = BitsAndBytesConfig(load_in_8bit=True)
 
-    model = AutoModelForCausalLM.from_pretrained(
-        args.model_name,
-        trust_remote_code=True,
-        quantization_config=quantization_config,
-        device_map="auto",
-    )
+    model_kwargs = {
+        "trust_remote_code": True,
+        "device_map": "auto",
+        "low_cpu_mem_usage": True,
+    }
+    if quantization_config is not None:
+        model_kwargs["quantization_config"] = quantization_config
+    elif dtype == "bf16":
+        model_kwargs["torch_dtype"] = torch.bfloat16
+    elif dtype == "fp16":
+        model_kwargs["torch_dtype"] = torch.float16
+
+    model = AutoModelForCausalLM.from_pretrained(args.model_name, **model_kwargs)
     model.config.use_cache = False
-    model = prepare_model_for_kbit_training(model)
+    if quantization != "none":
+        model = prepare_model_for_kbit_training(model)
     model.gradient_checkpointing_enable()
 
     lora_config = LoraConfig(
@@ -171,8 +203,8 @@ def main() -> None:
         evaluation_strategy="steps",
         save_strategy="steps",
         report_to="none",
-        bf16=args.bf16,
-        fp16=args.fp16 and not args.bf16,
+        bf16=dtype == "bf16",
+        fp16=dtype == "fp16",
         remove_unused_columns=False,
     )
 

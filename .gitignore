@@ -6,6 +6,8 @@ out/
 artifacts/
 frontend/test-results/
 playwright-report/
+.codex-runtime-logs/
+*.log
 
 # Python
 __pycache__/
@@ -36,6 +38,10 @@ backend/data/
 data/*.db
 data/assets/
 data/models/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
 infra/runtime/*
 !infra/runtime/.gitkeep
 yolo26n.pt
@@ -48,13 +54,27 @@ model_training/checkpoints/
 model_training/outputs/
 model_training/raw-sources/
 model_training/cache/
-AAtrain/staged-tars/*.tar
+AAtrain/staged-tars/
+AAtrain/model_training/datasets/**/*.jsonl
+!AAtrain/model_training/datasets/**/*.template.jsonl
+AAtrain/model_training/raw-sources/**
 AAtrain/model_training/raw-sources/**/archives/
 AAtrain/model_training/raw-sources/**/*.zip
+train_stage_4/
 logs/**
 !logs/
 !logs/5090-serial/
 !logs/5090-serial/.gitkeep
+
+# Large local media / demos
+UIdemo/*.mp4
+frontend/public/UIdemo/*.mp4
+backend/vendor/sam2/assets/
+backend/vendor/sam2/demo/data/
+backend/vendor/sam2/demo/frontend/src/assets/videos/
+backend/vendor/sam2/notebooks/
+backend/vendor/sam2/sav_dataset/example/
+backend/vendor/sam2/sav_dataset/*.ipynb
 
 # Editors / OS
 .DS_Store

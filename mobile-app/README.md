@@ -1,30 +1,69 @@
-# Mobile App Shell
+# AI Wardrobe Mobile
 
-This folder contains the lightweight Expo shell for the future iOS and Android client.
+Expo React Native client for App Store and TestFlight distribution.
 
-Current scaffold:
+## What is implemented
 
-- [App.tsx](/E:/项目夹/AI-wardrobe-clean-0418/mobile-app/App.tsx)
-- [package.json](/E:/项目夹/AI-wardrobe-clean-0418/mobile-app/package.json)
+- Expo Router native navigation with Home, Wardrobe, Assistant, Insights, and Account tabs.
+- Secure token storage through `expo-secure-store`.
+- Native image selection through `expo-image-picker`.
+- Shared FastAPI contracts:
+  - `/api/v1/auth/*`
+  - `/api/v1/client/*`
+  - `/api/v1/wardrobe/*`
+  - `/api/v1/assistant/*`
+  - `/api/v1/experience/*`
+  - `/api/v1/try-on/render`
+- App Store-required account deletion entry in the Account tab.
+- Access-token refresh retry on authenticated 401 responses.
+- Upload size/type validation and visible async processing states.
+- Wardrobe search, filters, edit, delete, retry processing, and empty/error states.
+- Assistant quick recommendations, tomorrow planning, packing, save outfit, and feedback flows.
+- EAS build and submit profiles for iOS.
 
-Runtime contract:
-
-- set `EXPO_PUBLIC_API_BASE_URL` to the same backend origin used by web and mini-program
-- keep the mobile shell behind the same `/api/v1/*` backend contract
-- let the backend keep routing recommendations, multimodal parsing, Redis task polling, and hybrid try-on upstreams
-
-Useful commands:
+## Local commands
 
 ```bash
 npm install
-npm run start
 npm run smoke
+npm run typecheck
+npm run doctor
+npm run release:check
+npm run start
 ```
 
-Recommended direction:
+Set the backend URL before running against production or a LAN backend:
 
-- Framework: Expo React Native
-- Auth: reuse the same Supabase token flow
-- Data: reuse the same owner-scoped FastAPI contracts
-- Aggregation: prefer `/api/v1/client/*` and `/api/v1/client/assistant/*`
-- First native screens: assistant overview, wardrobe cards, quick mode, account session
+```bash
+$env:EXPO_PUBLIC_API_BASE_URL="https://api.aiwardrobes.com"
+npm run start
+```
+
+## iOS release commands
+
+```bash
+npm run build:ios:preview
+npm run build:ios:production
+npm run submit:ios
+```
+
+Before submitting, create the Apple Developer account, create the App Store Connect app, and fill the EAS submit credentials in the EAS prompt or CI secrets.
+
+## Release materials
+
+The App Store Connect drafts and operational checklists live in `mobile-app/store`:
+
+- `app-store-connect.en-US.md`
+- `app-store-connect.zh-Hans.md`
+- `privacy-labels.md`
+- `testflight-eas-checklist.md`
+- `production-api-runbook.md`
+- `release-env.example`
+
+## App Store defaults
+
+- App name: `AI Wardrobe`
+- Bundle ID: `com.aiwardrobes.app`
+- Version: `1.0.0`
+- Default API: `https://api.aiwardrobes.com`
+- First release: free app, no ads, no in-app purchases, no cross-app tracking

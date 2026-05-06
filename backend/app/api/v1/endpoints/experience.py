@@ -43,6 +43,7 @@ def wardrobe_management(
 
 @router.post("/wardrobe-management/items")
 def create_wardrobe_item(
+    *,
     payload: ExperienceWardrobeItemPayload,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -53,6 +54,7 @@ def create_wardrobe_item(
 @router.put("/wardrobe-management/items/{item_id}")
 def update_wardrobe_item(
     item_id: int,
+    *,
     payload: ExperienceWardrobeItemPayload,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -63,6 +65,7 @@ def update_wardrobe_item(
 @router.post("/wardrobe-management/items/{item_id}/prepare-image-upload", response_model=ImageUploadPlan)
 def prepare_wardrobe_item_image_upload(
     item_id: int,
+    *,
     payload: ImageUploadPrepareRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -73,6 +76,7 @@ def prepare_wardrobe_item_image_upload(
 @router.post("/wardrobe-management/items/{item_id}/confirm-image-upload")
 def confirm_wardrobe_item_image_upload(
     item_id: int,
+    *,
     payload: ImageUploadFinalizeRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -101,6 +105,7 @@ def delete_wardrobe_item(
 
 @router.post("/wardrobe-management/import-url")
 def import_url_item(
+    *,
     payload: ExperienceImportUrlPayload,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -110,6 +115,7 @@ def import_url_item(
 
 @router.post("/wardrobe-management/bulk")
 def wardrobe_bulk_action(
+    *,
     payload: ExperienceWardrobeBulkPayload,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -129,6 +135,7 @@ def smart_wardrobe(
 
 @router.post("/smart-wardrobe/config")
 def save_smart_config(
+    *,
     payload: ExperienceSmartConfigPayload,
     current_user: User = Depends(get_current_user),
 ):
@@ -146,6 +153,7 @@ def run_smart_action(
 
 @router.post("/smart-wardrobe/upload-batch")
 def upload_smart_batch(
+    *,
     payload: ExperienceUploadBatchPayload,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -172,6 +180,7 @@ def upload_smart_batch_files(
 
 @router.post("/smart-wardrobe/decompose-url-preview")
 def preview_smart_decomposition_from_url(
+    *,
     payload: ExperienceImportUrlPayload,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -182,6 +191,7 @@ def preview_smart_decomposition_from_url(
 @router.post("/smart-wardrobe/decompose-preview/{preview_id}/confirm")
 def confirm_smart_decomposition_preview(
     preview_id: str,
+    *,
     payload: ExperienceDecomposeConfirmPayload,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -219,6 +229,7 @@ def confirm_smart_item(
 @router.put("/smart-wardrobe/items/{item_id}/enrich")
 def update_smart_item(
     item_id: int,
+    *,
     payload: ExperienceSmartEditPayload,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -256,6 +267,7 @@ def outfit_diary(
 
 @router.post("/outfit-diary/logs")
 def create_or_update_diary_log(
+    *,
     payload: ExperienceDiaryLogPayload,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -265,6 +277,7 @@ def create_or_update_diary_log(
 
 @router.post("/outfit-diary/suitcase")
 def generate_suitcase(
+    *,
     payload: ExperienceSuitcasePayload,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -302,6 +315,7 @@ def set_care_reminder(
 @router.post("/closet-analysis/idle/{item_id}/action")
 def record_idle_action(
     item_id: int,
+    *,
     payload: ExperienceIdleActionPayload,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -319,6 +333,7 @@ def style_profile(
 
 @router.put("/style-profile")
 def patch_style_profile(
+    *,
     payload: ExperienceStyleProfilePatch,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),

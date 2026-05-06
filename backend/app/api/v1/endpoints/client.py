@@ -44,6 +44,7 @@ def client_assistant_reminders(db: Session = Depends(get_db), current_user: User
 
 @router.post("/assistant/quick-mode", response_model=RecommendationResponse)
 def client_assistant_quick_mode(
+    *,
     payload: QuickModeRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -53,6 +54,7 @@ def client_assistant_quick_mode(
 
 @router.post("/assistant/tomorrow", response_model=TomorrowAssistantResponse)
 def client_assistant_tomorrow(
+    *,
     payload: TomorrowAssistantRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -62,6 +64,7 @@ def client_assistant_tomorrow(
 
 @router.post("/assistant/packing", response_model=PackingResponse)
 def client_assistant_packing(
+    *,
     payload: PackingRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),

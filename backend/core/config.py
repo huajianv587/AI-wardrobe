@@ -98,6 +98,11 @@ def _resolve_project_path(value: str) -> str:
 
 def _resolve_database_url(value: str) -> str:
     normalized = str(value or "").strip()
+    if normalized.startswith("postgresql://"):
+        return normalized.replace("postgresql://", "postgresql+psycopg://", 1)
+    if normalized.startswith("postgres://"):
+        return normalized.replace("postgres://", "postgresql+psycopg://", 1)
+
     sqlite_prefix = "sqlite:///"
     if not normalized.startswith(sqlite_prefix):
         return normalized
@@ -203,6 +208,7 @@ class Settings(BaseSettings):
     wechat_code2session_base_url: str = "https://api.weixin.qq.com"
     local_access_token_ttl_minutes: int = 120
     local_refresh_token_ttl_days: int = 30
+    local_password_iterations: int = 180000
     local_password_reset_ttl_minutes: int = 30
     smtp_host: str = ""
     smtp_port: int = 587

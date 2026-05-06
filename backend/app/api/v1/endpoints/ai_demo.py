@@ -20,7 +20,7 @@ def list_service_statuses(_: User = Depends(get_current_user)) -> list[AiDemoSer
 
 
 @router.post("/run", response_model=AiDemoRunResponse)
-def run_workflow(payload: AiDemoRunRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> AiDemoRunResponse:
+def run_workflow(*, payload: AiDemoRunRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> AiDemoRunResponse:
     wardrobe_count = len(wardrobe_service.list_items(db, current_user.id))
 
     try:

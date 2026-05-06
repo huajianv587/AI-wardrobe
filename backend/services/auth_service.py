@@ -10,22 +10,27 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import httpx
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 from supabase import create_client
 from supabase_auth.types import AuthResponse as SupabaseAuthResponse
 from supabase_auth.types import User as SupabaseUser
 
+from app.models.assistant import AssistantTask, ClothingMemoryCard, RecommendationSignal, StyleProfile, WearLog
 from app.models.auth_session import AuthSessionToken
+from app.models.experience_state import ExperienceUserState
+from app.models.outfit import Outfit, OutfitRecommendation
 from app.models.password_reset import PasswordResetToken
 from app.models.user import User
+from app.models.wardrobe import Avatar3D, ClothingItem, Tag
 from app.schemas.auth import AuthSessionResponse, MiniProgramAuthOptionsResponse, OAuthStartResponse, StatusMessageResponse, UserSummary
 from core.config import settings
+from services import storage_service
 from db.session import SessionLocal
 logger = logging.getLogger(__name__)
 
 LOCAL_PASSWORD_SCHEME = "pbkdf2_sha256"
-LOCAL_PASSWORD_ITERATIONS = 480_000
+LOCAL_PASSWORD_ITERATIONS = max(120_000, int(settings.local_password_iterations or 180_000))
 
 
 def is_enabled() -> bool:
@@ -508,6 +513,19 @@ def sign_in_with_password(db: Session, email: str, password: str) -> AuthSession
     return _build_session_response(db, auth_response)
 
 
+def create_public_session(db: Session) -> AuthSessionResponse:
+    from services import experience_service
+
+    public_user = experience_service.ensure_public_demo_user(db)
+    return _build_local_session_response(
+        db,
+        public_user,
+        provider="shared-public",
+        device_label="public-shared-session",
+        message="Shared public wardrobe session is ready.",
+    )
+
+
 def send_password_reset_email(db: Session, email: str, redirect_to: str | None = None) -> StatusMessageResponse:
     normalized_email = _normalize_email(email)
     reset_base_url = _password_reset_base_url(redirect_to)
@@ -715,6 +733,64 @@ def sign_out_session(access_token: str, refresh_token: str | None = None) -> Non
             client.auth.sign_out({"scope": "global"})
         except Exception as exc:
             logger.warning("Supabase session sign-out failed: %s", exc)
+
+
+def _delete_supabase_auth_user(user: User) -> None:
+    if not user.supabase_user_id:
+        return
+
+    if not settings.supabase_url or not settings.supabase_service_role_key:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Supabase service role credentials are required to delete this account.",
+        )
+
+    admin_client = _service_client()
+    if admin_client is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Supabase service role credentials are required to delete this account.",
+        )
+
+    try:
+        admin_client.auth.admin.delete_user(user.supabase_user_id)
+    except Exception as exc:
+        logger.warning("Supabase account deletion failed for user_id=%s: %s", user.id, exc)
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="Could not delete the cloud auth account.") from exc
+
+
+def delete_account(db: Session, user: User) -> StatusMessageResponse:
+    if user.auth_provider == "shared-public":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="The shared public demo account cannot be deleted.")
+
+    user_id = user.id
+    _delete_supabase_auth_user(user)
+
+    items = list(db.scalars(select(ClothingItem).where(ClothingItem.user_id == user_id)).all())
+    for item in items:
+        storage_service.delete_asset(item.image_url)
+        storage_service.delete_asset(item.processed_image_url)
+
+    db.execute(delete(AssistantTask).where(AssistantTask.user_id == user_id))
+    db.execute(delete(RecommendationSignal).where(RecommendationSignal.user_id == user_id))
+    db.execute(delete(WearLog).where(WearLog.user_id == user_id))
+    db.execute(delete(StyleProfile).where(StyleProfile.user_id == user_id))
+    db.execute(delete(ClothingMemoryCard).where(ClothingMemoryCard.user_id == user_id))
+    db.execute(delete(OutfitRecommendation).where(OutfitRecommendation.user_id == user_id))
+    db.execute(delete(Outfit).where(Outfit.user_id == user_id))
+    db.execute(delete(Avatar3D).where(Avatar3D.user_id == user_id))
+    db.execute(delete(Tag).where(Tag.user_id == user_id))
+    db.execute(delete(ClothingItem).where(ClothingItem.user_id == user_id))
+    db.execute(delete(ExperienceUserState).where(ExperienceUserState.user_id == user_id))
+    db.execute(delete(PasswordResetToken).where(PasswordResetToken.user_id == user_id))
+    db.execute(delete(AuthSessionToken).where(AuthSessionToken.user_id == user_id))
+    db.execute(delete(User).where(User.id == user_id))
+    db.commit()
+
+    return StatusMessageResponse(
+        status="deleted",
+        message="Your account and associated wardrobe data have been deleted.",
+    )
 
 
 def _get_user_from_local_access_token(db: Session, access_token: str) -> User | None:

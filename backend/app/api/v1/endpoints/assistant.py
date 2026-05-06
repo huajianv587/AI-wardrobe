@@ -51,13 +51,16 @@ def search_locations(
 
 @router.post("/current-weather", response_model=CurrentWeatherResponse)
 def current_weather(
+    *,
     payload: CurrentWeatherRequest,
+    _: User = Depends(get_current_or_demo_user),
 ) -> CurrentWeatherResponse:
     return assistant_service.get_current_weather(payload)
 
 
 @router.post("/tomorrow", response_model=TomorrowAssistantResponse)
 def tomorrow_assistant(
+    *,
     payload: TomorrowAssistantRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_or_demo_user),
@@ -67,6 +70,7 @@ def tomorrow_assistant(
 
 @router.post("/quick-mode", response_model=RecommendationResponse)
 def quick_mode(
+    *,
     payload: QuickModeRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_or_demo_user),
@@ -100,6 +104,7 @@ def style_profile(
 
 @router.put("/style-profile", response_model=StyleProfileResponse)
 def update_style_profile(
+    *,
     payload: StyleProfilePayload,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -119,6 +124,7 @@ def get_memory_card(
 @router.put("/items/{item_id}/memory-card", response_model=MemoryCardEnvelope)
 def put_memory_card(
     item_id: int,
+    *,
     payload: ClothingMemoryCardCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -128,6 +134,7 @@ def put_memory_card(
 
 @router.post("/feedback", response_model=StatusMessageResponse)
 def feedback(
+    *,
     payload: RecommendationSignalPayload,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -145,6 +152,7 @@ def list_saved_outfits(
 
 @router.post("/outfits", response_model=SavedOutfitResponse)
 def save_outfit(
+    *,
     payload: SavedOutfitPayload,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -162,6 +170,7 @@ def wear_log(
 
 @router.post("/wear-log", response_model=WearLogResponse)
 def create_wear_log(
+    *,
     payload: WearLogPayload,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -171,6 +180,7 @@ def create_wear_log(
 
 @router.post("/packing", response_model=PackingResponse)
 def packing(
+    *,
     payload: PackingRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_or_demo_user),

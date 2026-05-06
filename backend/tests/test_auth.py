@@ -4,6 +4,7 @@ from sqlalchemy import select
 
 from app.models.auth_session import AuthSessionToken
 from app.models.user import User
+from app.models.wardrobe import ClothingItem
 from app.schemas.auth import AuthSessionResponse, StatusMessageResponse, UserSummary
 from services import auth_service
 
@@ -261,6 +262,46 @@ def test_me_endpoint(client):
     assert response.status_code == 200
     assert payload["email"] == "tester@ai-wardrobe.dev"
     assert payload["supabase_user_id"] == "supabase-user-test-001"
+
+
+def test_delete_me_removes_local_account_data_and_revokes_session(client):
+    sign_up_response = client.post(
+        "/api/v1/auth/sign-up",
+        json={"email": "delete-me@ai-wardrobe.dev", "password": "secret123", "display_name": "Delete Me"},
+    )
+    sign_up_payload = sign_up_response.json()
+
+    assert sign_up_response.status_code == 200
+    access_token = sign_up_payload["access_token"]
+    user_id = sign_up_payload["user"]["id"]
+
+    with client.testing_session_local() as db:
+        db.add(
+            ClothingItem(
+                user_id=user_id,
+                name="Review outfit blazer",
+                category="outerwear",
+                slot="outerwear",
+                color="black",
+                tags=["review"],
+                occasions=["work"],
+            )
+        )
+        db.commit()
+
+    response = client.delete("/api/v1/auth/me", headers={"Authorization": f"Bearer {access_token}"})
+    payload = response.json()
+
+    assert response.status_code == 200
+    assert payload["status"] == "deleted"
+
+    with client.testing_session_local() as db:
+        assert db.get(User, user_id) is None
+        assert db.scalar(select(ClothingItem).where(ClothingItem.user_id == user_id)) is None
+        assert db.scalar(select(AuthSessionToken).where(AuthSessionToken.user_id == user_id)) is None
+
+    stale_response = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {access_token}"})
+    assert stale_response.status_code == 401
 
 
 def test_refresh_endpoint(client, monkeypatch):

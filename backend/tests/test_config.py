@@ -37,6 +37,24 @@ def test_settings_resolve_relative_project_paths_from_repo_root():
     assert resolved.fashion_model_root == str((config.ROOT_DIR / "data" / "models" / "fashion").resolve())
 
 
+def test_settings_normalizes_render_postgres_url_to_psycopg_driver():
+    resolved = config.Settings(
+        _env_file=(),
+        database_url="postgresql://user:pass@host:5432/ai_wardrobe",
+    )
+
+    assert resolved.database_url == "postgresql+psycopg://user:pass@host:5432/ai_wardrobe"
+
+
+def test_settings_normalizes_legacy_postgres_url_to_psycopg_driver():
+    resolved = config.Settings(
+        _env_file=(),
+        database_url="postgres://user:pass@host:5432/ai_wardrobe",
+    )
+
+    assert resolved.database_url == "postgresql+psycopg://user:pass@host:5432/ai_wardrobe"
+
+
 def test_discover_root_dir_prefers_repo_root_when_monorepo_markers_exist(tmp_path):
     repo_root = tmp_path / "repo"
     config_file = repo_root / "backend" / "core" / "config.py"

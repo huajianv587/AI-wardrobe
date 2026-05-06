@@ -9,7 +9,13 @@ from urllib.parse import urlparse
 import httpx
 
 from app.models.wardrobe import ClothingItem
-from app.schemas.recommendation import AgentTraceStep, RecommendationOption, RecommendationRequest, RecommendationResponse
+from app.schemas.recommendation import (
+    AgentTraceStep,
+    RecommendationOption,
+    RecommendationProductCard,
+    RecommendationRequest,
+    RecommendationResponse,
+)
 from core import local_model
 from core.config import settings
 
@@ -343,6 +349,44 @@ def _coerce_agent_trace(raw_trace: list[dict] | None) -> list[AgentTraceStep]:
     return trace
 
 
+def _coerce_product_cards(raw_option: dict, items: list[ClothingItem]) -> list[RecommendationProductCard]:
+    raw_cards = raw_option.get("product_cards") or raw_option.get("source_cards") or raw_option.get("commerce_cards") or []
+    product_cards: list[RecommendationProductCard] = []
+    items_by_id = {item.id: item for item in items}
+
+    for raw_card in raw_cards:
+        if not isinstance(raw_card, dict):
+            continue
+
+        matched_item_id = raw_card.get("matched_item_id")
+        if not isinstance(matched_item_id, int):
+            matched_item_id = None
+
+        matched_item = items_by_id.get(matched_item_id) if matched_item_id is not None else None
+        image_url = raw_card.get("image_url") or raw_card.get("imageUrl")
+        if not image_url and matched_item is not None:
+            image_url = matched_item.processed_image_url or matched_item.image_url
+
+        title = str(raw_card.get("title") or (matched_item.name if matched_item is not None else "")).strip()
+        if not title:
+            continue
+
+        product_cards.append(
+            RecommendationProductCard(
+                platform=str(raw_card.get("platform") or raw_card.get("source_platform") or "").strip() or None,
+                title=title,
+                image_url=str(image_url).strip() if image_url else None,
+                product_url=str(raw_card.get("product_url") or raw_card.get("productUrl") or "").strip() or None,
+                price_label=str(raw_card.get("price_label") or raw_card.get("priceLabel") or "").strip() or None,
+                matched_item_id=matched_item_id,
+                match_reason=str(raw_card.get("match_reason") or raw_card.get("matchReason") or "").strip() or None,
+                source_status=str(raw_card.get("source_status") or raw_card.get("sourceStatus") or "").strip() or None,
+            )
+        )
+
+    return product_cards
+
+
 def _parse_remote_response(payload: dict, items: list[ClothingItem]) -> RecommendationResponse:
     raw_outfits = payload.get("outfits") or payload.get("recommendations") or payload.get("looks") or []
     outfits: list[RecommendationOption] = []
@@ -367,6 +411,7 @@ def _parse_remote_response(payload: dict, items: list[ClothingItem]) -> Recommen
                 reason_badges=[str(value) for value in raw_option.get("reason_badges", []) if isinstance(value, str)],
                 charm_copy=raw_option.get("charm_copy"),
                 mood_emoji=raw_option.get("mood_emoji"),
+                product_cards=_coerce_product_cards(raw_option, items),
             )
         )
 

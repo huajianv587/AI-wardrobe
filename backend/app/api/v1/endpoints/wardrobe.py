@@ -38,18 +38,19 @@ def get_item(
 
 
 @router.post("/items", response_model=ClothingItemRead)
-def create_item(payload: ClothingItemCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> ClothingItemRead:
+def create_item(*, payload: ClothingItemCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> ClothingItemRead:
     return wardrobe_service.create_item(db, payload, current_user)
 
 
 @router.put("/items/{item_id}", response_model=ClothingItemRead)
-def update_item(item_id: int, payload: ClothingItemUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> ClothingItemRead:
+def update_item(item_id: int, *, payload: ClothingItemUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> ClothingItemRead:
     return wardrobe_service.update_item(db, item_id, payload, current_user)
 
 
 @router.post("/items/{item_id}/prepare-image-upload", response_model=ImageUploadPlan)
 def prepare_item_image_upload(
     item_id: int,
+    *,
     payload: ImageUploadPrepareRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -66,6 +67,7 @@ def prepare_item_image_upload(
 @router.post("/items/{item_id}/confirm-image-upload", response_model=ClothingItemRead)
 def confirm_item_image_upload(
     item_id: int,
+    *,
     payload: ImageUploadFinalizeRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),

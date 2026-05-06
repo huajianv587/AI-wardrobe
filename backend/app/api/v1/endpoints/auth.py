@@ -24,7 +24,7 @@ bearer_scheme = HTTPBearer(auto_error=False)
 
 
 @router.post("/sign-up", response_model=AuthSessionResponse)
-def sign_up(payload: EmailPasswordAuthRequest, db: Session = Depends(get_db)) -> AuthSessionResponse:
+def sign_up(*, payload: EmailPasswordAuthRequest, db: Session = Depends(get_db)) -> AuthSessionResponse:
     return auth_service.sign_up_with_password(
         db,
         payload.email,
@@ -35,17 +35,22 @@ def sign_up(payload: EmailPasswordAuthRequest, db: Session = Depends(get_db)) ->
 
 
 @router.post("/login", response_model=AuthSessionResponse)
-def login(payload: EmailPasswordAuthRequest, db: Session = Depends(get_db)) -> AuthSessionResponse:
+def login(*, payload: EmailPasswordAuthRequest, db: Session = Depends(get_db)) -> AuthSessionResponse:
     return auth_service.sign_in_with_password(db, payload.email, payload.password)
 
 
+@router.post("/public-session", response_model=AuthSessionResponse)
+def public_session(db: Session = Depends(get_db)) -> AuthSessionResponse:
+    return auth_service.create_public_session(db)
+
+
 @router.post("/password-reset", response_model=StatusMessageResponse)
-def password_reset(payload: PasswordResetRequest, db: Session = Depends(get_db)) -> StatusMessageResponse:
+def password_reset(*, payload: PasswordResetRequest, db: Session = Depends(get_db)) -> StatusMessageResponse:
     return auth_service.send_password_reset_email(db, payload.email, redirect_to=payload.redirect_to)
 
 
 @router.post("/password-reset/confirm", response_model=StatusMessageResponse)
-def confirm_password_reset(payload: PasswordResetConfirmRequest, db: Session = Depends(get_db)) -> StatusMessageResponse:
+def confirm_password_reset(*, payload: PasswordResetConfirmRequest, db: Session = Depends(get_db)) -> StatusMessageResponse:
     return auth_service.reset_password_with_token(
         db,
         email=payload.email,
@@ -61,7 +66,7 @@ def oauth_start(provider: str, redirect_to: str | None = None) -> OAuthStartResp
 
 
 @router.post("/refresh", response_model=AuthSessionResponse)
-def refresh(payload: RefreshSessionRequest, db: Session = Depends(get_db)) -> AuthSessionResponse:
+def refresh(*, payload: RefreshSessionRequest, db: Session = Depends(get_db)) -> AuthSessionResponse:
     return auth_service.refresh_session(db, payload.refresh_token, access_token=payload.access_token)
 
 
@@ -76,13 +81,18 @@ def logout(
     return StatusMessageResponse(status="signed_out", message="The local session can be cleared on this device.")
 
 
+@router.delete("/me", response_model=StatusMessageResponse)
+def delete_me(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> StatusMessageResponse:
+    return auth_service.delete_account(db, current_user)
+
+
 @router.get("/mini-program/options", response_model=MiniProgramAuthOptionsResponse)
 def mini_program_auth_options() -> MiniProgramAuthOptionsResponse:
     return auth_service.get_mini_program_auth_options()
 
 
 @router.post("/mini-program/login/wechat", response_model=AuthSessionResponse)
-def mini_program_wechat_login(payload: WeChatMiniLoginRequest, db: Session = Depends(get_db)) -> AuthSessionResponse:
+def mini_program_wechat_login(*, payload: WeChatMiniLoginRequest, db: Session = Depends(get_db)) -> AuthSessionResponse:
     return auth_service.sign_in_with_wechat_code(
         db,
         code=payload.code,

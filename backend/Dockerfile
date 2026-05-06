@@ -13,9 +13,10 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-RUN useradd --create-home --shell /bin/bash appuser && chown -R appuser:appuser /app
-USER appuser
+RUN useradd --create-home --shell /bin/bash appuser \
+    && chown -R appuser:appuser /app \
+    && chmod +x /app/docker-entrypoint.sh
 
-EXPOSE 8000
+EXPOSE 10000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]

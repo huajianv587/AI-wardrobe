@@ -47,7 +47,7 @@ from services import (
     wardrobe_service,
 )
 
-DEMO_USER_EMAIL = "guest@wenwen-wardrobe.local"
+DEMO_USER_EMAIL = "demo@aiwardrobe.app"
 DEMO_USER_NAME = "文文的衣橱 · 公开体验"
 DEFAULT_YEAR = 2026
 DEFAULT_MONTH = 4
@@ -930,6 +930,54 @@ def _ensure_demo_items(db: Session, user: User) -> None:
     db.commit()
 
     items = list(db.scalars(select(ClothingItem).where(ClothingItem.user_id == user.id)).all())
+    demo_source_meta = {
+        "奶油白衬衫": {
+            "platform": "淘宝",
+            "status": "已确认",
+            "source_url": "https://item.taobao.com/item.htm?id=810021908001",
+            "title": "奶油白垂感衬衫",
+            "description": "来自淘宝的柔和通勤基础款，适合日常办公室和轻商务。",
+        },
+        "通勤气质包": {
+            "platform": "京东",
+            "status": "已确认",
+            "source_url": "https://item.jd.com/100112233445.html",
+            "title": "通勤托特包",
+            "description": "来自京东的日常通勤包型，容量适中，适合白天出门。",
+        },
+        "香草奶白半裙": {
+            "platform": "天猫",
+            "status": "已确认",
+            "source_url": "https://detail.tmall.com/item.htm?id=720014420188",
+            "title": "香草奶白半裙",
+            "description": "来自天猫的柔和半裙，适合约会与通勤混合场景。",
+        },
+        "驼色大衣": {
+            "platform": "京东",
+            "status": "已确认",
+            "source_url": "https://item.jd.com/100298765432.html",
+            "title": "驼色羊毛大衣",
+            "description": "来自京东的秋冬通勤外套，适合需要主角感的正式场景。",
+        },
+        "白色帆布鞋": {
+            "platform": "淘宝",
+            "status": "已确认",
+            "source_url": "https://item.taobao.com/item.htm?id=810021908099",
+            "title": "白色低帮帆布鞋",
+            "description": "来自淘宝的轻松日常鞋款，周末和旅行都容易搭配。",
+        },
+        "薄荷连衣裙": {
+            "platform": "天猫",
+            "status": "已确认",
+            "source_url": "https://detail.tmall.com/item.htm?id=720014420366",
+            "title": "薄荷绿连衣裙",
+            "description": "来自天猫的清新裙装，适合下午茶和周末出门。",
+        },
+    }
+    for item in items:
+        source_meta = demo_source_meta.get(item.name)
+        if source_meta:
+            _remember_source_meta(user, item.id, source_meta)
     assistant_service.attach_memory_cards(db, items, user.id)
 
     for item in items:
@@ -1016,10 +1064,24 @@ def _ensure_demo_outfits_and_logs(db: Session, user: User) -> None:
 def ensure_public_demo_user(db: Session) -> User:
     user = db.scalar(select(User).where(User.email == DEMO_USER_EMAIL))
     if user is None:
-        user = User(email=DEMO_USER_EMAIL, display_name=DEMO_USER_NAME, auth_provider="guest-preview", password_hash="guest-preview")
+        user = User(email=DEMO_USER_EMAIL, display_name=DEMO_USER_NAME, auth_provider="shared-public", password_hash="shared-public")
         db.add(user)
         db.commit()
         db.refresh(user)
+    else:
+        changed = False
+        if user.display_name != DEMO_USER_NAME:
+            user.display_name = DEMO_USER_NAME
+            changed = True
+        if user.auth_provider != "shared-public":
+            user.auth_provider = "shared-public"
+            changed = True
+        if user.password_hash != "shared-public":
+            user.password_hash = "shared-public"
+            changed = True
+        if changed:
+            db.commit()
+            db.refresh(user)
 
     _ensure_demo_items(db, user)
     _ensure_demo_outfits_and_logs(db, user)
@@ -1112,7 +1174,7 @@ def get_wardrobe_management_overview(
     latest_sync = max((item.last_synced_at for item in items if item.last_synced_at), default=None)
 
     return {
-        "mode": "preview" if user.email == DEMO_USER_EMAIL else "account",
+        "mode": "account",
         "stats": {
             "total_items": len(items),
             "ai_processed": processed_count,
@@ -1566,7 +1628,7 @@ def get_smart_wardrobe_overview(db: Session, user: User, *, query: str | None = 
         "failed": status_counter["error"],
     }
     return {
-        "mode": "preview" if user.email == DEMO_USER_EMAIL else "account",
+        "mode": "account",
         "stats": {
             "total": len(items),
             "processed": status_counter["done"] + status_counter["fallback"],

@@ -42,13 +42,44 @@ from app.schemas.assistant import (
     WeatherSummary,
     WearLogPayload,
 )
-from app.schemas.recommendation import RecommendationRequest, RecommendationResponse
+from app.schemas.recommendation import (
+    HomeTopSceneResponse,
+    HomeTopThreeResponse,
+    RecommendationProductCard,
+    RecommendationRequest,
+    RecommendationResponse,
+)
 from core import local_model
 from core.config import settings
 from services import assistant_task_service, recommendation_service, storage_service, weather_service, wardrobe_service
 
 logger = logging.getLogger(__name__)
 T = TypeVar("T")
+
+REAL_PRODUCT_PLATFORMS = {"淘宝", "天猫", "京东"}
+HOME_TOP_SCENE_SPECS = (
+    {
+        "scene_id": "commute-daily",
+        "title": "温柔通勤",
+        "subtitle": "把轻商务和奶油感放在一起，适合白天的稳定表达。",
+        "badge": "通勤日常",
+        "prompt": "今天通勤日常，想要温柔、耐看、轻商务一点的搭配。",
+    },
+    {
+        "scene_id": "light-business",
+        "title": "轻熟商务",
+        "subtitle": "更稳一点，但仍然保留柔和气质和轻盈层次。",
+        "badge": "轻商务",
+        "prompt": "今天见客户或轻商务场景，需要更稳一点但仍然温柔的搭配。",
+    },
+    {
+        "scene_id": "casual-outing",
+        "title": "休闲出街",
+        "subtitle": "让颜色更轻快一点，适合周末或轻松出门。",
+        "badge": "休闲出街",
+        "prompt": "今天轻松出街，想要元气但不幼稚的搭配。",
+    },
+)
 
 
 def _as_utc_naive(value: datetime | None) -> datetime | None:
@@ -936,6 +967,7 @@ def _compose_charm_copy(key_item_name: str | None) -> str:
 def _enrich_recommendation(
     response: RecommendationResponse,
     items: list[ClothingItem],
+    user: User,
     profile: StyleProfile,
     gap_response: ClosetGapResponse,
     reminder_response: ReminderResponse,
@@ -975,11 +1007,76 @@ def _enrich_recommendation(
             outfit.reason_badges = _unique_preserve(reason_badges)[:4]
             outfit.charm_copy = _compose_charm_copy(key_item.name if key_item else None)
             outfit.mood_emoji = None
+        source_cards = _build_product_cards_for_item_ids(user, items, outfit.item_ids)
+        if outfit.product_cards:
+            existing_item_ids = {
+                card.matched_item_id for card in outfit.product_cards if card.matched_item_id is not None
+            }
+            for card in source_cards:
+                if card.matched_item_id is None or card.matched_item_id not in existing_item_ids:
+                    outfit.product_cards.append(card)
+        else:
+            outfit.product_cards = source_cards
 
     response.profile_summary = _build_profile_summary(profile)
     response.closet_gaps = [insight.title for insight in gap_response.insights[:3]]
     response.reminder_flags = reminder_flags[:3]
     return response
+
+
+def _build_product_cards_for_item_ids(
+    user: User,
+    items: list[ClothingItem],
+    item_ids: list[int],
+) -> list[RecommendationProductCard]:
+    from services import experience_service
+
+    items_by_id = {item.id: item for item in items}
+    _, user_state = experience_service._load_user_state(user)
+    source_state = experience_service._wardrobe_source_state(user_state)
+    cards: list[RecommendationProductCard] = []
+    seen_ids: set[int] = set()
+
+    for item_id in item_ids:
+        if item_id in seen_ids:
+            continue
+        item = items_by_id.get(item_id)
+        if item is None:
+            continue
+        seen_ids.add(item_id)
+
+        source_meta = source_state.get(str(item_id), {})
+        platform = str(source_meta.get("platform") or item.brand or "").strip() or None
+        is_real_source = platform in REAL_PRODUCT_PLATFORMS
+        product_url = str(source_meta.get("source_url") or "").strip() or None
+        image_url = (item.image_url or item.processed_image_url or "").strip() or None
+        title = str(source_meta.get("title") or item.name).strip() or item.name
+        match_reason = (
+            f"与 {item.name} 同源的真实商品卡"
+            if is_real_source and product_url
+            else f"来自你的衣橱单品：{item.name}"
+        )
+        source_status = (
+            f"{platform} 实物源" if is_real_source and product_url else "衣橱单品回退"
+        )
+
+        cards.append(
+            RecommendationProductCard(
+                platform=platform,
+                title=title,
+                image_url=image_url,
+                product_url=product_url if is_real_source else None,
+                price_label=None,
+                matched_item_id=item_id,
+                match_reason=match_reason,
+                source_status=source_status,
+            )
+        )
+
+        if len(cards) >= 4:
+            break
+
+    return cards
 
 
 def generate_recommendation(
@@ -1003,7 +1100,47 @@ def generate_recommendation(
     )
     gap_response = _build_gap_response(items)
     reminder_response = _safe_reminder_response(db, items, user.id)
-    return _enrich_recommendation(response, items, profile, gap_response, reminder_response, preference_scores, payload.prompt)
+    return _enrich_recommendation(
+        response,
+        items,
+        user,
+        profile,
+        gap_response,
+        reminder_response,
+        preference_scores,
+        payload.prompt,
+    )
+
+
+def generate_home_top_three(db: Session, user: User) -> HomeTopThreeResponse:
+    scenes: list[HomeTopSceneResponse] = []
+
+    for spec in HOME_TOP_SCENE_SPECS:
+        recommendation = generate_recommendation(
+            db,
+            user,
+            RecommendationRequest(
+                prompt=spec["prompt"],
+                scene=spec["scene_id"],
+                style="home-top3",
+            ),
+        )
+        primary_outfit = recommendation.outfits[0] if recommendation.outfits else recommendation_service._empty_closet_recommendations(RecommendationRequest(prompt=spec["prompt"])).outfits[0]
+        scenes.append(
+            HomeTopSceneResponse(
+                scene_id=spec["scene_id"],
+                title=spec["title"],
+                subtitle=spec["subtitle"],
+                badge=spec["badge"],
+                mood_tags=primary_outfit.reason_badges[:3],
+                recommendation=primary_outfit,
+            )
+        )
+
+    return HomeTopThreeResponse(
+        generated_at=datetime.now(timezone.utc).isoformat(),
+        scenes=scenes,
+    )
 
 
 def search_locations(query: str):

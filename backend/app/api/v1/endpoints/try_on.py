@@ -11,6 +11,7 @@ router = APIRouter(prefix="/try-on", tags=["try-on"])
 
 @router.post("/render", response_model=TryOnRenderResponse)
 def render_try_on(
+    *,
     payload: TryOnRenderRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_or_demo_user),

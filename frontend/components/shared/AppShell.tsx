@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { SiteFooter } from "./SiteFooter";
 import { VersionBadge } from "./VersionBadge";
 
 type AppShellProps = {
@@ -86,6 +87,7 @@ export function AppShell({ children, activePath }: AppShellProps) {
 
       <main className="min-h-screen lg:pl-60">
         <div className="mx-auto max-w-7xl px-5 py-8 md:px-8 lg:py-10">{children}</div>
+        <SiteFooter />
       </main>
     </div>
   );

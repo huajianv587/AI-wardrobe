@@ -64,7 +64,7 @@ export function AuthPage({ mode }: AuthPageProps) {
   const data = content[mode];
 
   return (
-    <PageShell showFooter={false}>
+    <PageShell>
       <main className="grid min-h-screen items-center gap-10 px-6 pb-16 pt-32 md:grid-cols-2 md:px-10 lg:px-16">
         <section className="max-w-xl">
           <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--brand-purple)]">

@@ -5,7 +5,7 @@ import { SectionHeading } from "@/components/shared/SectionHeading";
 export default function ClosetAnalysisPage() {
   return (
     <AppShell activePath="/closet-analysis-new">
-      <div className="grid gap-8">
+      <div className="grid gap-10">
         <SectionHeading
           eyebrow="衣橱分析"
           title="看清衣橱价值，也看清真正缺什么"

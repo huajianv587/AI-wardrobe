@@ -12,16 +12,16 @@ type PageShellProps = {
 };
 
 const lightThemeVars = {
-  "--bg-base": "#f8f7ff",
+  "--bg-base": "#fbf8f3",
   "--bg-surface": "rgba(255,255,255,0.92)",
   "--bg-elevated": "#ffffff",
   "--bg-glass": "rgba(255,255,255,0.72)",
   "--bg-glass-hover": "rgba(255,255,255,0.88)",
   "--brand-blue": "#5d63ff",
   "--brand-purple": "#8d60e8",
-  "--brand-pink": "#e86ca6",
+  "--brand-pink": "#df6f9f",
   "--brand-gold": "#b9892a",
-  "--gradient-brand-text": "linear-gradient(135deg,#21172f 0%,#8d60e8 55%,#e86ca6 100%)",
+  "--gradient-brand-text": "linear-gradient(135deg,#21172f 0%,#7e5bd6 55%,#d86f9d 100%)",
   "--text-primary": "#171322",
   "--text-secondary": "#625f76",
   "--text-muted": "#918ca5",
@@ -45,7 +45,7 @@ export function PageShell({
   return (
     <div
       style={style ?? lightThemeVars}
-      className={`relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_12%_0%,rgba(240,160,192,0.24),transparent_34%),radial-gradient(circle_at_88%_8%,rgba(200,168,255,0.28),transparent_36%),linear-gradient(180deg,#fffaff_0%,#f8f7ff_48%,#ffffff_100%)] text-[var(--text-primary)] ${className}`}
+      className={`relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_12%_0%,rgba(240,160,192,0.22),transparent_34%),radial-gradient(circle_at_88%_8%,rgba(200,168,255,0.25),transparent_36%),linear-gradient(180deg,#fffaf5_0%,#fbf8f3_48%,#ffffff_100%)] text-[var(--text-primary)] ${className}`}
     >
       <HeroGlow />
       <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(87,72,125,0.055)_1px,transparent_1px),linear-gradient(to_bottom,rgba(87,72,125,0.055)_1px,transparent_1px)] bg-[size:64px_64px] opacity-40" />

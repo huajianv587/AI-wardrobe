@@ -5,7 +5,7 @@ import { SectionHeading } from "@/components/shared/SectionHeading";
 export default function RecommendPage() {
   return (
     <AppShell activePath="/recommend-new">
-      <div className="grid gap-8">
+      <div className="grid gap-10">
         <SectionHeading
           eyebrow="搭配推荐"
           title="让 AI 解释每一套搭配为什么适合你"

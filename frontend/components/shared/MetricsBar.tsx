@@ -12,7 +12,7 @@ const defaultMetrics: Metric[] = [
   { value: "10,000+", label: "活跃用户" },
   { value: "98%", label: "搭配满意度" },
   { value: "3 秒", label: "试衣生成" },
-  { value: "50+", label: "风格模板" },
+  { value: "128 件", label: "可管理衣物" },
 ];
 
 export function MetricsBar({ metrics = defaultMetrics, className = "" }: MetricsBarProps) {

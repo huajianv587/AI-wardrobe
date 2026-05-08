@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 const productLinks = [
+  { href: "/dashboard-new", label: "产品工作台" },
   { href: "/landing-new#features", label: "功能" },
   { href: "/ui-demo", label: "演示" },
   { href: "/privacy", label: "隐私" },
@@ -19,7 +20,7 @@ export function SiteFooter() {
             <span className="text-lg font-semibold">AI Wardrobe</span>
           </Link>
           <p className="mt-5 max-w-md leading-7">
-            用 AI 管理衣橱、生成搭配、虚拟试衣，让每件衣服都物尽其用。
+            用 AI 管理衣橱、生成搭配、虚拟试衣，把每件衣服变成可搜索、可复穿、可复盘的风格资产。
           </p>
         </div>
         <div>
@@ -38,7 +39,7 @@ export function SiteFooter() {
           <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--text-primary)]">
             Social
           </h3>
-          <div className="mt-5 flex gap-3">
+          <div className="mt-5 flex flex-wrap gap-3">
             {["WeChat", "X", "小红书"].map((label) => (
               <span
                 key={label}

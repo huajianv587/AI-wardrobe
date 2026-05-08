@@ -1,29 +1,18 @@
-import { FunctionalPage, type FunctionalPageConfig } from "@/components/shared/FunctionalPage";
-
-const config: FunctionalPageConfig = {
-  route: "/recommend-new",
-  eyebrow: "搭配推荐",
-  title: "让 AI 解释每一套搭配为什么适合你",
-  description: "根据你的风格偏好、场景、天气和已有单品生成可执行搭配。",
-  primaryAction: "生成推荐",
-  secondaryAction: "调整偏好",
-  productTitle: "AI 搭配推荐",
-  productSubtitle: "DeepSeek styling planner",
-  productVariant: "dashboard",
-  tags: ["通勤", "约会", "休闲", "运动", "派对"],
-  stats: [
-    { value: "89", label: "推荐方案" },
-    { value: "6", label: "今日可穿" },
-    { value: "98%", label: "满意度" },
-    { value: "12", label: "收藏搭配" },
-  ],
-  panels: [
-    { title: "推荐理由", body: "每套搭配都解释色彩、廓形和场景适配逻辑。", meta: "Reasoning" },
-    { title: "偏好设置", body: "可调节正式度、舒适度、亮色占比和露肤程度。", meta: "Preference" },
-    { title: "一键试穿", body: "推荐结果可直接进入虚拟试衣，快速验证效果。", meta: "Try-on" },
-  ],
-};
+import { AppShell } from "@/components/shared/AppShell";
+import { RecommendationBoard } from "@/components/shared/ProductModules";
+import { SectionHeading } from "@/components/shared/SectionHeading";
 
 export default function RecommendPage() {
-  return <FunctionalPage config={config} />;
+  return (
+    <AppShell activePath="/recommend-new">
+      <div className="grid gap-8">
+        <SectionHeading
+          eyebrow="搭配推荐"
+          title="让 AI 解释每一套搭配为什么适合你"
+          description="推荐不再只是几张卡片，而是包含场景、天气、匹配理由、可替换单品和一键试穿。"
+        />
+        <RecommendationBoard />
+      </div>
+    </AppShell>
+  );
 }

@@ -7,7 +7,7 @@ import { VersionBadge } from "./VersionBadge";
 
 const navLinks = [
   { href: "/landing-new#features", label: "功能" },
-  { href: "/landing-new#pricing", label: "定价" },
+  { href: "/dashboard-new", label: "产品" },
   { href: "/ui-demo", label: "演示" },
 ];
 

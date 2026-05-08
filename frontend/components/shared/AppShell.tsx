@@ -53,8 +53,10 @@ export function AppShell({ children, activePath }: AppShellProps) {
             V3 实验版
           </VersionBadge>
           <div className="rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-glass)] p-4">
-            <p className="text-sm font-semibold">用户</p>
-            <p className="mt-1 text-xs text-[var(--text-muted)]">高级穿搭档案同步中</p>
+            <p className="text-sm font-semibold">高级穿搭档案</p>
+            <p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">
+              8 个场景偏好 · 128 件衣物同步
+            </p>
           </div>
         </div>
       </aside>

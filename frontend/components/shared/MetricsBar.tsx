@@ -23,7 +23,7 @@ export function MetricsBar({ metrics = defaultMetrics, className = "" }: Metrics
       <div className="grid gap-4 md:grid-cols-4 md:divide-x md:divide-[var(--border-default)]">
         {metrics.map((metric) => (
           <div key={metric.label} className="px-4 py-3 text-center">
-            <div className="bg-[var(--gradient-brand-text)] bg-clip-text text-3xl font-semibold text-transparent md:text-4xl">
+            <div className="bg-[image:var(--gradient-brand-text)] bg-clip-text text-3xl font-semibold text-transparent md:text-4xl">
               {metric.value}
             </div>
             <div className="mt-2 text-sm text-[var(--text-muted)]">{metric.label}</div>

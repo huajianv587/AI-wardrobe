@@ -10,11 +10,11 @@ const productLinks = [
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-[var(--border-subtle)] bg-[rgba(7,8,15,0.92)] px-6 py-14 text-[var(--text-secondary)]">
+    <footer className="border-t border-[var(--border-subtle)] bg-white/80 px-6 py-14 text-[var(--text-secondary)] backdrop-blur-xl">
       <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[1.3fr_1fr_1fr]">
         <div>
           <Link href="/" className="inline-flex items-center gap-3 text-[var(--text-primary)]">
-            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-white text-xl text-[var(--text-inverse)]">
+            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[linear-gradient(135deg,#c8a8ff,#f0a0c0)] text-sm font-black text-white">
               AI
             </span>
             <span className="text-lg font-semibold">AI Wardrobe</span>
@@ -43,7 +43,7 @@ export function SiteFooter() {
             {["WeChat", "X", "小红书"].map((label) => (
               <span
                 key={label}
-                className="rounded-full border border-[var(--border-default)] px-4 py-2 text-sm"
+                className="rounded-full border border-[var(--border-default)] bg-white/70 px-4 py-2 text-sm"
               >
                 {label}
               </span>

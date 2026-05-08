@@ -55,7 +55,7 @@ function GlassPanel({
 function MiniStat({ value, label }: { value: string; label: string }) {
   return (
     <div className="rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-surface)] p-5">
-      <div className="bg-[var(--gradient-brand-text)] bg-clip-text text-3xl font-semibold text-transparent">
+      <div className="text-3xl font-semibold text-[var(--brand-purple)]">
         {value}
       </div>
       <div className="mt-2 text-sm text-[var(--text-muted)]">{label}</div>

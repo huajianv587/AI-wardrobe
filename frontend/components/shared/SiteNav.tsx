@@ -16,9 +16,9 @@ export function SiteNav() {
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-4 pt-4 md:px-6">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between rounded-[var(--radius-pill)] border border-[var(--border-default)] bg-[rgba(7,8,15,0.72)] px-4 py-3 shadow-[var(--shadow-card)] backdrop-blur-2xl md:px-5">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between rounded-[var(--radius-pill)] border border-white/80 bg-white/78 px-4 py-3 shadow-[0_18px_50px_rgba(84,62,120,0.10)] backdrop-blur-2xl md:px-5">
         <Link href="/" className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-2xl bg-white text-sm font-black text-[var(--text-inverse)]">
+          <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[linear-gradient(135deg,#c8a8ff,#f0a0c0)] text-sm font-black text-white shadow-[0_12px_28px_rgba(200,168,255,0.34)]">
             AI
           </span>
           <span className="hidden text-base font-semibold text-[var(--text-primary)] sm:block">
@@ -57,14 +57,14 @@ export function SiteNav() {
           type="button"
           aria-label="打开导航菜单"
           onClick={() => setOpen((value) => !value)}
-          className="grid h-10 w-10 place-items-center rounded-full border border-[var(--border-default)] text-[var(--text-primary)] md:hidden"
+          className="grid h-10 w-10 place-items-center rounded-full border border-[var(--border-default)] bg-white/70 text-[var(--text-primary)] md:hidden"
         >
-          <span className="text-xl">{open ? "×" : "☰"}</span>
+          <span className="text-xl leading-none">{open ? "×" : "☰"}</span>
         </button>
       </nav>
 
       {open ? (
-        <div className="mx-auto mt-3 grid max-w-7xl gap-2 rounded-[28px] border border-[var(--border-default)] bg-[rgba(7,8,15,0.92)] p-4 shadow-[var(--shadow-card)] backdrop-blur-2xl md:hidden">
+        <div className="mx-auto mt-3 grid max-w-7xl gap-2 rounded-[28px] border border-white/80 bg-white/92 p-4 shadow-[0_18px_50px_rgba(84,62,120,0.12)] backdrop-blur-2xl md:hidden">
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -79,10 +79,18 @@ export function SiteNav() {
             <VersionBadge tone="v3">V3 实验版</VersionBadge>
           </Link>
           <div className="grid grid-cols-2 gap-3 px-4 py-3">
-            <Link href="/login" onClick={() => setOpen(false)} className="rounded-full border border-[var(--border-default)] px-4 py-3 text-center text-sm text-[var(--text-secondary)]">
+            <Link
+              href="/login"
+              onClick={() => setOpen(false)}
+              className="rounded-full border border-[var(--border-default)] px-4 py-3 text-center text-sm text-[var(--text-secondary)]"
+            >
               登录
             </Link>
-            <Link href="/register" onClick={() => setOpen(false)} className="rounded-full bg-white px-4 py-3 text-center text-sm font-semibold text-[var(--text-inverse)]">
+            <Link
+              href="/register"
+              onClick={() => setOpen(false)}
+              className="rounded-full bg-[linear-gradient(135deg,#c8a8ff,#f0a0c0)] px-4 py-3 text-center text-sm font-semibold text-white"
+            >
               注册
             </Link>
           </div>

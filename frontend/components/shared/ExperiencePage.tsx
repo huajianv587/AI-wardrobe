@@ -52,7 +52,7 @@ export function ExperiencePage({
         <section className="mx-auto mt-16 grid max-w-6xl gap-5 md:grid-cols-3">
           {stats.map((stat) => (
             <div key={stat.label} className="rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-glass)] p-6 backdrop-blur-xl">
-              <p className="bg-[var(--gradient-brand-text)] bg-clip-text text-4xl font-semibold text-transparent">
+              <p className="bg-[image:var(--gradient-brand-text)] bg-clip-text text-4xl font-semibold text-transparent">
                 {stat.value}
               </p>
               <p className="mt-2 text-sm text-[var(--text-muted)]">{stat.label}</p>

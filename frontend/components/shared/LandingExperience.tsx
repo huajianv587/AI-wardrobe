@@ -13,7 +13,8 @@ const features = [
   {
     badge: "衣橱建档",
     title: "先把衣服变成可搜索资产",
-    description: "像 V3 的衣橱页一样，支持搜索、分类筛选、单品详情和上传入口；但视觉完全回到 V2 的深色高级工作台。",
+    description:
+      "保留 V3 衣橱页的搜索、分类筛选、单品详情和上传入口，但放进新版明亮、柔和、产品化的工作台里。",
     href: "/wardrobe-new",
     type: "wardrobe" as const,
     direction: "right",
@@ -21,7 +22,8 @@ const features = [
   {
     badge: "今日穿搭",
     title: "每天打开就是一套可执行方案",
-    description: "Dashboard 不再只是概念卡片，而是展示天气、匹配度、推荐理由、快捷入口和最近活动。",
+    description:
+      "Dashboard 不再只是展示卡片，而是呈现天气、匹配度、推荐理由、快捷入口和最近活动，像 V3 一样有真实工作流。",
     href: "/dashboard-new",
     type: "recommend" as const,
     direction: "left",
@@ -29,7 +31,8 @@ const features = [
   {
     badge: "虚拟试衣",
     title: "穿上它，再决定买不买",
-    description: "上传人像和衣物后预览上身效果，切换场景背景，并把试衣结果保存到日记或推荐反馈。",
+    description:
+      "上传人像和衣物后预览上身效果，切换场景背景，并把试衣结果保存到日记或推荐反馈。",
     href: "/try-on-new",
     type: "tryon" as const,
     direction: "right",
@@ -37,7 +40,8 @@ const features = [
   {
     badge: "衣橱复盘",
     title: "少买重复单品，多穿真正适合的衣服",
-    description: "把分类比例、闲置提醒、色彩偏好和缺口建议转化成行动，而不是只给一组漂亮数字。",
+    description:
+      "把分类比例、闲置提醒、色彩偏好和缺口建议转化成行动，而不是只给一组漂亮数字。",
     href: "/closet-analysis-new",
     type: "analysis" as const,
     direction: "left",
@@ -45,7 +49,8 @@ const features = [
   {
     badge: "风格档案",
     title: "让 AI 记住你的偏好和禁忌",
-    description: "维护风格标签、色彩偏好、体型信息和场景权重，让搭配推荐越来越像私人造型顾问。",
+    description:
+      "维护风格标签、色彩偏好、体型信息和场景权重，让搭配推荐越来越像私人造型顾问。",
     href: "/style-profile-new",
     type: "profile" as const,
     direction: "right",
@@ -56,17 +61,20 @@ const testimonials = [
   {
     name: "小美",
     role: "产品经理",
-    quote: "我最需要的是每天直接能穿的方案，而不是一堆灵感图。新版工作台把天气、会议和衣橱状态都算进去了。",
+    quote:
+      "我最需要的是每天直接能穿的方案，而不是一堆灵感图。新版工作台把天气、会议和衣橱状态都算进去了。",
   },
   {
     name: "Luna",
     role: "时尚买手",
-    quote: "衣橱页有搜索、筛选和详情后才像真正的产品。深色 V2 视觉比 V3 更高级，但功能密度保留下来了。",
+    quote:
+      "衣橱页有搜索、筛选和详情后才像真正的产品。新版保留了 V3 的功能密度，但视觉更轻、更亮。",
   },
   {
     name: "安安",
     role: "研究生",
-    quote: "试衣、推荐、日记、风格档案串起来后，系统知道我为什么喜欢某套搭配，而不是随机给几张图。",
+    quote:
+      "试衣、推荐、日记、风格档案串起来后，系统知道我为什么喜欢某套搭配，而不是随机给几张图。",
   },
 ];
 
@@ -84,7 +92,7 @@ function RevealFeature({ feature }: { feature: (typeof features)[number] }) {
       </p>
       <Link
         href={feature.href}
-        className="mt-8 inline-flex text-sm font-semibold text-[var(--brand-purple)] hover:text-[var(--text-primary)]"
+        className="mt-8 inline-flex text-sm font-semibold text-[#8d60e8] hover:text-[var(--text-primary)]"
       >
         打开功能 →
       </Link>
@@ -118,11 +126,11 @@ export function LandingExperience() {
       <section className="relative flex min-h-screen items-center px-6 pb-24 pt-32 md:px-8">
         <div className="mx-auto w-full max-w-7xl text-center">
           <div className="mb-7 flex justify-center">
-            <VersionBadge tone="new">NEW · V2 视觉 + V3 功能密度</VersionBadge>
+            <VersionBadge tone="new">NEW · 明亮 V2 + V3 功能密度</VersionBadge>
           </div>
           <h1 className="mx-auto max-w-5xl text-balance text-[clamp(52px,7vw,88px)] font-semibold leading-[0.95] tracking-[-0.055em] text-[var(--text-primary)]">
             你的 AI 私人造型顾问
-            <span className="block bg-[var(--gradient-brand-text)] bg-clip-text text-transparent">
+            <span className="block bg-[image:var(--gradient-brand-text)] bg-clip-text text-transparent">
               让每件衣服
             </span>
             <span className="block">都物尽其用</span>
@@ -136,13 +144,13 @@ export function LandingExperience() {
             </PremiumButton>
             <Link
               href="/wardrobe-new"
-              className="rounded-[var(--radius-pill)] border border-[var(--border-default)] px-10 py-4 text-lg font-semibold text-[var(--text-primary)] transition hover:-translate-y-0.5 hover:bg-[var(--bg-glass-hover)]"
+              className="rounded-[var(--radius-pill)] border border-[var(--border-default)] bg-white/72 px-10 py-4 text-lg font-semibold text-[var(--text-primary)] shadow-[var(--shadow-card)] transition hover:-translate-y-0.5 hover:bg-white"
             >
               查看产品工作台 →
             </Link>
           </div>
           <p className="mt-7 text-sm text-[var(--text-muted)]">
-            已有 10,000+ 用户重新爱上穿搭 · App Store 4.9 ★
+            已有 10,000+ 用户重新爱上穿搭 · App Store 4.9 星
           </p>
           <LandingProductPreview />
         </div>
@@ -160,14 +168,14 @@ export function LandingExperience() {
         <SectionHeading
           align="center"
           eyebrow="用户反馈"
-          title="不是更漂亮的空壳，而是能每天使用的衣橱系统"
-          description="新版 V2 保留深色高级感，同时把 V3 的功能密度重建成完整产品体验。"
+          title="不是更漂亮的空壳，而是每天能用的衣橱系统"
+          description="新版主线保留 V3 的功能密度，同时把视觉切成更明亮、柔和、接近真实消费级产品的界面。"
         />
         <div className="mt-12 grid gap-5 md:grid-cols-3">
           {testimonials.map((item) => (
             <article
               key={item.name}
-              className="rounded-[var(--radius-xl)] border border-[var(--border-default)] bg-[var(--bg-glass)] p-7 shadow-[var(--shadow-card)] backdrop-blur-2xl"
+              className="rounded-[var(--radius-xl)] border border-white/80 bg-white/76 p-7 shadow-[var(--shadow-card)] backdrop-blur-2xl"
             >
               <p className="text-lg leading-8 text-[var(--text-primary)]">“{item.quote}”</p>
               <div className="mt-8">
@@ -180,8 +188,8 @@ export function LandingExperience() {
       </section>
 
       <section id="pricing" className="px-6 py-24 md:px-8">
-        <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[40px] border border-[var(--border-brand)] bg-[var(--bg-glass)] p-10 text-center shadow-[var(--shadow-glow)] backdrop-blur-2xl md:p-16">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(49,57,251,0.24),transparent_70%)]" />
+        <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[40px] border border-white/80 bg-white/78 p-10 text-center shadow-[var(--shadow-glow)] backdrop-blur-2xl md:p-16">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(200,168,255,0.25),transparent_70%)]" />
           <div className="relative">
             <h2 className="text-balance text-4xl font-semibold tracking-[-0.03em] md:text-6xl">
               重新爱上每天的穿搭选择

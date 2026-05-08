@@ -15,7 +15,7 @@ type AuthPageProps = {
 const content = {
   login: {
     title: "欢迎回来",
-    subtitle: "继续管理你的智能衣橱和私人风格档案。",
+    subtitle: "继续管理你的智能衣橱、穿搭记录和私人风格档案。",
     button: "登录",
     alt: "还没有账号？",
     altHref: "/register",
@@ -27,7 +27,7 @@ const content = {
   },
   register: {
     title: "创建 AI Wardrobe 账号",
-    subtitle: "从今天开始，让每件衣服都被看见和使用。",
+    subtitle: "从今天开始，让每件衣服都被看见、被搭配、被真正使用。",
     button: "免费注册",
     alt: "已有账号？",
     altHref: "/login",
@@ -67,18 +67,28 @@ export function AuthPage({ mode }: AuthPageProps) {
     <PageShell>
       <main className="grid min-h-screen items-center gap-10 px-6 pb-16 pt-32 md:grid-cols-2 md:px-10 lg:px-16">
         <section className="max-w-xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--brand-purple)]">
+          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#8d60e8]">
             AI Wardrobe
           </p>
           <h1 className="mt-6 text-balance text-5xl font-semibold leading-[1.02] tracking-[-0.04em] md:text-7xl">
             你的私人造型顾问，随时在线。
           </h1>
           <p className="mt-6 text-lg leading-8 text-[var(--text-secondary)]">
-            上传衣橱、生成搭配、虚拟试穿，并把每一次选择沉淀成你的风格资产。
+            上传衣橱、生成搭配、虚拟试衣，并把每一次选择沉淀成你的风格资产。
           </p>
+          <div className="mt-8 grid gap-3 text-sm text-[var(--text-secondary)] sm:grid-cols-3">
+            {["128 件衣物", "98% 匹配度", "3 秒试衣"].map((item) => (
+              <span
+                key={item}
+                className="rounded-full border border-[var(--border-default)] bg-white/70 px-4 py-2 text-center shadow-[var(--shadow-card)]"
+              >
+                {item}
+              </span>
+            ))}
+          </div>
         </section>
 
-        <section className="rounded-[var(--radius-xl)] border border-[var(--border-default)] bg-[rgba(13,14,26,0.82)] p-6 shadow-[var(--shadow-float)] backdrop-blur-2xl md:p-8">
+        <section className="rounded-[var(--radius-xl)] border border-white/80 bg-white/84 p-6 shadow-[var(--shadow-float)] backdrop-blur-2xl md:p-8">
           <h2 className="text-3xl font-semibold tracking-[-0.03em]">{data.title}</h2>
           <p className="mt-3 text-[var(--text-secondary)]">{data.subtitle}</p>
           <form className="mt-8 grid gap-5">
@@ -88,7 +98,7 @@ export function AuthPage({ mode }: AuthPageProps) {
                 <input
                   type={field.type}
                   placeholder={field.placeholder}
-                  className="min-h-12 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] px-4 text-[var(--text-primary)] outline-none transition placeholder:text-[var(--text-muted)] focus:border-[var(--border-brand)]"
+                  className="min-h-12 rounded-2xl border border-[var(--border-default)] bg-white/78 px-4 text-[var(--text-primary)] outline-none transition placeholder:text-[var(--text-muted)] focus:border-[var(--border-brand)] focus:bg-white"
                 />
               </label>
             ))}
@@ -98,14 +108,14 @@ export function AuthPage({ mode }: AuthPageProps) {
           </form>
           <p className="mt-6 text-sm text-[var(--text-secondary)]">
             {data.alt}{" "}
-            <Link href={data.altHref} className="text-[var(--brand-purple)] underline-offset-4 hover:underline">
+            <Link href={data.altHref} className="text-[#8d60e8] underline-offset-4 hover:underline">
               {data.altLabel}
             </Link>
           </p>
           {mode === "login" ? (
             <Link
               href="/reset-password"
-              className="mt-3 inline-flex text-sm text-[var(--brand-purple)] underline-offset-4 hover:underline"
+              className="mt-3 inline-flex text-sm text-[#8d60e8] underline-offset-4 hover:underline"
             >
               忘记密码？
             </Link>

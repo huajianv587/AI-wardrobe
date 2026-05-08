@@ -1,24 +1,67 @@
+/* ============================================
+   AI Wardrobe Design Tokens
+   Visual Reference: arc.net + diabrowser.com
+   ============================================ */
+
 :root {
-  --background: #fffaf5;
-  --background-soft: #f8f0e7;
-  --background-contrast: #fff8f1;
-  --card: rgba(255, 253, 249, 0.86);
-  --card-strong: rgba(255, 255, 255, 0.96);
-  --line: rgba(84, 71, 68, 0.09);
-  --ink-strong: #1f2838;
-  --ink: #39475d;
-  --muted: #78839a;
-  --accent: #ff9a7b;
-  --accent-soft: #ffe5d8;
-  --accent-rose: #ffc8c2;
-  --accent-sky: #d7ebff;
-  --accent-lilac: #ece4ff;
-  --accent-mint: #d8f3e4;
-  --accent-butter: #fff0c9;
-  --shadow-soft: 0 28px 82px rgba(117, 89, 73, 0.09);
-  --shadow-float: 0 22px 56px rgba(243, 169, 137, 0.18);
-  --shadow-glow: 0 26px 82px rgba(248, 200, 170, 0.24);
-  --font-display: "Iowan Old Style", "Baskerville", "Palatino Linotype", "Book Antiqua", "Songti SC", "STSong", "Noto Serif SC", "Source Han Serif SC", serif;
-  --font-body: "Avenir Next", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
-  --font-label: "Avenir Next", "Optima", "Gill Sans", "PingFang SC", "Hiragino Sans GB", sans-serif;
+  /* Background layers */
+  --bg-base: #07080f;
+  --bg-surface: #0d0e1a;
+  --bg-elevated: #13152a;
+  --bg-glass: rgba(255, 255, 255, 0.04);
+  --bg-glass-hover: rgba(255, 255, 255, 0.07);
+
+  /* Brand colors */
+  --brand-blue: #3139fb;
+  --brand-purple: #c8a8ff;
+  --brand-pink: #f0a0c0;
+  --brand-gold: #e8c87a;
+
+  /* Gradients */
+  --gradient-hero-bg: linear-gradient(160deg, #080b1e 0%, #07080f 60%, #0e0a18 100%);
+  --gradient-brand-text: linear-gradient(135deg, #ffffff 0%, #c8a8ff 60%, #3139fb 100%);
+  --gradient-button: linear-gradient(135deg, #c8a8ff 0%, #f0a0c0 100%);
+  --gradient-glow: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(49, 57, 251, 0.25), transparent);
+
+  /* Text */
+  --text-primary: #f0f0f8;
+  --text-secondary: #9898bb;
+  --text-muted: #4a4a68;
+  --text-inverse: #07080f;
+
+  /* Borders */
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --border-brand: rgba(200, 168, 255, 0.30);
+
+  /* Shadows */
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-float: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 40px rgba(49, 57, 251, 0.08);
+  --shadow-glow: 0 0 60px rgba(200, 168, 255, 0.12);
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 32px;
+  --radius-pill: 9999px;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+
+  /* Motion */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-base: 300ms;
+  --duration-slow: 600ms;
 }

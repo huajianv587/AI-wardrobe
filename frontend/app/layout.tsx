@@ -1,15 +1,28 @@
 import type { Metadata } from "next";
-
+import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import "./globals.css";
 
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+  variable: "--font-cormorant",
+  display: "swap"
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-dm-sans",
+  display: "swap"
+});
+
 export const metadata: Metadata = {
-  title: "文文的衣橱 | AI Wardrobe",
-  description: "每一件衣服，都值得被看见。让 AI 衣橱帮你整理、试穿、搭配和记住真正适合你的穿搭。",
+  title: "云衣橱 · AI Wardrobe",
+  description: "每一件衣服，都值得被看见"
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="zh-CN">
+    <html lang="zh-CN" className={`${cormorant.variable} ${dmSans.variable}`}>
       <body className="antialiased">{children}</body>
     </html>
   );

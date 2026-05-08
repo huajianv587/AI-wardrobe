@@ -42,38 +42,38 @@ function ReminderSection({
   icon: ReactNode;
 }) {
   return (
-    <section className="section-card rounded-[32px] p-5">
-      <div className="mb-5 flex items-start gap-4">
-        <div className="rounded-[22px] bg-[linear-gradient(135deg,#ffe3d8_0%,#fff7f1_48%,#e4f6ef_100%)] p-3 text-[var(--ink-strong)]">
+    <section className="rounded-[48px] bg-white/85 p-10 shadow-[0_4px_20px_rgba(0,0,0,0.08)] backdrop-blur-sm transition-all duration-[400ms] hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.15)]">
+      <div className="mb-8 flex items-start gap-5">
+        <div className="rounded-[24px] bg-gradient-to-br from-[#667eea] to-[#764ba2] p-4 text-white shadow-lg">
           {icon}
         </div>
         <div>
-          <div className="pill mb-3">{title}</div>
-          <h3 className="text-xl font-semibold text-[var(--ink-strong)]">{description}</h3>
+          <div className="mb-3 inline-block rounded-full bg-gradient-to-r from-[#667eea]/10 to-[#764ba2]/10 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.15em] text-[#667eea]">{title}</div>
+          <h3 className="text-2xl font-bold text-[#2d3748]">{description}</h3>
         </div>
       </div>
 
-      <div className="grid gap-3">
+      <div className="grid gap-5">
         {cards.length > 0 ? cards.map((card) => (
-          <article key={`${card.title}-${card.description}`} className="rounded-[24px] border border-[var(--line)] bg-white/82 p-4">
-            <div className="flex items-start justify-between gap-3">
+          <article key={`${card.title}-${card.description}`} className="group rounded-[32px] border border-[#e2e8f0] bg-white p-6 shadow-sm transition-all duration-[400ms] hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
+            <div className="flex items-start justify-between gap-4">
               <div>
-                <h4 className="text-base font-semibold text-[var(--ink-strong)]">{card.title}</h4>
-                <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{card.description}</p>
+                <h4 className="text-lg font-semibold text-[#2d3748]">{card.title}</h4>
+                <p className="mt-3 text-base leading-7 text-[#718096]">{card.description}</p>
               </div>
-              <span className="pill">{card.tone}</span>
+              <span className="rounded-full bg-gradient-to-r from-[#667eea]/10 to-[#764ba2]/10 px-4 py-1.5 text-sm font-medium text-[#667eea]">{card.tone}</span>
             </div>
 
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="mt-5 flex flex-wrap gap-3">
               {card.item_ids.map((itemId) => (
-                <span key={itemId} className="pill">
+                <span key={itemId} className="rounded-full border border-[#e2e8f0] bg-[#f7fafc] px-4 py-1.5 text-sm text-[#718096] transition-colors duration-300 hover:border-[#667eea] hover:bg-[#667eea]/5">
                   单品 #{itemId}
                 </span>
               ))}
             </div>
           </article>
         )) : (
-          <div className="rounded-[24px] border border-dashed border-[var(--line)] bg-white/75 px-4 py-10 text-sm leading-6 text-[var(--muted)]">
+          <div className="rounded-[32px] border-2 border-dashed border-[#e2e8f0] bg-[#f7fafc]/50 px-6 py-16 text-center text-base leading-7 text-[#718096]">
             当前这一类提醒还没有触发，说明你的衣橱状态暂时比较平衡。
           </div>
         )}
@@ -139,108 +139,110 @@ export function ClosetAnalysisDashboard() {
   }
 
   return (
-    <div className="space-y-6">
-      {previewMode ? (
-        <VisitorPreviewNotice description="衣橱分析已经对访客开放预览。你现在看到的是演示版缺口分析和提醒卡片，登录后会自动换成你的真实衣橱分析。" />
-      ) : null}
+    <div className="min-h-screen bg-gradient-to-br from-[#f5f7fa] via-[#e8eef5] to-[#c3cfe2] px-6 py-12">
+      <div className="mx-auto max-w-7xl space-y-12">
+        {previewMode ? (
+          <VisitorPreviewNotice description="衣橱分析已经对访客开放预览。你现在看到的是演示版缺口分析和提醒卡片，登录后会自动换成你的真实衣橱分析。" />
+        ) : null}
 
-      <section className="section-card story-gradient rounded-[32px] p-5">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-start gap-4">
-            <div className="rounded-[22px] bg-[linear-gradient(135deg,#ffe1d5_0%,#fff6f0_48%,#dff5eb_100%)] p-3 text-[var(--ink-strong)]">
-              <BarChart3 className="size-5" />
+        <section className="rounded-[48px] bg-white/85 p-10 shadow-[0_4px_20px_rgba(0,0,0,0.08)] backdrop-blur-sm">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-5">
+              <div className="rounded-[24px] bg-gradient-to-br from-[#667eea] to-[#764ba2] p-4 text-white shadow-lg">
+                <BarChart3 className="size-6" />
+              </div>
+              <div>
+                <div className="mb-3 inline-block rounded-full bg-gradient-to-r from-[#667eea]/10 to-[#764ba2]/10 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.15em] text-[#667eea]">Analysis board</div>
+                <h3 className="text-3xl font-bold text-[#2d3748]">衣橱分析总览</h3>
+                <p className="mt-3 text-base leading-7 text-[#718096]">{statusText}</p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => void loadAnalysis()}
+              className="inline-flex items-center gap-3 rounded-full border-2 border-[#667eea] bg-gradient-to-r from-[#667eea] to-[#764ba2] px-6 py-3 text-base font-medium text-white shadow-lg transition-all duration-[400ms] hover:scale-105 hover:shadow-[0_8px_30px_rgba(102,126,234,0.4)]"
+            >
+              <RefreshCw className="size-5" />
+              刷新分析
+            </button>
+          </div>
+
+          <div className="my-10 h-px bg-gradient-to-r from-transparent via-[#e2e8f0] to-transparent" />
+
+          <div className="grid gap-6 md:grid-cols-4">
+            <div className="rounded-[36px] bg-gradient-to-br from-[#fff5f5] to-[#fed7d7] p-8 shadow-sm transition-all duration-[400ms] hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#c53030]">衣橱总量</p>
+              <p className="mt-4 text-4xl font-bold text-[#2d3748]">{itemCount}</p>
+              <p className="mt-4 text-sm leading-6 text-[#718096]">分析基于你当前已上传的衣物。</p>
+            </div>
+            <div className="rounded-[36px] bg-gradient-to-br from-[#fffaf0] to-[#feebc8] p-8 shadow-sm transition-all duration-[400ms] hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#c05621]">缺口提醒</p>
+              <p className="mt-4 text-4xl font-bold text-[#2d3748]">{gaps?.insights.length ?? 0}</p>
+              <p className="mt-4 text-sm leading-6 text-[#718096]">帮助你看清还缺哪一类关键单品。</p>
+            </div>
+            <div className="rounded-[36px] bg-gradient-to-br from-[#f0fff4] to-[#c6f6d5] p-8 shadow-sm transition-all duration-[400ms] hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#276749]">重复穿搭</p>
+              <p className="mt-4 text-4xl font-bold text-[#2d3748]">{reminders?.repeat_warning.length ?? 0}</p>
+              <p className="mt-4 text-sm leading-6 text-[#718096]">防止总是穿同一组搭配出门。</p>
+            </div>
+            <div className="rounded-[36px] bg-gradient-to-br from-[#ebf8ff] to-[#bee3f8] p-8 shadow-sm transition-all duration-[400ms] hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2c5282]">洗护 / 闲置</p>
+              <p className="mt-4 text-4xl font-bold text-[#2d3748]">{(reminders?.laundry_and_care.length ?? 0) + (reminders?.idle_and_seasonal.length ?? 0)}</p>
+              <p className="mt-4 text-sm leading-6 text-[#718096]">提醒你保养和换季整理。</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-[48px] bg-white/85 p-10 shadow-[0_4px_20px_rgba(0,0,0,0.08)] backdrop-blur-sm">
+          <div className="mb-8 flex items-start gap-5">
+            <div className="rounded-[24px] bg-gradient-to-br from-[#667eea] to-[#764ba2] p-4 text-white shadow-lg">
+              <Sparkles className="size-6" />
             </div>
             <div>
-              <div className="pill mb-3">Analysis board</div>
-              <h3 className="text-xl font-semibold text-[var(--ink-strong)]">衣橱分析总览</h3>
-              <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{statusText}</p>
+              <div className="mb-3 inline-block rounded-full bg-gradient-to-r from-[#667eea]/10 to-[#764ba2]/10 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.15em] text-[#667eea]">Gap analysis</div>
+              <h3 className="text-3xl font-bold text-[#2d3748]">缺口分析</h3>
+              <p className="mt-3 text-base leading-7 text-[#718096]">{gaps?.summary ?? "后端返回的缺口摘要会显示在这里。"}</p>
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => void loadAnalysis()}
-            className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/82 px-4 py-2 text-sm text-[var(--ink)] transition hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
-          >
-            <RefreshCw className="size-4" />
-            刷新分析
-          </button>
-        </div>
-
-        <div className="ambient-divider my-5" />
-
-        <div className="grid gap-3 md:grid-cols-4">
-          <div className="metric-tile p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">衣橱总量</p>
-            <p className="mt-2 text-lg font-semibold text-[var(--ink-strong)]">{itemCount}</p>
-            <p className="mt-2 text-xs leading-5 text-[var(--muted)]">分析基于你当前已上传的衣物。</p>
-          </div>
-          <div className="metric-tile p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">缺口提醒</p>
-            <p className="mt-2 text-lg font-semibold text-[var(--ink-strong)]">{gaps?.insights.length ?? 0}</p>
-            <p className="mt-2 text-xs leading-5 text-[var(--muted)]">帮助你看清还缺哪一类关键单品。</p>
-          </div>
-          <div className="metric-tile p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">重复穿搭</p>
-            <p className="mt-2 text-lg font-semibold text-[var(--ink-strong)]">{reminders?.repeat_warning.length ?? 0}</p>
-            <p className="mt-2 text-xs leading-5 text-[var(--muted)]">防止总是穿同一组搭配出门。</p>
-          </div>
-          <div className="metric-tile p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">洗护 / 闲置</p>
-            <p className="mt-2 text-lg font-semibold text-[var(--ink-strong)]">{(reminders?.laundry_and_care.length ?? 0) + (reminders?.idle_and_seasonal.length ?? 0)}</p>
-            <p className="mt-2 text-xs leading-5 text-[var(--muted)]">提醒你保养和换季整理。</p>
-          </div>
-        </div>
-      </section>
-
-      <section className="section-card rounded-[32px] p-5">
-        <div className="mb-5 flex items-start gap-4">
-          <div className="rounded-[22px] bg-[linear-gradient(135deg,#ffe0d1_0%,#fff6ef_50%,#e4f7ee_100%)] p-3 text-[var(--ink-strong)]">
-            <Sparkles className="size-5" />
-          </div>
-          <div>
-            <div className="pill mb-3">Gap analysis</div>
-            <h3 className="text-xl font-semibold text-[var(--ink-strong)]">缺口分析</h3>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{gaps?.summary ?? "后端返回的缺口摘要会显示在这里。"}</p>
-          </div>
-        </div>
-
-        <div className="grid gap-3 md:grid-cols-3">
-          {gaps?.insights.length ? gaps.insights.map((insight) => (
-            <article key={`${insight.title}-${insight.urgency}`} className="rounded-[24px] border border-[var(--line)] bg-white/82 p-4">
-              <div className="flex items-start justify-between gap-3">
-                <h4 className="text-base font-semibold text-[var(--ink-strong)]">{insight.title}</h4>
-                <span className="pill">{insight.urgency}</span>
+          <div className="grid gap-6 md:grid-cols-3">
+            {gaps?.insights.length ? gaps.insights.map((insight) => (
+              <article key={`${insight.title}-${insight.urgency}`} className="group rounded-[36px] border border-[#e2e8f0] bg-white p-6 shadow-sm transition-all duration-[400ms] hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
+                <div className="flex items-start justify-between gap-4">
+                  <h4 className="text-xl font-bold text-[#2d3748]">{insight.title}</h4>
+                  <span className="rounded-full bg-gradient-to-r from-[#667eea]/10 to-[#764ba2]/10 px-4 py-1.5 text-sm font-medium text-[#667eea]">{insight.urgency}</span>
+                </div>
+                <p className="mt-4 text-base leading-7 text-[#718096]">{insight.description}</p>
+              </article>
+            )) : (
+              <div className="rounded-[36px] border-2 border-dashed border-[#e2e8f0] bg-[#f7fafc]/50 px-6 py-16 text-center text-base leading-7 text-[#718096]">
+                暂时没有新的缺口提示，说明你当前衣橱结构已经比较完整。
               </div>
-              <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{insight.description}</p>
-            </article>
-          )) : (
-            <div className="rounded-[24px] border border-dashed border-[var(--line)] bg-white/75 px-4 py-10 text-sm leading-6 text-[var(--muted)]">
-              暂时没有新的缺口提示，说明你当前衣橱结构已经比较完整。
-            </div>
-          )}
-        </div>
-      </section>
+            )}
+          </div>
+        </section>
 
-      <div className="grid gap-6 xl:grid-cols-3">
-        <ReminderSection
-          title="Repeat reminder"
-          description="重复穿搭提醒"
-          cards={reminders?.repeat_warning ?? []}
-          icon={<Shirt className="size-5" />}
-        />
-        <ReminderSection
-          title="Care reminder"
-          description="洗护提醒"
-          cards={reminders?.laundry_and_care ?? []}
-          icon={<WashingMachine className="size-5" />}
-        />
-        <ReminderSection
-          title="Seasonal reminder"
-          description="换季 / 闲置提醒"
-          cards={reminders?.idle_and_seasonal ?? []}
-          icon={<Sparkles className="size-5" />}
-        />
+        <div className="grid gap-8 xl:grid-cols-3">
+          <ReminderSection
+            title="Repeat reminder"
+            description="重复穿搭提醒"
+            cards={reminders?.repeat_warning ?? []}
+            icon={<Shirt className="size-6" />}
+          />
+          <ReminderSection
+            title="Care reminder"
+            description="洗护提醒"
+            cards={reminders?.laundry_and_care ?? []}
+            icon={<WashingMachine className="size-6" />}
+          />
+          <ReminderSection
+            title="Seasonal reminder"
+            description="换季 / 闲置提醒"
+            cards={reminders?.idle_and_seasonal ?? []}
+            icon={<Sparkles className="size-6" />}
+          />
+        </div>
       </div>
     </div>
   );

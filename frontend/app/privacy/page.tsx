@@ -1,35 +1,24 @@
-import { AppShell } from "@/components/ui/app-shell";
+import { LegalPage } from "@/components/shared/LegalPage";
 
 const sections = [
   {
-    title: "我们收集什么",
-    body: "当你注册、登录、上传单品、保存搭配、记录穿搭或编辑风格画像时，系统会保存与这些操作直接相关的账号信息、衣橱信息、穿搭记录和偏好数据。"
+    heading: "我们收集的信息",
+    body: "AI Wardrobe 会收集你主动提供的账号信息、衣橱图片、穿搭偏好与试衣记录，用于生成个性化搭配、管理衣橱和改进产品体验。",
   },
   {
-    title: "如何使用这些数据",
-    body: "这些数据用于支撑你的私人衣橱管理、推荐排序、提醒生成、风格画像更新以及多端同步。未登录状态下的公开体验数据不会自动并入你的私人账号。"
+    heading: "信息如何使用",
+    body: "我们仅在提供核心功能、保障账号安全、分析产品质量和响应你的支持请求时使用这些信息。衣橱与试衣数据不会被出售给第三方。",
   },
   {
-    title: "第三方服务",
-    body: "项目可能接入认证服务、对象存储、天气服务和外部 AI worker。只有在对应功能被调用时，相关最小必要数据才会被发送给这些服务。"
+    heading: "数据控制",
+    body: "你可以随时更新个人资料、删除衣物记录或请求导出账号数据。涉及模型生成的临时素材会按产品策略进行清理。",
   },
   {
-    title: "你的控制权",
-    body: "你可以通过登录后的产品页面管理自己的衣橱、搭配和风格数据。部署到正式环境前，建议将所有密钥和服务凭证迁移到安全的环境变量或密钥管理系统。"
-  }
+    heading: "安全与联系",
+    body: "我们使用访问控制、传输加密和最小化数据处理原则保护你的信息。如需删除账号或咨询隐私问题，请通过产品内支持入口联系我们。",
+  },
 ];
 
 export default function PrivacyPage() {
-  return (
-    <AppShell title="隐私政策" subtitle="关于账号信息、衣橱数据、推荐信号和第三方服务使用方式的说明。">
-      <div className="space-y-5">
-        {sections.map((section) => (
-          <section key={section.title} className="section-card rounded-[28px] p-6">
-            <h2 className="text-xl font-semibold text-[var(--ink-strong)]">{section.title}</h2>
-            <p className="mt-3 text-sm leading-7 text-[var(--muted)]">{section.body}</p>
-          </section>
-        ))}
-      </div>
-    </AppShell>
-  );
+  return <LegalPage title="隐私政策" updatedAt="2026-05-08" sections={sections} />;
 }

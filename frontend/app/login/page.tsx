@@ -1,5 +1,5 @@
-import { AuthTemplatePage } from "@/components/auth/auth-template-page";
+import { AuthPage } from "@/components/shared/AuthPage";
 
 export default function LoginPage() {
-  return <AuthTemplatePage mode="login" />;
+  return <AuthPage mode="login" />;
 }

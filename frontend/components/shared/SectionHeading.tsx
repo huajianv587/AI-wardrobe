@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { VersionBadge } from "./VersionBadge";
 
 type SectionHeadingProps = {
   eyebrow?: ReactNode;
@@ -17,24 +16,21 @@ export function SectionHeading({
   className = "",
 }: SectionHeadingProps) {
   return (
-    <div
-      className={`${
-        align === "center" ? "mx-auto text-center" : ""
-      } max-w-3xl ${className}`}
-    >
+    <div className={`${align === "center" ? "mx-auto text-center" : ""} max-w-4xl ${className}`}>
       {eyebrow ? (
-        <div className={align === "center" ? "mb-5 flex justify-center" : "mb-5"}>
-          <VersionBadge>{eyebrow}</VersionBadge>
-        </div>
+        <p className="text-xs font-semibold uppercase tracking-[0.34em] text-[var(--couture-gold)]">
+          {eyebrow}
+        </p>
       ) : null}
-      <h1 className="text-balance text-4xl font-semibold leading-[1.05] tracking-[-0.02em] text-[var(--text-primary)] md:text-6xl">
+      <h1 className="mt-4 text-balance text-[clamp(30px,4vw,50px)] font-semibold leading-[1.06] tracking-normal text-[var(--couture-ink)]">
         {title}
       </h1>
       {description ? (
-        <p className="mt-5 text-pretty text-base leading-8 text-[var(--text-secondary)] md:text-lg">
+        <p className="mt-5 max-w-2xl text-pretty text-sm leading-7 text-[var(--couture-muted)] md:text-base md:leading-8">
           {description}
         </p>
       ) : null}
+      <div className={`${align === "center" ? "mx-auto" : ""} mt-7 h-px w-24 bg-[var(--couture-line-strong)]`} />
     </div>
   );
 }

@@ -103,16 +103,17 @@ body {
     "Microsoft YaHei",
     system-ui,
     sans-serif;
-  color: var(--text-primary);
-  background: var(--bg-base);
+  color: var(--couture-ink);
+  background: var(--couture-bg);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 .reveal-on-scroll {
-  opacity: 0;
-  transform: translateY(32px);
+  opacity: 1;
+  transform: translateY(0);
+  animation: couture-panel-enter var(--duration-slow) var(--ease-out-expo) both;
   transition:
     opacity var(--duration-slow) var(--ease-out-expo),
     transform var(--duration-slow) var(--ease-out-expo);
@@ -142,7 +143,7 @@ body::after {
   inset: auto 0 0;
   height: 18vh;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(var(--bg-primary-rgb), 0), rgba(var(--bg-primary-rgb), 0.9));
+  background: linear-gradient(180deg, rgba(251, 246, 238, 0), rgba(251, 246, 238, 0.72));
 }
 
 a {
@@ -2077,6 +2078,149 @@ svg {
   }
 }
 
+.luxe-light-layer {
+  z-index: 0;
+}
+
+.luxe-orb {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(28px);
+  transform: translate3d(0, 0, 0);
+  animation: luxe-orb-drift 18s ease-in-out infinite;
+}
+
+.luxe-orb-pearl {
+  left: 8%;
+  top: -14%;
+  width: min(56vw, 760px);
+  height: min(56vw, 760px);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.92) 0%, rgba(255, 245, 232, 0.28) 42%, transparent 70%);
+}
+
+.luxe-orb-rose {
+  right: -8%;
+  top: 8%;
+  width: min(42vw, 560px);
+  height: min(42vw, 560px);
+  background: radial-gradient(circle, rgba(240, 160, 192, 0.28) 0%, rgba(214, 168, 246, 0.16) 45%, transparent 72%);
+  animation-delay: -6s;
+}
+
+.luxe-orb-gold {
+  left: 26%;
+  bottom: -18%;
+  width: min(44vw, 620px);
+  height: min(44vw, 620px);
+  background: radial-gradient(circle, rgba(232, 200, 122, 0.20) 0%, rgba(255, 248, 232, 0.18) 48%, transparent 72%);
+  animation-delay: -11s;
+}
+
+.luxe-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.16;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.55) 0 1px, transparent 1px),
+    radial-gradient(circle at 76% 18%, rgba(120, 96, 140, 0.14) 0 1px, transparent 1px);
+  background-size: 34px 34px, 46px 46px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.58), transparent 86%);
+}
+
+.luxe-panel {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 36px;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, 0.86), transparent 34%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.82), rgba(255, 249, 244, 0.64));
+  box-shadow:
+    0 30px 90px rgba(84, 62, 120, 0.11),
+    0 0 0 1px rgba(255, 255, 255, 0.34) inset;
+  backdrop-filter: blur(28px);
+  transition:
+    transform 600ms var(--ease-out-expo),
+    box-shadow 600ms var(--ease-out-expo),
+    border-color 600ms var(--ease-out-expo);
+}
+
+.luxe-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95), rgba(232, 200, 122, 0.42), transparent);
+  pointer-events: none;
+}
+
+.luxe-panel::after {
+  content: "";
+  position: absolute;
+  inset: -35% -20% auto auto;
+  width: 46%;
+  height: 62%;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(240, 160, 192, 0.11), transparent 68%);
+  filter: blur(22px);
+  pointer-events: none;
+  animation: luxe-panel-breathe 8s ease-in-out infinite;
+}
+
+.luxe-panel:hover {
+  border-color: rgba(255, 255, 255, 0.92);
+  box-shadow:
+    0 36px 112px rgba(84, 62, 120, 0.14),
+    0 0 54px rgba(240, 160, 192, 0.11),
+    0 0 0 1px rgba(255, 255, 255, 0.48) inset;
+}
+
+.editorial-image {
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  background:
+    radial-gradient(circle at 30% 8%, rgba(255, 255, 255, 0.72), transparent 26%),
+    linear-gradient(135deg, #fff8ef, #f4e9ff 54%, #fff9fb);
+  box-shadow:
+    0 24px 70px rgba(84, 62, 120, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+.editorial-image img {
+  transform: scale(1.01);
+  transition:
+    transform 900ms var(--ease-out-expo),
+    filter 900ms var(--ease-out-expo);
+}
+
+.editorial-image:hover img {
+  transform: scale(1.045);
+  filter: saturate(1.04) contrast(1.02);
+}
+
+@keyframes luxe-orb-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(2.4%, 1.6%, 0) scale(1.04);
+  }
+}
+
+@keyframes luxe-panel-breathe {
+  0%,
+  100% {
+    opacity: 0.54;
+    transform: scale(0.96);
+  }
+
+  50% {
+    opacity: 0.86;
+    transform: scale(1.04);
+  }
+}
+
 @media (max-width: 767px) {
   .scroll-section {
     height: auto;
@@ -2570,5 +2714,1669 @@ svg {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Couture V2 Design System */
+:root {
+  --couture-bg: #fbf6ee;
+  --couture-paper: #fffdf8;
+  --couture-paper-warm: #f6eee4;
+  --couture-ink: #18141c;
+  --couture-muted: #7d7482;
+  --couture-soft: #a79aa4;
+  --couture-gold: #a87732;
+  --couture-red: #8f1f32;
+  --couture-violet: #7557a8;
+  --couture-line: rgba(40, 31, 44, 0.1);
+  --couture-line-strong: rgba(40, 31, 44, 0.18);
+  --couture-shadow-soft: 0 14px 40px rgba(55, 40, 50, 0.08);
+  --couture-shadow: 0 32px 100px rgba(55, 40, 50, 0.13);
+  --couture-shadow-deep: 0 44px 140px rgba(43, 30, 40, 0.18);
+  --couture-spotlight: radial-gradient(circle at 32% 0%, rgba(255, 255, 255, 0.9), transparent 42%),
+    radial-gradient(circle at 78% 10%, rgba(184, 140, 74, 0.13), transparent 34%),
+    radial-gradient(circle at 68% 55%, rgba(117, 87, 168, 0.1), transparent 42%);
+}
+
+.couture-shell {
+  --couture-content-max: 1240px;
+  --couture-wide-max: 1320px;
+  --couture-page-pad: clamp(1rem, 2.5vw, 2rem);
+  --couture-card-min: 280px;
+  --couture-gallery-min: 310px;
+  --couture-route-min: 250px;
+  --couture-recommend-min: 420px;
+  color: var(--couture-ink);
+  background:
+    var(--couture-spotlight),
+    linear-gradient(180deg, #fffaf3 0%, var(--couture-bg) 42%, #fffdf9 100%);
+  font-feature-settings: "kern" 1, "liga" 1;
+  font-optical-sizing: auto;
+  overflow-x: clip;
+}
+
+.couture-page-content,
+.couture-product-main {
+  width: 100%;
+  min-width: 0;
+}
+
+.couture-product-main {
+  max-width: min(var(--couture-content-max), calc(100vw - (var(--couture-page-pad) * 2)));
+}
+
+.couture-shell :where(.grid, .flex) {
+  min-width: 0;
+}
+
+.couture-shell :where(.grid, .flex) > * {
+  min-width: 0;
+}
+
+.couture-shell :where(h1, h2, h3, p) {
+  overflow-wrap: break-word;
+}
+
+.couture-shell h1,
+.couture-shell h2 {
+  font-weight: 580;
+  letter-spacing: 0;
+}
+
+.couture-shell h3 {
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.couture-shell p,
+.couture-shell li {
+  letter-spacing: 0;
+}
+
+.couture-shell [class*="tracking-"] {
+  letter-spacing: 0;
+}
+
+.couture-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.38;
+  background-image:
+    linear-gradient(rgba(66, 47, 53, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(66, 47, 53, 0.035) 1px, transparent 1px);
+  background-size: 86px 86px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent 88%);
+}
+
+.couture-shell::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at 50% -10%, rgba(255, 255, 255, 0.72), transparent 56%),
+    radial-gradient(ellipse at 50% 105%, rgba(143, 31, 50, 0.08), transparent 52%);
+  mix-blend-mode: multiply;
+}
+
+.couture-light-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.couture-light-layer span {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(32px);
+  animation: couture-light-drift 18s ease-in-out infinite;
+}
+
+.couture-light-layer .pearl {
+  left: -8%;
+  top: -18%;
+  width: min(62vw, 820px);
+  height: min(62vw, 820px);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.9), rgba(255, 246, 232, 0.28) 48%, transparent 72%);
+}
+
+.couture-light-layer .gold {
+  right: -12%;
+  top: 18%;
+  width: min(42vw, 560px);
+  height: min(42vw, 560px);
+  background: radial-gradient(circle, rgba(184, 140, 74, 0.16), transparent 72%);
+  animation-delay: -8s;
+}
+
+.couture-light-layer .violet {
+  left: 30%;
+  bottom: -18%;
+  width: min(45vw, 620px);
+  height: min(45vw, 620px);
+  background: radial-gradient(circle, rgba(117, 87, 168, 0.12), transparent 72%);
+  animation-delay: -12s;
+}
+
+.couture-light-layer .grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.18;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.74) 0 1px, transparent 1px),
+    radial-gradient(circle at 78% 18%, rgba(40, 31, 44, 0.13) 0 1px, transparent 1px);
+  background-size: 36px 36px, 52px 52px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.52), transparent 90%);
+}
+
+.couture-scroll-progress {
+  --scroll-progress: 0;
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 80;
+  height: 2px;
+  pointer-events: none;
+  transform-origin: left center;
+  transform: scaleX(var(--scroll-progress));
+  background: linear-gradient(90deg, transparent, rgba(184, 140, 74, 0.68), rgba(143, 31, 50, 0.58), transparent);
+  box-shadow: 0 0 18px rgba(184, 140, 74, 0.22);
+}
+
+.couture-page-content {
+  animation: couture-page-enter 620ms var(--ease-out-expo) both;
+}
+
+.couture-nav-shell {
+  transition:
+    padding-top 320ms var(--ease-out-expo),
+    transform 320ms var(--ease-out-expo);
+}
+
+.couture-nav-shell-scrolled {
+  padding-top: 0.65rem;
+}
+
+.couture-nav {
+  border: 1px solid rgba(40, 31, 44, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 252, 247, 0.78);
+  box-shadow: 0 20px 70px rgba(55, 40, 50, 0.11);
+  backdrop-filter: blur(26px);
+  transform: translateZ(0);
+  transition:
+    border-color 320ms var(--ease-out-expo),
+    background 320ms var(--ease-out-expo),
+    box-shadow 320ms var(--ease-out-expo);
+}
+
+.couture-nav:hover {
+  border-color: rgba(40, 31, 44, 0.14);
+  background: rgba(255, 252, 247, 0.86);
+  box-shadow: 0 24px 84px rgba(55, 40, 50, 0.14);
+}
+
+.couture-nav-scrolled {
+  background: rgba(255, 252, 247, 0.9);
+  box-shadow:
+    0 22px 72px rgba(55, 40, 50, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+.couture-nav-link {
+  position: relative;
+  min-height: 2.45rem;
+  border-radius: 999px;
+  padding: 0.66rem 0.74rem;
+  color: var(--couture-muted);
+  font-size: 0.78rem;
+  font-weight: 650;
+  outline: none;
+  transition:
+    color 260ms ease,
+    background 260ms ease,
+    box-shadow 260ms ease,
+    transform 260ms var(--ease-out-expo);
+}
+
+.couture-nav-link::after {
+  content: "";
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: 0.42rem;
+  height: 1px;
+  transform: scaleX(0);
+  transform-origin: center;
+  background: linear-gradient(90deg, transparent, var(--couture-gold), transparent);
+  opacity: 0;
+  transition:
+    transform 280ms var(--ease-out-expo),
+    opacity 280ms ease;
+}
+
+.couture-nav-link:hover,
+.couture-nav-link-active {
+  color: var(--couture-ink);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: inset 0 0 0 1px rgba(40, 31, 44, 0.06);
+}
+
+.couture-nav-link:hover::after,
+.couture-nav-link-active::after {
+  transform: scaleX(1);
+  opacity: 0.72;
+}
+
+.couture-nav-link:active {
+  transform: translateY(1px) scale(0.985);
+}
+
+.couture-nav-group {
+  position: relative;
+  display: inline-flex;
+}
+
+.couture-nav-popover {
+  position: absolute;
+  top: calc(100% + 0.75rem);
+  left: 50%;
+  z-index: 60;
+  width: min(18rem, 72vw);
+  transform: translate(-50%, 10px);
+  border: 1px solid rgba(40, 31, 44, 0.1);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(184, 140, 74, 0.12), transparent 34%),
+    rgba(255, 252, 247, 0.94);
+  box-shadow: 0 24px 72px rgba(55, 40, 50, 0.16);
+  padding: 0.72rem;
+  opacity: 0;
+  pointer-events: none;
+  backdrop-filter: blur(24px);
+  transition:
+    opacity 240ms ease,
+    transform 280ms var(--ease-out-expo);
+}
+
+.couture-nav-popover::before {
+  content: "";
+  position: absolute;
+  inset: -0.85rem 0 auto;
+  height: 0.9rem;
+}
+
+.couture-nav-group:hover .couture-nav-popover,
+.couture-nav-group:focus-within .couture-nav-popover {
+  transform: translate(-50%, 0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.couture-nav-popover-link {
+  display: block;
+  border-radius: 18px;
+  padding: 0.8rem 0.9rem;
+  outline: none;
+  transition:
+    background 220ms ease,
+    transform 220ms var(--ease-out-expo);
+}
+
+.couture-nav-popover-link:hover,
+.couture-nav-popover-link:focus-visible {
+  background: rgba(255, 255, 255, 0.82);
+  transform: translateY(-1px);
+}
+
+.couture-text-link {
+  color: var(--couture-muted);
+  font-size: 0.88rem;
+  font-weight: 650;
+  outline: none;
+  transition:
+    color 240ms ease,
+    transform 240ms var(--ease-out-expo);
+}
+
+.couture-text-link:hover {
+  color: var(--couture-ink);
+}
+
+.couture-text-link:active {
+  transform: translateY(1px);
+}
+
+.couture-nav-cta {
+  display: inline-flex;
+  min-height: 2.8rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(40, 31, 44, 0.12);
+  border-radius: 999px;
+  padding: 0.72rem 1.35rem;
+  color: var(--couture-bg);
+  background: linear-gradient(135deg, var(--couture-ink), #3a2631 62%, var(--couture-red));
+  box-shadow: 0 16px 44px rgba(55, 40, 50, 0.18);
+  font-size: 0.88rem;
+  font-weight: 720;
+  outline: none;
+  transition:
+    transform 300ms var(--ease-out-expo),
+    box-shadow 300ms var(--ease-out-expo),
+    filter 300ms ease;
+}
+
+.couture-nav-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 22px 60px rgba(55, 40, 50, 0.24);
+  filter: saturate(1.04);
+}
+
+.couture-nav-cta:active {
+  transform: translateY(1px) scale(0.985);
+  box-shadow: 0 12px 32px rgba(55, 40, 50, 0.17);
+}
+
+.couture-solid-button,
+.couture-line-button {
+  display: inline-flex;
+  min-height: 3.35rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  border-radius: 999px;
+  padding: 0.95rem 1.45rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  outline: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 320ms var(--ease-out-expo),
+    box-shadow 320ms var(--ease-out-expo),
+    background 320ms ease,
+    filter 320ms ease;
+}
+
+.couture-solid-button {
+  color: var(--couture-bg);
+  background: linear-gradient(135deg, var(--couture-ink), #3a2631 58%, var(--couture-red));
+  box-shadow: 0 20px 54px rgba(55, 40, 50, 0.2);
+}
+
+.couture-line-button {
+  border: 1px solid var(--couture-line);
+  color: var(--couture-ink);
+  background: rgba(255, 255, 255, 0.62);
+  box-shadow: var(--couture-shadow-soft);
+}
+
+.couture-solid-button:hover,
+.couture-line-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--couture-shadow);
+}
+
+.couture-solid-button:hover {
+  filter: saturate(1.04) contrast(1.02);
+}
+
+.couture-solid-button:active,
+.couture-line-button:active {
+  transform: translateY(1px) scale(0.985);
+  box-shadow: var(--couture-shadow-soft);
+}
+
+.couture-nav-link:focus-visible,
+.couture-nav-popover-link:focus-visible,
+.couture-text-link:focus-visible,
+.couture-nav-cta:focus-visible,
+.couture-solid-button:focus-visible,
+.couture-line-button:focus-visible,
+.couture-direct-entry:focus-visible,
+.couture-model-chip:focus-visible,
+.couture-workflow-entry:focus-visible,
+.couture-mobile-dock-link:focus-visible,
+.couture-mobile-menu-link:focus-visible,
+.couture-mobile-menu-sublink:focus-visible {
+  outline: 2px solid rgba(143, 31, 50, 0.42);
+  outline-offset: 3px;
+}
+
+.couture-shell input,
+.couture-shell textarea,
+.couture-shell select {
+  outline: none;
+  transition:
+    border-color 240ms ease,
+    box-shadow 240ms var(--ease-out-expo),
+    background 240ms ease,
+    transform 240ms var(--ease-out-expo);
+}
+
+.couture-shell input:hover,
+.couture-shell textarea:hover,
+.couture-shell select:hover {
+  border-color: rgba(40, 31, 44, 0.16);
+  background-color: rgba(255, 255, 255, 0.86);
+}
+
+.couture-shell input:focus,
+.couture-shell textarea:focus,
+.couture-shell select:focus {
+  border-color: rgba(143, 31, 50, 0.26);
+  background-color: rgba(255, 255, 255, 0.92);
+  box-shadow:
+    0 0 0 4px rgba(143, 31, 50, 0.06),
+    0 16px 38px rgba(55, 40, 50, 0.08);
+}
+
+.couture-shell button {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.couture-shell button:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+.couture-cover-mark {
+  position: absolute;
+  right: 2.1rem;
+  top: 2.15rem;
+  text-align: right;
+  color: rgba(24, 20, 28, 0.22);
+}
+
+.couture-cover-mark span {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 760;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+}
+
+.couture-cover-mark strong {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 2.6rem;
+  font-weight: 650;
+  letter-spacing: -0.08em;
+}
+
+.couture-editor-note {
+  max-width: 34rem;
+  border-left: 1px solid rgba(143, 31, 50, 0.22);
+  padding-left: 1.15rem;
+}
+
+.couture-editor-note span {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 760;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--couture-gold);
+}
+
+.couture-editor-note p {
+  margin-top: 0.6rem;
+  color: var(--couture-soft);
+  font-size: 0.9rem;
+  line-height: 1.75;
+}
+
+.couture-hero-reason-card {
+  position: absolute;
+  right: 1.5rem;
+  bottom: 11.5rem;
+  width: min(22rem, calc(100% - 3rem));
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 26px;
+  background: rgba(255, 252, 247, 0.76);
+  padding: 1.15rem;
+  box-shadow: 0 22px 64px rgba(35, 25, 32, 0.14);
+  backdrop-filter: blur(22px);
+}
+
+.couture-action-board {
+  position: relative;
+  overflow: hidden;
+  scroll-margin-top: 8rem;
+  border: 1px solid rgba(40, 31, 44, 0.09);
+  border-radius: 38px;
+  background:
+    radial-gradient(circle at 0% 20%, rgba(143, 31, 50, 0.06), transparent 32%),
+    radial-gradient(circle at 84% 0%, rgba(184, 140, 74, 0.13), transparent 34%),
+    linear-gradient(135deg, rgba(255, 253, 248, 0.88), rgba(246, 238, 228, 0.54));
+  padding: clamp(1.25rem, 2.4vw, 2rem);
+  box-shadow: var(--couture-shadow-soft);
+  backdrop-filter: blur(24px);
+}
+
+.couture-action-board::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), rgba(184, 140, 74, 0.36), transparent);
+}
+
+.couture-action-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(40, 31, 44, 0.09);
+  border-radius: 32px;
+  background: rgba(255, 252, 247, 0.62);
+  padding: 0.9rem;
+  box-shadow: 0 18px 54px rgba(55, 40, 50, 0.08);
+  transition: transform 620ms var(--ease-out-expo), box-shadow 620ms var(--ease-out-expo), border-color 620ms var(--ease-out-expo);
+}
+
+.couture-action-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(143, 31, 50, 0.16);
+  box-shadow: var(--couture-shadow);
+}
+
+.couture-runway-strip {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(40, 31, 44, 0.09);
+  border-radius: 38px;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(184, 140, 74, 0.13), transparent 34%),
+    linear-gradient(135deg, rgba(255, 253, 248, 0.84), rgba(246, 238, 228, 0.5));
+  padding: clamp(1.35rem, 2.3vw, 2.35rem);
+  box-shadow: var(--couture-shadow-soft);
+  backdrop-filter: blur(22px);
+}
+
+.couture-runway-strip::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(184, 140, 74, 0.42), rgba(255, 255, 255, 0.92), transparent);
+}
+
+.couture-runway-metric {
+  position: relative;
+  min-height: 9.5rem;
+  padding: clamp(1.1rem, 1.7vw, 1.55rem);
+}
+
+.couture-runway-metric::before {
+  content: "";
+  position: absolute;
+  inset: 18% auto 18% 0;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, rgba(40, 31, 44, 0.13), transparent);
+}
+
+.couture-runway-metric:first-child::before {
+  display: none;
+}
+
+@media (max-width: 1279px) {
+  .couture-runway-metric::before {
+    display: none;
+  }
+}
+
+.couture-panel,
+.couture-feature-tile {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  --pointer-x: 50%;
+  --pointer-y: 0%;
+  border: 1px solid rgba(40, 31, 44, 0.1);
+  border-radius: 38px;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, 0.84), transparent 36%),
+    linear-gradient(145deg, rgba(255, 253, 248, 0.88), rgba(246, 238, 228, 0.62));
+  box-shadow: var(--couture-shadow-soft);
+  backdrop-filter: blur(24px);
+  animation: couture-panel-enter 760ms var(--ease-out-expo) both;
+  transition: transform 700ms var(--ease-out-expo), box-shadow 700ms var(--ease-out-expo), border-color 700ms var(--ease-out-expo);
+}
+
+.couture-surface-sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(255, 255, 255, 0.68), transparent 22%),
+    linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.22) 44%, transparent 64%);
+  mix-blend-mode: soft-light;
+  transition: opacity 520ms var(--ease-out-expo);
+}
+
+.couture-panel:hover > .couture-surface-sheen {
+  opacity: 0.76;
+}
+
+.couture-panel::before,
+.couture-feature-tile::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.92), rgba(184, 140, 74, 0.34), transparent);
+}
+
+.couture-panel:hover,
+.couture-feature-tile:hover,
+.couture-feature-tile-active {
+  border-color: rgba(143, 31, 50, 0.16);
+  box-shadow: var(--couture-shadow);
+}
+
+.couture-command-tile {
+  position: relative;
+  overflow: hidden;
+  min-height: 230px;
+  border: 1px solid var(--couture-line);
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at 92% 8%, rgba(184, 140, 74, 0.12), transparent 34%),
+    linear-gradient(145deg, rgba(255, 253, 248, 0.82), rgba(246, 238, 228, 0.56));
+  padding: 1.45rem;
+  box-shadow: var(--couture-shadow-soft);
+  backdrop-filter: blur(24px);
+  animation: couture-panel-enter 760ms var(--ease-out-expo) both;
+  outline: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 620ms var(--ease-out-expo), box-shadow 620ms var(--ease-out-expo), border-color 620ms var(--ease-out-expo);
+}
+
+.couture-command-tile::after {
+  content: "";
+  position: absolute;
+  inset: auto 18px 18px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(143, 31, 50, 0.22), transparent);
+}
+
+.couture-command-tile:hover {
+  transform: translateY(-4px);
+  border-color: rgba(143, 31, 50, 0.16);
+  box-shadow: var(--couture-shadow);
+}
+
+.couture-feature-tile {
+  padding: 1.55rem;
+  outline: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.couture-feature-tile:hover {
+  transform: translateY(-4px);
+}
+
+.couture-route-map {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--couture-route-min)), 1fr)) !important;
+}
+
+.couture-command-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--couture-card-min)), 1fr)) !important;
+}
+
+.couture-gallery-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--couture-gallery-min)), 1fr)) !important;
+}
+
+.couture-recommendation-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--couture-recommend-min)), 1fr)) !important;
+}
+
+.couture-fit-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)) !important;
+}
+
+.couture-feature-tile:active,
+.couture-command-tile:active,
+.couture-route-card:active,
+.couture-journey-card:active,
+.couture-architecture-card:active {
+  transform: translateY(1px) scale(0.99);
+  box-shadow: var(--couture-shadow-soft);
+}
+
+.couture-feature-tile:focus-visible,
+.couture-command-tile:focus-visible,
+.couture-route-card:focus-visible,
+.couture-journey-card:focus-visible,
+.couture-architecture-card:focus-visible,
+.couture-capability-badge:focus-visible {
+  outline: 2px solid rgba(143, 31, 50, 0.38);
+  outline-offset: 4px;
+}
+
+.couture-image {
+  --pointer-x: 50%;
+  --pointer-y: 0%;
+  isolation: isolate;
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: var(--couture-image-ratio, auto);
+  border: 1px solid rgba(255, 255, 255, 0.74);
+  background: linear-gradient(135deg, #fff8ef, #f1e9df 54%, #fffdf8);
+  box-shadow: 0 26px 80px rgba(55, 40, 50, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.84);
+  transform: translateZ(0);
+  transition:
+    border-color 620ms var(--ease-out-expo),
+    box-shadow 620ms var(--ease-out-expo);
+}
+
+.couture-image img {
+  opacity: 0;
+  transform: scale(1.024);
+  transition:
+    opacity 520ms ease,
+    transform 1100ms var(--ease-out-expo),
+    filter 1100ms var(--ease-out-expo);
+}
+
+.couture-image[data-loaded="true"] img {
+  opacity: 1;
+  transform: scale(1.012);
+}
+
+.couture-image-sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(255, 255, 255, 0.46), transparent 24%),
+    linear-gradient(120deg, transparent 18%, rgba(255, 255, 255, 0.22) 45%, transparent 64%);
+  mix-blend-mode: screen;
+  transition: opacity 560ms var(--ease-out-expo);
+}
+
+.couture-image-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.58) 42%, transparent 58%),
+    linear-gradient(135deg, #fff8ef, #f2e7df 52%, #fffdf8);
+  background-size: 220% 100%, 100% 100%;
+  animation: couture-image-shimmer 1.35s ease-in-out infinite;
+}
+
+.couture-image:hover img,
+.couture-image[data-loaded="true"]:hover img {
+  transform: scale(1.045);
+  filter: saturate(1.04) contrast(1.02);
+}
+
+.couture-image:hover {
+  border-color: rgba(255, 255, 255, 0.92);
+  box-shadow:
+    0 34px 96px rgba(55, 40, 50, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.couture-image:hover .couture-image-sheen {
+  opacity: 0.86;
+}
+
+.couture-capability-badge {
+  display: flex;
+  min-width: 0;
+  min-height: 7.15rem;
+  align-items: flex-start;
+  gap: 0.9rem;
+  border: 1px solid var(--couture-line);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(117, 87, 168, 0.08), transparent 36%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.72), rgba(255, 252, 247, 0.58));
+  padding: 1rem;
+  box-shadow: 0 14px 38px rgba(55, 40, 50, 0.055);
+  outline: none;
+  transition:
+    transform 360ms var(--ease-out-expo),
+    border-color 360ms var(--ease-out-expo),
+    box-shadow 360ms var(--ease-out-expo),
+    background 360ms var(--ease-out-expo);
+}
+
+.couture-capability-badge:hover {
+  transform: translateY(-2px);
+  border-color: rgba(117, 87, 168, 0.22);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(117, 87, 168, 0.12), transparent 38%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(255, 252, 247, 0.72));
+  box-shadow: 0 22px 62px rgba(55, 40, 50, 0.09);
+}
+
+.couture-capability-icon {
+  display: grid;
+  width: 2.35rem;
+  height: 2.35rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(117, 87, 168, 0.09);
+  color: var(--couture-violet);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+.couture-page-hero {
+  scroll-margin-top: 8rem;
+}
+
+.couture-page-hero::after {
+  content: "";
+  position: absolute;
+  inset: auto 8% 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(143, 31, 50, 0.24), rgba(184, 140, 74, 0.34), transparent);
+}
+
+.couture-page-hero-frame {
+  position: relative;
+  min-height: 440px;
+  overflow: hidden;
+  border-radius: 38px;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(255, 255, 255, 0.74), transparent 34%),
+    linear-gradient(145deg, rgba(246, 238, 228, 0.72), rgba(255, 252, 247, 0.88));
+}
+
+.couture-page-hero-frame::before {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  z-index: 2;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  border-radius: 30px;
+}
+
+.couture-page-hero-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 20% 8%, rgba(255, 255, 255, 0.32), transparent 32%),
+    linear-gradient(180deg, transparent 50%, rgba(24, 20, 28, 0.18));
+  mix-blend-mode: soft-light;
+}
+
+.couture-route-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--couture-line);
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(184, 140, 74, 0.1), transparent 32%),
+    rgba(255, 252, 247, 0.62);
+  padding: 0.85rem;
+  box-shadow: var(--couture-shadow-soft);
+  backdrop-filter: blur(20px);
+  outline: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 620ms var(--ease-out-expo),
+    border-color 620ms var(--ease-out-expo),
+    box-shadow 620ms var(--ease-out-expo);
+}
+
+.couture-route-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(143, 31, 50, 0.16);
+  box-shadow: var(--couture-shadow);
+}
+
+.couture-route-mini-link {
+  display: flex;
+  min-height: 2.8rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid rgba(40, 31, 44, 0.07);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
+  padding: 0.7rem 0.9rem 0.7rem 1rem;
+  color: var(--couture-ink);
+  font-size: 0.9rem;
+  font-weight: 680;
+  outline: none;
+  transition:
+    transform 260ms var(--ease-out-expo),
+    border-color 260ms ease,
+    background 260ms ease,
+    color 260ms ease;
+}
+
+.couture-route-mini-link:hover,
+.couture-route-mini-link:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(143, 31, 50, 0.16);
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--couture-red);
+}
+
+.couture-workflow-ribbon,
+.couture-dashboard-journey {
+  position: relative;
+  overflow: hidden;
+  scroll-margin-top: 8rem;
+  border: 1px solid rgba(40, 31, 44, 0.09);
+  border-radius: 36px;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(184, 140, 74, 0.1), transparent 34%),
+    linear-gradient(135deg, rgba(255, 253, 248, 0.82), rgba(246, 238, 228, 0.48));
+  box-shadow: var(--couture-shadow-soft);
+  backdrop-filter: blur(22px);
+}
+
+.couture-dashboard-journey {
+  padding: clamp(1.25rem, 2.4vw, 2rem);
+}
+
+.couture-workflow-ribbon::before,
+.couture-dashboard-journey::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.88), rgba(184, 140, 74, 0.32), transparent);
+}
+
+.couture-workflow-step,
+.couture-journey-card,
+.couture-architecture-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(40, 31, 44, 0.08);
+  border-radius: 28px;
+  background: rgba(255, 252, 247, 0.58);
+  padding: 1.25rem;
+  box-shadow: 0 16px 46px rgba(55, 40, 50, 0.06);
+  transition:
+    transform 520ms var(--ease-out-expo),
+    border-color 520ms var(--ease-out-expo),
+    box-shadow 520ms var(--ease-out-expo),
+    background 520ms var(--ease-out-expo);
+}
+
+.couture-journey-card:hover,
+.couture-architecture-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(143, 31, 50, 0.14);
+  background: rgba(255, 252, 247, 0.78);
+  box-shadow: var(--couture-shadow-soft);
+}
+
+.couture-direct-dock {
+  position: relative;
+}
+
+.couture-direct-entry {
+  position: relative;
+  display: grid;
+  min-height: 13rem;
+  grid-template-columns: auto 1fr auto;
+  gap: 1rem;
+  overflow: hidden;
+  border: 1px solid rgba(40, 31, 44, 0.08);
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(184, 140, 74, 0.11), transparent 34%),
+    linear-gradient(135deg, rgba(255, 252, 247, 0.74), rgba(246, 238, 228, 0.48));
+  padding: 1.15rem;
+  box-shadow: 0 16px 48px rgba(55, 40, 50, 0.065);
+  outline: none;
+  transition:
+    transform 520ms var(--ease-out-expo),
+    border-color 520ms var(--ease-out-expo),
+    box-shadow 520ms var(--ease-out-expo),
+    background 520ms var(--ease-out-expo);
+}
+
+.couture-direct-entry::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), rgba(184, 140, 74, 0.32), transparent);
+}
+
+.couture-direct-entry:hover {
+  transform: translateY(-4px);
+  border-color: rgba(143, 31, 50, 0.16);
+  background:
+    radial-gradient(circle at 18% 0%, rgba(184, 140, 74, 0.15), transparent 36%),
+    linear-gradient(135deg, rgba(255, 252, 247, 0.9), rgba(249, 242, 233, 0.62));
+  box-shadow: 0 26px 76px rgba(55, 40, 50, 0.12);
+}
+
+.couture-direct-entry:active {
+  transform: translateY(1px) scale(0.99);
+  box-shadow: 0 12px 34px rgba(55, 40, 50, 0.08);
+}
+
+.couture-model-strip {
+  display: grid;
+  gap: 1rem;
+  align-items: center;
+  border: 1px solid rgba(40, 31, 44, 0.08);
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at 94% 0%, rgba(117, 87, 168, 0.08), transparent 34%),
+    linear-gradient(135deg, rgba(255, 252, 247, 0.72), rgba(246, 238, 228, 0.42));
+  padding: clamp(1rem, 2vw, 1.35rem);
+  box-shadow: 0 18px 52px rgba(55, 40, 50, 0.07);
+}
+
+@media (min-width: 1024px) {
+  .couture-model-strip {
+    grid-template-columns: 0.34fr 0.66fr;
+  }
+}
+
+.couture-model-chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.couture-model-chip {
+  display: inline-flex;
+  min-height: 3rem;
+  flex-direction: column;
+  justify-content: center;
+  border: 1px solid rgba(40, 31, 44, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
+  padding: 0.55rem 1rem;
+  box-shadow: 0 10px 28px rgba(55, 40, 50, 0.05);
+  outline: none;
+  transition:
+    transform 320ms var(--ease-out-expo),
+    border-color 320ms var(--ease-out-expo),
+    background 320ms ease,
+    box-shadow 320ms var(--ease-out-expo);
+}
+
+.couture-model-chip span {
+  color: var(--couture-ink);
+  font-size: 0.78rem;
+  font-weight: 720;
+}
+
+.couture-model-chip small {
+  margin-top: 0.12rem;
+  color: var(--couture-soft);
+  font-size: 0.66rem;
+  font-weight: 650;
+}
+
+.couture-model-chip:hover {
+  transform: translateY(-2px);
+  border-color: rgba(117, 87, 168, 0.2);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 16px 42px rgba(55, 40, 50, 0.08);
+}
+
+.couture-workflow-entry {
+  display: block;
+  min-height: 100%;
+  color: inherit;
+  text-decoration: none;
+  outline: none;
+}
+
+.couture-workflow-entry:hover {
+  transform: translateY(-4px);
+  border-color: rgba(143, 31, 50, 0.16);
+  box-shadow: 0 26px 76px rgba(55, 40, 50, 0.11);
+}
+
+.couture-workflow-entry:active {
+  transform: translateY(1px) scale(0.99);
+  box-shadow: var(--couture-shadow-soft);
+}
+
+.couture-mobile-dock {
+  transform: translateZ(0);
+}
+
+.couture-mobile-menu-link {
+  outline: none;
+  transition:
+    transform 220ms var(--ease-out-expo),
+    background 220ms ease,
+    color 220ms ease,
+    box-shadow 220ms var(--ease-out-expo);
+}
+
+.couture-mobile-menu-link-active {
+  color: var(--couture-ink);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: inset 0 0 0 1px rgba(40, 31, 44, 0.06);
+}
+
+.couture-mobile-menu-group {
+  border-radius: 24px;
+}
+
+.couture-mobile-menu-sublink {
+  display: block;
+  outline: none;
+  transition:
+    transform 220ms var(--ease-out-expo),
+    background 220ms ease,
+    color 220ms ease;
+}
+
+.couture-mobile-menu-sublink:active {
+  transform: scale(0.985);
+}
+
+.couture-mobile-menu-link:active {
+  transform: scale(0.985);
+}
+
+.couture-mobile-dock .scrollbar-hide {
+  scroll-snap-type: x proximity;
+}
+
+.couture-mobile-dock-link {
+  scroll-snap-align: center;
+  outline: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 220ms var(--ease-out-expo),
+    background 220ms ease,
+    color 220ms ease,
+    box-shadow 220ms var(--ease-out-expo);
+}
+
+.couture-mobile-dock-link:active {
+  transform: scale(0.94);
+}
+
+.couture-mobile-summary-details {
+  display: none;
+}
+
+.couture-workflow-step::after,
+.couture-journey-card::after,
+.couture-architecture-card::after {
+  content: "";
+  position: absolute;
+  inset: auto 1.25rem 1rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(184, 140, 74, 0.22), transparent);
+  opacity: 0.75;
+}
+
+.couture-feature-tile:nth-child(2),
+.couture-command-tile:nth-child(2),
+.couture-route-card:nth-child(2),
+.couture-workflow-step:nth-child(2),
+.couture-journey-card:nth-child(2) {
+  animation-delay: 70ms;
+}
+
+.couture-feature-tile:nth-child(3),
+.couture-command-tile:nth-child(3),
+.couture-route-card:nth-child(3),
+.couture-workflow-step:nth-child(3),
+.couture-journey-card:nth-child(3) {
+  animation-delay: 120ms;
+}
+
+.couture-feature-tile:nth-child(4),
+.couture-command-tile:nth-child(4),
+.couture-route-card:nth-child(4) {
+  animation-delay: 170ms;
+}
+
+.couture-feature-tile:nth-child(n + 5),
+.couture-command-tile:nth-child(n + 5),
+.couture-route-card:nth-child(n + 5) {
+  animation-delay: 210ms;
+}
+
+.couture-marquee {
+  animation: couture-marquee 28s linear infinite;
+}
+
+@keyframes couture-page-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes couture-light-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(2.5%, 1.8%, 0) scale(1.035);
+  }
+}
+
+@keyframes couture-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes couture-panel-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes couture-image-shimmer {
+  0% {
+    background-position: 180% 0, 0 0;
+  }
+  100% {
+    background-position: -80% 0, 0 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .couture-shell {
+    --couture-page-pad: 1rem;
+    --couture-card-min: 100%;
+    --couture-gallery-min: 100%;
+    --couture-route-min: 100%;
+    --couture-recommend-min: 100%;
+  }
+
+  .couture-nav-shell {
+    padding-inline: 0.75rem;
+    padding-top: 0.75rem;
+  }
+
+  .couture-nav {
+    gap: 0.75rem;
+    border-radius: 999px;
+    padding: 0.72rem 0.85rem;
+  }
+
+  .couture-product-main {
+    padding-top: 5.7rem;
+    padding-bottom: calc(6.25rem + env(safe-area-inset-bottom));
+  }
+
+  .couture-editorial-hero-section {
+    min-height: auto;
+    gap: 1rem;
+    padding: 5.7rem 1rem 2.25rem;
+  }
+
+  .couture-editorial-hero-visual {
+    order: -1;
+    min-height: 0;
+  }
+
+  .couture-editorial-hero-glow {
+    inset: -0.75rem;
+    border-radius: 34px;
+    filter: blur(18px);
+  }
+
+  .couture-editorial-hero-visual .couture-image {
+    aspect-ratio: 4 / 5;
+    min-height: min(58svh, 420px) !important;
+    border-radius: 28px;
+  }
+
+  .couture-editorial-hero-stats {
+    display: none;
+  }
+
+  .couture-editorial-hero-copy h1,
+  .couture-product-main h1 {
+    font-size: clamp(28px, 8.6vw, 34px) !important;
+    line-height: 1.08 !important;
+  }
+
+  .couture-product-main h2 {
+    font-size: clamp(20px, 6vw, 26px) !important;
+    line-height: 1.14 !important;
+  }
+
+  .couture-editorial-hero-copy p,
+  .couture-product-main p {
+    font-size: 14px;
+    line-height: 1.72;
+  }
+
+  .couture-editorial-hero-copy .couture-line-button {
+    display: none;
+  }
+
+  .couture-editorial-hero-copy .couture-solid-button,
+  .couture-product-main .couture-solid-button,
+  .couture-product-main .couture-line-button {
+    min-height: 2.9rem;
+    justify-content: center;
+    padding: 0.78rem 1rem;
+    font-size: 14px;
+  }
+
+  .couture-marquee,
+  .couture-landing-secondary,
+  .couture-landing-quality,
+  .couture-landing-preview,
+  .couture-landing-functional-map,
+  .couture-landing-feature-low-mobile {
+    display: none !important;
+  }
+
+  .couture-landing-entry,
+  .couture-landing-workflow,
+  .couture-landing-feature,
+  .couture-landing-final-cta {
+    padding-top: 2.4rem;
+    padding-bottom: 2.4rem;
+  }
+
+  .couture-direct-dock {
+    gap: 0.85rem;
+  }
+
+  .couture-direct-entry:nth-child(n + 5):nth-child(-n + 7) {
+    display: none;
+  }
+
+  .couture-direct-entry {
+    min-height: 7.2rem;
+    border-radius: 26px;
+    padding: 1rem;
+  }
+
+  .couture-direct-entry > span:nth-child(2) > span:nth-child(3) {
+    display: none;
+  }
+
+  .couture-model-strip {
+    display: none;
+  }
+
+  .couture-workflow-entry {
+    min-height: auto;
+    padding: 1rem;
+  }
+
+  .couture-workflow-entry p,
+  .couture-workflow-entry span {
+    font-size: 13px;
+  }
+
+  .couture-dashboard-stack {
+    gap: 1.15rem;
+  }
+
+  .couture-dashboard-block-hero {
+    order: 1;
+  }
+
+  .couture-dashboard-block-tasks {
+    order: 2;
+  }
+
+  .couture-dashboard-block-map {
+    order: 3;
+  }
+
+  .couture-dashboard-block-activity {
+    order: 4;
+  }
+
+  .couture-dashboard-block-journey,
+  .couture-dashboard-block-stats,
+  .couture-dashboard-block-quick {
+    display: none;
+  }
+
+  .couture-dashboard-hero-panel {
+    padding: 0.65rem;
+  }
+
+  .couture-dashboard-hero-panel > .grid {
+    gap: 0.8rem;
+  }
+
+  .couture-dashboard-hero-copy {
+    min-height: 0;
+    padding: 1.1rem 1rem 1.25rem;
+  }
+
+  .couture-dashboard-hero-copy h1 {
+    margin-top: 1.35rem;
+  }
+
+  .couture-dashboard-hero-visual,
+  .couture-dashboard-hero-visual .couture-image {
+    aspect-ratio: 4 / 5;
+    min-height: min(54svh, 390px) !important;
+    border-radius: 28px;
+  }
+
+  .couture-category-strip {
+    flex-wrap: nowrap !important;
+    margin-inline: -0.25rem;
+    overflow-x: auto;
+    padding-inline: 0.25rem;
+    padding-bottom: 0.25rem;
+    scroll-snap-type: x proximity;
+  }
+
+  .couture-category-strip > * {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+
+  .couture-gallery-grid,
+  .couture-recommendation-grid,
+  .couture-fit-grid,
+  .couture-route-map,
+  .couture-command-grid {
+    gap: 1rem;
+  }
+
+  .couture-route-card {
+    border-radius: 26px;
+    padding: 1rem;
+  }
+
+  .couture-route-card > div:first-child,
+  .couture-route-card > p:nth-of-type(2),
+  .couture-route-card > div:last-child {
+    display: none;
+  }
+
+  .couture-route-card > div:nth-of-type(2) {
+    margin-top: 0;
+  }
+
+  .couture-route-card h3 {
+    margin-top: 0.45rem;
+    font-size: 18px;
+  }
+
+  .couture-route-mini-link {
+    min-height: 2.65rem;
+    border-radius: 999px;
+  }
+
+  .couture-desktop-copy,
+  .couture-model-capability-grid {
+    display: none;
+  }
+
+  .couture-mobile-summary-details {
+    display: block;
+    border: 1px solid var(--couture-line);
+    border-radius: 22px;
+    background: rgba(255, 252, 247, 0.66);
+    padding: 0.9rem 1rem;
+  }
+
+  .couture-mobile-summary-details summary {
+    cursor: pointer;
+    list-style: none;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--couture-ink);
+  }
+
+  .couture-mobile-summary-details summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .couture-analysis-insight-list > div:nth-child(n + 2) {
+    display: none;
+  }
+
+  .couture-tryon-studio {
+    gap: 1rem;
+  }
+
+  .couture-assistant-workspace {
+    gap: 1rem;
+  }
+
+  .couture-assistant-context .couture-image {
+    display: none;
+  }
+
+  .couture-mobile-dock {
+    inset-inline: 0.75rem;
+    bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    border-radius: 24px;
+  }
+
+  .couture-mobile-dock-link {
+    min-height: 3rem;
+    font-size: 10px;
+  }
+
+  .couture-panel,
+  .couture-feature-tile {
+    border-radius: 28px;
+  }
+
+  .couture-command-tile,
+  .couture-route-card {
+    border-radius: 28px;
+    padding: 1rem;
+  }
+
+  .couture-runway-strip {
+    border-radius: 28px;
+  }
+
+  .couture-runway-metric {
+    min-height: 7.5rem;
+    padding: 1rem 0;
+  }
+
+  .couture-runway-metric::before {
+    display: none;
+  }
+
+  .couture-page-hero-frame {
+    min-height: 360px;
+    border-radius: 30px;
+  }
+
+  .couture-page-hero-frame::before {
+    inset: 12px;
+    border-radius: 24px;
+  }
+
+  .couture-workflow-ribbon,
+  .couture-dashboard-journey {
+    border-radius: 28px;
+  }
+
+  .couture-workflow-step,
+  .couture-journey-card,
+  .couture-architecture-card {
+    border-radius: 24px;
+    padding: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .couture-panel,
+  .couture-page-content,
+  .couture-feature-tile,
+  .couture-command-tile,
+  .couture-route-card,
+  .couture-journey-card,
+  .couture-architecture-card,
+  .couture-light-layer span,
+  .couture-marquee {
+    animation: none;
+  }
+
+  .couture-image img,
+  .couture-image,
+  .couture-image-sheen,
+  .couture-surface-sheen,
+  .couture-nav,
+  .couture-nav-shell,
+  .couture-nav-link,
+  .couture-solid-button,
+  .couture-line-button,
+  .couture-nav-cta,
+  .couture-mobile-dock-link,
+  .couture-mobile-menu-link,
+  .couture-shell input,
+  .couture-shell textarea,
+  .couture-shell select,
+  .couture-route-card,
+  .couture-journey-card,
+  .couture-architecture-card,
+  .couture-page-hero-frame {
+    transition: none;
   }
 }

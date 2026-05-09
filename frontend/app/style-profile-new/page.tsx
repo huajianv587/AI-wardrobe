@@ -1,17 +1,15 @@
 import { AppShell } from "@/components/shared/AppShell";
-import { StyleProfileEditor } from "@/components/shared/ProductModules";
-import { SectionHeading } from "@/components/shared/SectionHeading";
+import { ProductPageHero, ProductWorkflowRibbon, StyleProfileEditor } from "@/components/shared/ProductModules";
 
 export default function StyleProfilePage() {
   return (
     <AppShell activePath="/style-profile-new">
-      <div className="grid gap-10">
-        <SectionHeading
-          eyebrow="风格档案"
-          title="把模糊的喜欢，变成可计算的风格规则"
-          description="维护风格标签、色彩偏好、体型信息和场景权重，让推荐不只是好看，而是真正适合你。"
-        />
-        <StyleProfileEditor />
+      <div className="grid gap-12">
+        <ProductPageHero route="/style-profile-new" />
+        <ProductWorkflowRibbon route="/style-profile-new" />
+        <section id="profile-workspace" className="scroll-mt-32">
+          <StyleProfileEditor />
+        </section>
       </div>
     </AppShell>
   );

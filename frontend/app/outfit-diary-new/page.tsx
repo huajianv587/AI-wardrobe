@@ -1,17 +1,15 @@
 import { AppShell } from "@/components/shared/AppShell";
-import { DiaryTimeline } from "@/components/shared/ProductModules";
-import { SectionHeading } from "@/components/shared/SectionHeading";
+import { DiaryTimeline, ProductPageHero, ProductWorkflowRibbon } from "@/components/shared/ProductModules";
 
 export default function OutfitDiaryPage() {
   return (
     <AppShell activePath="/outfit-diary-new">
-      <div className="grid gap-10">
-        <SectionHeading
-          eyebrow="穿搭日记"
-          title="记录每天穿什么，也记录为什么喜欢"
-          description="把天气、场景、心情、满意度和复穿按钮放进同一条时间线，让 AI 越用越懂你。"
-        />
-        <DiaryTimeline />
+      <div className="grid gap-12">
+        <ProductPageHero route="/outfit-diary-new" />
+        <ProductWorkflowRibbon route="/outfit-diary-new" />
+        <section id="diary-workspace" className="scroll-mt-32">
+          <DiaryTimeline />
+        </section>
       </div>
     </AppShell>
   );

@@ -2,6 +2,7 @@
 
 import { motion, type HTMLMotionProps } from "framer-motion";
 import type { CSSProperties, ReactNode } from "react";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 interface GlowButtonProps extends Omit<HTMLMotionProps<"button">, "children"> {
   children: ReactNode;
@@ -17,13 +18,15 @@ export function GlowButton({
   variant = "outline",
   ...props
 }: GlowButtonProps) {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
     <motion.button
       data-cursor="hover"
       data-variant={variant}
       type={type ?? "button"}
-      whileHover={{ y: -3, scale: 1.01 }}
-      whileTap={{ scale: 0.96 }}
+      whileHover={prefersReducedMotion ? {} : { y: -3, scale: 1.01 }}
+      whileTap={prefersReducedMotion ? {} : { scale: 0.96 }}
       className={["glow-button", className].filter(Boolean).join(" ")}
       style={{ "--button-glow": glowColor } as CSSProperties}
       {...props}

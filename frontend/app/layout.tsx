@@ -6,18 +6,18 @@ const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600"],
   variable: "--font-cormorant",
-  display: "swap"
+  display: "swap",
 });
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
   variable: "--font-dm-sans",
-  display: "swap"
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "云衣橱 · AI Wardrobe",
-  description: "每一件衣服，都值得被看见"
+  description: "每一件衣服，都值得被看见。",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
